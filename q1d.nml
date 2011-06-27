@@ -1,0 +1,29 @@
+&code_control
+  iterations = 100000
+  firstorder = 10000
+  itercheck  = 1000
+  rkorder    = 1
+  cfl        = 1.0
+  limiter    = 'none'
+  muscl      = .false.
+  kappa      = -1.0
+  toler      = 1.0e-13
+/
+
+&flux
+  flux_type  = 'jst'
+  k2         = 0.5
+  k4         = 0.03125
+/
+
+&conditions
+  mref  = 1.5
+  to    = 600.0
+  po    = 300000.0
+  pback = -1.0
+/
+
+&gas_properties
+  gamma = 1.4
+  r     = 287.0
+/
