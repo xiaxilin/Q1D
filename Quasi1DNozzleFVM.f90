@@ -6,7 +6,7 @@
 !Central difference with J-S-T damping
 !The following use MUSCL interpolation of primitive variables
 !Steger-Warming FVS
-!Van Leer FVS (Needs to be fixed for shock case)
+!Van Leer FVS
 !Liou-Steffen (AUSM) FVS
 !Roe's (Roe-Pike) FDS
 !HLLC FDS (To be added)

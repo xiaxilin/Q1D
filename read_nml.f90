@@ -8,6 +8,25 @@ module namelist
 
   public :: read_nml
 
+  public :: iterations ! total number of iterations
+  public :: firstorder ! if 2nd order, how many 1st order iters for stability?
+  public :: itercheck  ! check for convergence every itercheck iters
+  public :: rkorder    ! multistep RK order 1, 2, 3, or 4
+  public :: cfl        ! CFL limit
+  public :: muscl      ! MUSCL extrapolation, .true. or .false.
+  public :: kappa      ! form of MUSCL
+  public :: limiter    ! type of variable limiting 
+  public :: toler      ! convergence tolerance
+  public :: flux_type  ! flux type, '2nd', 'jst', 'sw', 'vanleer', 'roe', 'ausm'
+  public :: k2         ! JST damping coefficient
+  public :: k4         ! JST damping coefficient
+  public :: mref       ! Initial mach number in nozzle
+  public :: to         ! Inflow stag. temp
+  public :: po         ! Inflow stag. pressure
+  public :: pback      ! Outflow backpressure, negative for extrapolation
+  public :: gamma      ! Ratio of specific heats
+  public :: r          ! Gas constant
+
 ! Define namelist inputs
 
   integer           :: iterations, firstorder, itercheck, rkorder
@@ -22,13 +41,18 @@ module namelist
   namelist /flux/ flux_type, k2, k4
 
   real(dp) :: mref, to, po pback
-  namelist /conditions/ mreft, to, po, pback
+  namelist /conditions/ mref, to, po, pback
 
   real(dp) :: gamma, r
   namelist /gas_properties/ gamma, r
 
 contains
 
+!================================= read_nml ==================================80
+!
+! Reads the q1d.nml file
+!
+!=============================================================================80
   subroutine read_nml
 
     use set_precision, only : dp
@@ -48,9 +72,9 @@ contains
     itercheck  = 1000
     rkorder    = 1
     cfl        = 1.0
-    limiter    = 'none'
     muscl      = .false.
     kappa      = -1.0
+    limiter    = 'none'
     toler      = 1.0e-13
 
     rewind(nml_unit)
