@@ -67,7 +67,8 @@ module constants
 
 end module constants
 
-!*****************************************************************************80
+
+!=============================================================================80
 module set_inputs
 
   use set_precision, only : dp
@@ -84,7 +85,8 @@ module set_inputs
 
 end module set_inputs
 
-!*****************************************************************************80
+
+!=============================================================================80
 module solution_variables
 
   use set_precision, only : dp
@@ -112,7 +114,8 @@ module solution_variables
   end subroutine allocate_solution_variables
 
 end module solution_variables
-!*****************************************************************************
+
+!=============================================================================80
 module geometry
 
   use Set_precision, only : dp
@@ -140,7 +143,8 @@ module geometry
   end subroutine allocate_geometry_variables
 
 end module geometry
-!******************************************************************************
+
+!=============================================================================80
 module flux_constants
 
   use set_precision, only : dp
@@ -168,7 +172,8 @@ module flux_constants
   end subroutine allocate_flux_constants
 
 end module flux_constants
-!******************************************************************************
+
+!=============================================================================80
 subroutine set_constants
   use set_precision, only : dp
   use constants,     only : one
@@ -179,7 +184,8 @@ subroutine set_constants
   pi = acos(-one)
 
 end subroutine set_constants
-!******************************************************************************
+
+!=============================================================================80
 subroutine read_input
 
   use set_precision, only : dp
@@ -223,7 +229,8 @@ subroutine read_input
   print *,'MUSCL (0=No, 1=Yes): ',eps
 
 end subroutine read_input
-!******************************************************************************
+
+!=============================================================================80
 subroutine primitive_to_conserved(faces, gamma, qp, Q)
 
   use set_precision, only : dp
@@ -241,7 +248,8 @@ subroutine primitive_to_conserved(faces, gamma, qp, Q)
   Q(3,:) = (qp(3,:)/(gamma-one))+half*(qp(1,:)*qp(2,:)*qp(2,:))
 
 end subroutine primitive_to_conserved
-!*******************************************************************************
+
+!=============================================================================80
 subroutine conserved_to_primitive(faces,gamma,Q,qp)
 
   use set_precision, only : dp
@@ -259,7 +267,8 @@ subroutine conserved_to_primitive(faces,gamma,Q,qp)
   qp(3,:) = (gamma-one)*(Q(3,:)-half*(Q(2,:)*Q(2,:)/Q(1,:)))
 
 end subroutine conserved_to_primitive
-!*****************************************************************************80
+
+!=============================================================================80
 subroutine muscl_primitive_var(V, iterations, FirstOrderIters,                 &
                                epsin, kappa, faces, Vplus, Vmin)
 
@@ -320,7 +329,7 @@ subroutine muscl_primitive_var(V, iterations, FirstOrderIters,                 &
 
 end subroutine muscl_primitive_var
 
-!*******************************************************************************
+!=============================================================================80
 subroutine set_geometry
 
   use set_inputs
@@ -349,7 +358,7 @@ subroutine set_geometry
 
 end subroutine set_geometry
 
-!*******************************************************************************
+!=============================================================================80
 subroutine set_initial_values
 
   use set_inputs
@@ -384,6 +393,7 @@ subroutine set_initial_values
   end do
 
 end subroutine set_initial_values
+
 !=============================================================================80
 subroutine central_diff_with_jst_damping(faces,ktwo,kfour,a,qp,Q,F)
 
@@ -443,6 +453,7 @@ subroutine central_diff_with_jst_damping(faces,ktwo,kfour,a,qp,Q,F)
   end do
 
 end subroutine central_diff_with_jst_damping
+
 !=============================================================================80
 subroutine steger_warming_fvs(faces,gamma,qplus,qmin,F)
 
@@ -510,6 +521,7 @@ subroutine steger_warming_fvs(faces,gamma,qplus,qmin,F)
   end do
 
 end subroutine steger_warming_fvs
+
 !=============================================================================80
 subroutine van_leer_fvs(faces,gamma,qplus,qmin,F)
 
