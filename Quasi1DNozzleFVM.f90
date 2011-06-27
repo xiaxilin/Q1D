@@ -11,12 +11,18 @@
 !Roe's (Roe-Pike) FDS
 !HLLC FDS (To be added)
 
-!*****************************************************************************80
+!============================== set_precision ================================80
+!
+! Provides IEEE 754 compliant kinds
+!
+!=============================================================================80
 module set_precision
 
   implicit none
 
-  save
+  private
+
+  public :: sngl, dbl, quad, dp
 
   integer, parameter :: sngl = selected_real_kind( 6, 37)
   integer, parameter :: dbl  = selected_real_kind(15, 307)
@@ -25,23 +31,39 @@ module set_precision
 
 end module set_precision
 
-!*****************************************************************************80
+!================================ constants ==================================80
+!
+! Provides useful constants
+!
+!=============================================================================80
 module constants
 
   use set_precision, only : dp
 
   implicit none
 
+  private
+
+  public :: zero, one, two, three, four, five, six
+  public :: sixth, fifth, fourth, third, half
+  public :: small, large
+
   real(dp), parameter :: zero   = 0.0_dp
-  real(dp), parameter :: sixth  = 1.0_dp/6.0_dp
-  real(dp), parameter :: fifth  = 0.2_dp
-  real(dp), parameter :: fourth = 0.25_dp
-  real(dp), parameter :: third  = 1.0_dp/3.0_dp
-  real(dp), parameter :: half   = 0.5_dp
   real(dp), parameter :: one    = 1.0_dp
   real(dp), parameter :: two    = 2.0_dp
   real(dp), parameter :: three  = 3.0_dp
   real(dp), parameter :: four   = 4.0_dp
+  real(dp), parameter :: five   = 5.0_dp
+  real(dp), parameter :: six    = 6.0_dp
+
+  real(dp), parameter :: sixth  = one/six
+  real(dp), parameter :: fifth  = 0.2_dp
+  real(dp), parameter :: fourth = 0.25_dp
+  real(dp), parameter :: third  = one/three
+  real(dp), parameter :: half   = 0.5_dp
+
+  real(dp), parameter :: small  = tiny(one)
+  real(dp), parameter :: large  = huge(one)
 
 end module constants
 
@@ -51,8 +73,6 @@ module set_inputs
   use set_precision, only : dp
 
   implicit none
-
-  save
 
   integer  :: i, j, k, n, z, RK
   integer  :: Num1stOrderIter, Flux_type, RKorder, nout, nmax, imax
