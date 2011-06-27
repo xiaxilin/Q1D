@@ -13,7 +13,7 @@
 
 !============================== set_precision ================================80
 !
-! Provides IEEE 754 compliant kinds
+! Provides IEEE 754 compliant real kinds
 !
 !=============================================================================80
 module set_precision
@@ -44,12 +44,18 @@ module constants
 
   private
 
-  public :: zero, one, two, three, four, five, six
+  public :: zero, one, onep5, two, three, four, five, six
   public :: sixth, fifth, fourth, third, half
+
+! extremes
   public :: small, large
+
+! transcendental numbers, etc...
+  public :: pi, set_pi
 
   real(dp), parameter :: zero   = 0.0_dp
   real(dp), parameter :: one    = 1.0_dp
+  real(dp), parameter :: onep5  = 1.5_dp
   real(dp), parameter :: two    = 2.0_dp
   real(dp), parameter :: three  = 3.0_dp
   real(dp), parameter :: four   = 4.0_dp
@@ -65,6 +71,20 @@ module constants
   real(dp), parameter :: small  = tiny(one)
   real(dp), parameter :: large  = huge(one)
 
+  real(dp) :: pi = 3.14159265358979_dp
+
+contains
+
+!=============================================================================80
+  subroutine set_pi
+    use set_precision, only : dp
+
+    implicit none
+
+    pi = acos(-one)
+
+  end subroutine set_pi
+
 end module constants
 
 
@@ -78,7 +98,7 @@ module set_inputs
   integer  :: i, j, k, n, z, RK
   integer  :: Num1stOrderIter, Flux_type, RKorder, nout, nmax, imax
   real(dp) :: R, gamma, Mref, conv, Toint, Point, Pback, kfour, ktwo,	       &
-              kappa, eps, CFL, pi
+              kappa, eps, CFL
 
 ! Sonic point fix parameter
   real(dp), parameter :: lambdaeps = 0.1_dp
@@ -172,18 +192,6 @@ module flux_constants
   end subroutine allocate_flux_constants
 
 end module flux_constants
-
-!=============================================================================80
-subroutine set_constants
-  use set_precision, only : dp
-  use constants,     only : one
-  use set_inputs,    only : pi
-
-  implicit none
-
-  pi = acos(-one)
-
-end subroutine set_constants
 
 !=============================================================================80
 subroutine read_input
@@ -332,12 +340,11 @@ end subroutine muscl_primitive_var
 !=============================================================================80
 subroutine set_geometry
 
+  use constants, only : pi
   use set_inputs
   use geometry
 
   implicit none
-
-  call set_constants
 
   dx = NozzleLength/real(imax-1,dp)
   do i=1,imax+1
@@ -734,7 +741,7 @@ end subroutine roes_fds
 program quasi1dnozzlefvm
 
   use set_precision, only : dp
-  use constants,     only : zero, one, two
+  use constants,     only : zero, one, two, set_pi
   use set_inputs
   use solution_variables
   use geometry
@@ -746,6 +753,8 @@ program quasi1dnozzlefvm
   real(dp), dimension(3) :: ent
 
   continue
+
+  call set_pi
 
   call read_input()
 !  call read_grid()
@@ -850,9 +859,9 @@ program quasi1dnozzlefvm
         Rrhou  = Rrhou+((U(2,i)-U0(2,i))/dt)**2
         Rrhoet = Rrhoet+((U(3,i)-U0(3,i))/dt)**2
       end do
-      L1Rrho   = sqrt(amax1(Rrho, 1.e-20_dp))   / real(imax-1,dp)
-      L1Rrhou  = sqrt(amax1(Rrhou, 1.e-20_dp))  / real(imax-1,dp)
-      L1Rrhoet = sqrt(amax1(Rrhoet, 1.e-20_dp)) / real(imax-1,dp)
+      L1Rrho   = sqrt(max(Rrho, 1.e-20_dp))   / real(imax-1,dp)
+      L1Rrhou  = sqrt(max(Rrhou, 1.e-20_dp))  / real(imax-1,dp)
+      L1Rrhoet = sqrt(max(Rrhoet, 1.e-20_dp)) / real(imax-1,dp)
 
       if(n.eq.1) then
         L1Rrhoinit   = L1Rrho
