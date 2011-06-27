@@ -40,7 +40,7 @@ module namelist
   real(dp)          :: k2, k4
   namelist /flux/ flux_type, k2, k4
 
-  real(dp) :: mref, to, po pback
+  real(dp) :: mref, to, po, pback
   namelist /conditions/ mref, to, po, pback
 
   real(dp) :: gamma, r
@@ -110,5 +110,7 @@ contains
     close(nml_unit)
 
   end subroutine read_nml
+
+  include 'find_available_unit.f90'
 
 end module namelist
