@@ -18,8 +18,8 @@ module namelist
   public :: limiter    ! type of variable limiting 
   public :: toler      ! convergence tolerance
   public :: flux_type  ! flux type, '2nd', 'jst', 'sw', 'vanleer', 'roe', 'ausm'
-  public :: k2         ! JST damping coefficient
-  public :: k4         ! JST damping coefficient
+  public :: k2         ! JST damping coefficient, only for flux_type = 'jst'
+  public :: k4         ! JST damping coefficient, only for flux_type = 'jst'
   public :: mref       ! Initial mach number in nozzle
   public :: to         ! Inflow stag. temp
   public :: po         ! Inflow stag. pressure
@@ -37,7 +37,7 @@ module namelist
                           limiter, muscl, kappa, toler
 
   character(len=10) :: flux_type
-  real(dp)          :: k2, k4    ! only for flux_type = 'jst'
+  real(dp)          :: k2, k4
   namelist /flux/ flux_type, k2, k4
 
   real(dp) :: mref, to, po pback
