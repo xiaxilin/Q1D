@@ -1,1 +1,30 @@
-Quasi-1D Nozzle, multiple changes soon
+Quasi-1D Nozzle, written in Fortran 9X
+
+This is a FVM code with a multistep Runge-Kutta explicit solver.
+Both first order and second order ( via MUSCL primitive variable extrapolation )
+fluxes are included for a variety of schemes.
+The code has been branched and merged several times, 
+with this repo starting at an intermediate step in the attempt to correct some
+issues and apply lessons learned.
+
+The code base will be split into several files,
+and many of the current methods will be adjusted to work as functions to aid 
+unit-testing.
+
+Due to the splitting of the source code into multiple files, 
+a makefile for Linux systems will be appearing shortly followed by a 
+slink file for Windows systems with a Silverfrost compiler.
+
+Once this code base is up to standard, an implicit solver will be implemented,
+followed by an adjoint code.
+
+Example unit-tests will be added.
+
+Coding standard:
+80 column line limit for readability
+No tabs, only spaces for indentation, run untabify in emacs
+No trailing whitespace
+Try to avoid CAPS, except in comments
+
+Explicitly declare public routines in modules
+Use functions wherever possible
