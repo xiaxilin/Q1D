@@ -1,8 +1,8 @@
 pure function primitive_to_conserved_1D(qp) result(q)
 
-  use set_precision, only : dp
-  use set_constants, only : half
-  use fluid,         only : xgm1
+  use set_precision,   only : dp
+  use set_constants,   only : half
+  use fluid_constants, only : xgm1
 
   implicit none
 
