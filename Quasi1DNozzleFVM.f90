@@ -1,15 +1,33 @@
+! This code utilizes a cell-centered finite volume method to 
+! solve the inviscid quasi-1D nozzle problem.
+! Runge-Kutta explicit time stepping is used.
 
-!This code will utilize the Finite Volume Method to 
-!solve the quasi-1D nozzle using the Euler equations.
-!Runge-Kutta time integration is used.
-!There are six flux options found in Set_Inputs:
-!Central difference with J-S-T damping
-!The following use MUSCL interpolation of primitive variables
-!Steger-Warming FVS
-!Van Leer FVS
-!Liou-Steffen (AUSM) FVS
-!Roe's (Roe-Pike) FDS
-!HLLC FDS (To be added)
+! There are six flux options found in Set_Inputs:
+! Central difference with J-S-T damping
+! The following use MUSCL interpolation of primitive variables
+! Steger-Warming FVS
+! Van Leer FVS
+! Liou-Steffen (AUSM) FVS
+! Roe's (Roe-Pike) FDS
+! HLLC FDS (To be added)
+
+! The code requires that the number of interior cells, N, be specified,
+! however, two additional cells, cell(1) and cell(N+2), are ghost cells,
+! while the interior domain is contained by cell(2,N+1).
+! Since there are N interior cells, there are N+1 faces.
+! Hopefully the below diagram explains this:
+
+! DOMAIN: inflow |        interior        | outflow
+!        -----------------------------------------
+! CELLS:     1   |   2   | ...... |  N+1  |  N+2
+!        -----------------------------------------
+! FACES:         1       2        N      N+1
+
+! Where appropriate, the code will loop over faces, 
+! such as when it is calculating fluxes, or over cells, 
+! such as when the explicit iteration is being performed.
+
+
 
 !============================== set_precision ================================80
 !
@@ -785,6 +803,8 @@ program quasi1dnozzlefvm
     end do
 
     do RK=1,RKorder
+
+! call form_residual(dt)
 
       select case (Flux_Type)
       case (1)

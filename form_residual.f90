@@ -21,11 +21,13 @@ subroutine form_residual(iteration, dt, prim_cc,)
   continue
 
 ! call muscl extrapolation only where appropriate
-  if (trim(flux_type) .not. 'jst' .or. trim(flux_type) .not. 'central') then
+  if (trim(flux_type) /= 'jst' .or. trim(flux_type) /= 'central') then
     allocate( prim_left(3, faces), prim_right(3, faces) )
     call muscl_extrapolation(iteration, prim_left, prim_right)
-    call floor_primitive_vars(prim_left)
-    call floor_primitive_vars(prim_right)
+    do i = 1, faces
+      call floor_primitive_vars(prim_left(:,i))
+      call floor_primitive_vars(prim_right(:,i))
+    end do
   end if
 
   select case(trim(flux_type))
