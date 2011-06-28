@@ -1,48 +1,47 @@
-!=============================== van_leer_fvs =================================80
+!=============================== van_leer_fvs ================================80
 !
 ! Takes gamma, and left and right primitive variables.  Returns flux
 !
-!==============================================================================80
-pure function van_leer_fvs(gamma, qL, qR) result(F)
+!=============================================================================80
+pure function van_leer_fvs(qL, qR) result(F)
 
-  use set_precision, only : dp
-  use constants,     only : zero, fourth, half, one, two
+  use set_precision,   only : dp
+  use set_constants,   only : zero, fourth, half, one, two
+  use fluid_constants, only : gamma, gm1, xg, xgm1
 
   implicit none
 
-  real(dp), intent(in) :: gamma
   real(dp), dimension(3), intent(in)    :: qL, qR
 
   real(dp), dimension(3)  :: F
 
   real(dp) :: a, M, Mfloor, fa, fb, switch
   real(dp), dimension(3) :: Fisub, Fiss
-  real(dp), dimension(3) :: Fiplus, Fimin
 
   continue
 
 !Calculate Left (+) Flux
-  a = sqrt(gamma*qL(3)/qL(1))
+  a = sqrt(gamma*qL(3)/qL(1)) ! FIXME: make function
   M = qL(2)/a
 
 !Left sub(sonic) flux
   fa = fourth*qL(1)*a*(M+one)**2
-  fb = a*((gamma-one)*M + two)
+  fb = a*(gm1*M + two)
 
   Fisub(1) = fa
-  Fisub(2) = fa*fb / gamma
-  Fisub(3) = fa*fb*fb / (two*(gamma**2-one))
+  Fisub(2) = fa*fb*xg
+  Fisub(3) = half*fa*fb*fb*xg2m1
 
 !Floor the mach number for -supersonic flows
   Mfloor = half*(M + abs(M))
 !Left supersonic flux
   Fiss(1) = qL(1)*a*Mfloor
-  Fiss(2) = (Mfloor/M)*qL(1)*a**2*(Mfloor**2+one/gamma)
-  Fiss(3) = qL(1)*a**3*Mfloor*(half*Mfloor**2+one/(gamma-one))
+  Fiss(2) = (Mfloor/M)*qL(1)*a**2*(Mfloor**2+xg)
+  Fiss(3) = qL(1)*a**3*Mfloor*(half*Mfloor**2+xgm1)
 
-!Combine sub and supersonic fluxes
+!Combine sub and supersonic fluxes, store in final flux vector
   switch = max(zero, one-int(abs(M)))
-  Fiplus(:) = (one-switch)*Fiss(:) + switch*Fisub(:)
+  F(:) = (one-switch)*Fiss(:) + switch*Fisub(:)
 
 !Calculate Right (-) Fluxes
   a = sqrt(gamma*qR(3)/qR(1))
@@ -50,102 +49,95 @@ pure function van_leer_fvs(gamma, qL, qR) result(F)
 
 !Right sub(sonic) flux
   fa = -fourth*qR(1)*a*(M-one)**2
-  fb = -a*((gamma-one)*M + two)
+  fb = -a*(gm1*M + two)
 
   Fisub(1) = fa
-  Fisub(2) = fa*fb / gamma
-  Fisub(3) = fa*fb*fb / (two*(gamma**2-one))
+  Fisub(2) = fa*fb*xg
+  Fisub(3) = half*fa*fb*fb*xg2m1
 
 !Floor the mach number for +supersonic flows
   Mfloor = half*(M - abs(M))
 
   Fiss(1) = qR(1)*a*M
-  Fiss(2) = (Mfloor/M)*qR(1)*a**2*(Mfloor**2+one/gamma)
-  Fiss(3) = qR(1)*a**3*Mfloor*(half*Mfloor**2+one/(gamma-one))
+  Fiss(2) = (Mfloor/M)*qR(1)*a**2*(Mfloor**2+xg)
+  Fiss(3) = qR(1)*a**3*Mfloor*(half*Mfloor**2+xgm1)
 
-!Combine sub and supersonic fluxes
+!Combine sub and supersonic fluxes, finish final flux vector
   switch = max(zero, one-int(abs(M)))
-  Fimin(:) = (one-switch)*Fiss(:) + switch*Fisub(:)
-
-!Calculate Interface Flux
-  F(:) = Fiplus(:) + Fimin(:)
+  F(:) = F(:) + (one-switch)*Fiss(:) + switch*Fisub(:)
 
 end function van_leer_fvs
 
-!============================ steger_warming_fvs ==============================80
+!============================ steger_warming_fvs =============================80
 !
-! Takes gamma, and left and right primitive variables.  Returns flux
+! Takes left and right primitive variables.  Returns flux
 !
-!==============================================================================80
+!=============================================================================80
 
-pure function steger_warming_fvs(gamma, qplus, qmin), result(F)
+pure function steger_warming_fvs(qL, qR) result(F)
 
-  use set_precision, only : dp
-  use constants,     only : half, one, two, three
+  use set_precision,   only : dp
+  use set_constants,   only : half, one, two, three
+  use fluid_constants, only : gamma, gm1, xg
 
-  Implicit None
+  implicit none
 
-  real(dp), intent(in) :: gamma
-  real(dp), dimension(3), intent(in)  :: qplus, qmin
+  real(dp), dimension(3), intent(in)  :: qL, qR
 
   real(dp), dimension(3)  :: F
 
-  real(dp) :: al, ar
-  real(dp), dimension(3) :: lambdal,lambdar,lambdaplus,lambdamin,Fiplus,Fimin
+  real(dp) :: a
+  real(dp), dimension(3) :: lambda, lambdafloor, FL, FR
 
 !Calculate Left (+) Fluxes
-  al = sqrt(gamma*qplus(3)/qplus(1))
-  lambdal(1) = qplus(2)
-  lambdal(2) = qplus(2) + al
-  lambdal(3) = qplus(2) - al
+  a = sqrt(gamma*qL(3)/qL(1))
+  lambda(1) = qL(2)
+  lambda(2) = qL(2) + a
+  lambda(3) = qL(2) - a
 
-  lambdaplus(:) = half*(lambdal(:)+abs(lambdal(:)))
+  lambdafloor(:) = half*(lambda(:)+abs(lambda(:)))
     
-  Fiplus(1) = two*(gamma-one)*lambdaplus(1) + lambdaplus(2) + lambdaplus(3)
-  Fiplus(2) = two*(gamma-one)*                                                  &
-              lambdaplus(1)*lambdal(1) +                                        &
-              lambdaplus(2)*lambdal(2) +                                        &
-              lambdaplus(3)*lambdal(3)
-  Fiplus(3) = (gamma-one)*lambdaplus(1)*lambdal(1)**2 +                         &
-              half*(lambdaplus(2)*lambdal(2)**2+lambdaplus(3)*lambdal(3)**2) +  &
-              ((three-gamma)/(two*(gamma-one)))*                                &
-              (lambdaplus(2)+lambdaplus(3))*al**2
+  FL(1) = two*gm1*lambdafloor(1) + lambdafloor(2) + lambdafloor(3)
+  FL(2) = two*gm1*lambdafloor(1)*lambda(1) +                                   &
+          lambdafloor(2)*lambda(2) + lambdafloor(3)*lambda(3)
+  FL(3) = gm1*lambdafloor(1)*lambda(1)**2 +                                    &
+          half*(lambdafloor(2)*lambda(2)**2+lambdafloor(3)*lambda(3)**2) +     &
+          ((three-gamma)/(two*gm1))*(lambdafloor(2)+lambdafloor(3))*a**2
                     
-  Fiplus(:) = (half*qplus(1)/gamma)*Fiplus(:)
+  FL(:) = (half*qL(1)*xg)*FL(:)
 
 !Calculate Right (-) Fluxes
 
-  ar = sqrt(gamma*qmin(3)/qmin(1))
-  lambdar(1) = qmin(2)
-  lambdar(2) = qmin(2) + ar
-  lambdar(3) = qmin(2) - ar
+  a = sqrt(gamma*qR(3)/qR(1))
+  lambda(1) = qR(2)
+  lambda(2) = qR(2) + a
+  lambda(3) = qR(2) - a
 
-  lambdamin(:) = half*(lambdar(:)-abs(lambdar(:)))
+  lambdafloor(:) = half*(lambda(:)-abs(lambda(:)))
     
-  Fimin(1) = two*(gamma-one)*lambdamin(1)+lambdamin(2)+lambdamin(3)
-  Fimin(2) = two*(gamma-one)*                                                   &
-             lambdamin(1)*lambdar(1) +                                          &
-             lambdamin(2)*lambdar(2) +                                          &
-             lambdamin(3)*lambdar(3)
-  Fimin(3) = (gamma-one)*lambdamin(1)*lambdar(1)**2 +                           &
-             half*(lambdamin(2)*lambdar(2)**2 + lambdamin(3)*lambdar(3)**2) +   &
-             ((three-gamma)/(two*(gamma-one)))*                                 &
-             (lambdamin(2)+lambdamin(3))*ar**2
+  FR(1) = two*gm1*lambdafloor(1)+lambdafloor(2)+lambdafloor(3)
+  FR(2) = two*gm1*lambdafloor(1)*lambda(1) +                                   &
+          lambdafloor(2)*lambda(2) + lambdafloor(3)*lambda(3)
+  FR(3) = gm1*lambdamin(1)*lambda(1)**2 +                                      &
+          half*(lambdamin(2)*lambda(2)**2 + lambdamin(3)*lambda(3)**2) +       &
+          ((three-gamma)/(two*gm1))*(lambdamin(2)+lambdamin(3))*a**2
 
-  Fimin(:) = (half*qmin(1)/gamma)*Fimin(:)
+  FR(:) = (half*qR(1)/gamma)*FR(:)
 
 !Calculate Interface Flux
-  F(:) = Fiplus(:) + Fimin(:)
+  F(:) = FL(:) + FR(:)
 
 end function steger_warming_fvs
 
-!================================== ausm_fds ==================================80
+!================================== ausm_fds =================================80
 !
-! Takes gamma, and left and right primitive variables.  Returns flux
+! Takes left and right primitive variables.  Returns flux
 !
-!==============================================================================80
+!=============================================================================80
 
-pure function ausm_fds(gamma, qpplus, qpmin, Qplus, Qmin), return(F)
+
+! FIXME: broken
+pure function ausm_fds(gamma, qpplus, qpmin, Qplus, Qmin) result(F)
 
   use set_precision, only : dp
   use constants,     only : fourth, half, one
@@ -192,84 +184,90 @@ pure function ausm_fds(gamma, qpplus, qpmin, Qplus, Qmin), return(F)
   end if
 
 !Combine
-  F(1) = half*(Qmin(1)*ar*((Ml+Mr) - abs(Ml+Mr)) +                              &
+  F(1) = half*(Qmin(1)*ar*((Ml+Mr) - abs(Ml+Mr)) +                             &
               Qplus(1)*ar*((Ml+Mr) + abs(Ml+Mr)))
-  F(2) = half*(Qmin(2)*ar*((Ml+Mr) - abs(Ml+Mr)) +                              &
+  F(2) = half*(Qmin(2)*ar*((Ml+Mr) - abs(Ml+Mr)) +                             &
               Qplus(2)*ar*((Ml+Mr) + abs(Ml+Mr))) + (PL+PR)
-  F(3) = half*(Qmin(1)*HTR*ar*((Ml+Mr) - abs(Ml+Mr)) +                          &
+  F(3) = half*(Qmin(1)*HTR*ar*((Ml+Mr) - abs(Ml+Mr)) +                         &
               Qplus(1)*HTL*ar*((Ml+Mr) + abs(Ml+Mr)))
   end do
 
 end subroutine ausm_fds
 
-!================================== roes_fds ==================================80
+!================================== roes_fds =================================80
 !
-! Takes gamma, entropy fix, and left and right primitive variables.  Returns flux
+! Takes entropy fix, and left and right primitive variables. Returns flux
 !
-!==============================================================================80
+!=============================================================================80
 
-pure function roes_fds(gamma, lambdaeps, qplus, qmin), result(F)
+pure function roes_fds(lambdaeps, qplus, qmin) result(F)
 
-  use set_precision, only : dp
-  use constants,     only : half, one, two, four
+  use set_precision,   only : dp
+  use set_constants,   only : half, one, two, four
+  use fluid_constatns, only : gamma, gm1
 
   implicit none
 
-  real(dp), intent(in) :: gamma, lambdaeps
+  real(dp), intent(in) :: lambdaeps
   real(dp), dimension(3), intent(in)  :: qplus, qmin
 
   real(dp), dimension(3) :: F
 
-  integer  :: z
-  real(dp) :: rhoL, uL, PL, rhoR, uR, PR
-  real(dp) ::  Rhalf, RoeAvgrho, RoeAvgu, RoeAvght, RoeAvga
+  integer  :: i
+  real(dp) :: rhoL, uL, pL, rhoR, uR, pR
+  real(dp) :: Rhalf, RoeAvgrho, RoeAvgu, RoeAvght, RoeAvga
   real(dp), dimension(3) :: FL, FR, r1RoeAvg, r2RoeAvg, r3RoeAvg, dw, lambdaRoe
 
   continue
 
-  rhoL = qplus(1)
-  uL   = qplus(2)
-  PL   = qplus(3)
+! FIXME: need rho*et term
 
-  rhoR = qmin(1)
-  uR   = qmin(2)
-  PR   = qmin(3)
+  rhoL = qL(1)
+  uL   = qL(2)
+  pL   = qL(3)
 
-  FL(:) = (/rhoL*uL, rhoL*uL**2 + PL, uL*(Qplus(3) + PL)/)
-  FR(:) = (/rhoR*uR, rhoR*uR**2 + PR, uR*(Qmin(3) + PR)/)
+  rhoR = qR(1)
+  uR   = qR(2)
+  pR   = qR(3)
 
-  Rhalf = sqrt(rhoR/rhoL)                !Roe interface variable
+  FL(:) = (/rhoL*uL, rhoL*uL**2 + pL, uL*(Qplus(3) + pL)/)
+  FR(:) = (/rhoR*uR, rhoR*uR**2 + pR, uR*(Qmin(3)  + pR)/)
+
+! Roe interface variable
+  Rhalf = sqrt(rhoR/rhoL)
+
+! Calculate Roe average variables
   RoeAvgrho = Rhalf*rhoL
   RoeAvgu   = (Rhalf*uR + uL) / (Rhalf+one)
-  RoeAvght  = (Rhalf*(Qmin(3) + PR)/rhoR + (Qplus(3) + PL)/rhoL) / (Rhalf+one)
-  RoeAvga   = sqrt((gamma-one)*(RoeAvght-half*RoeAvgu**2))
+  RoeAvght  = (Rhalf*(Qmin(3) + pR)/rhoR + (Qplus(3) + pL)/rhoL) / (Rhalf+one)
+  RoeAvga   = sqrt(gm1*(RoeAvght-half*RoeAvgu**2))
 
   lambdaRoe(1) = RoeAvgu
   lambdaRoe(2) = RoeAvgu + RoeAvga
   lambdaRoe(3) = RoeAvgu - RoeAvga
 
 !Entropy fix
-  do z = 1,3
-    if ( abs(lambdaRoe(z)) <= two*lambdaeps*RoeAvga ) then
-      lambdaRoe(z) = (lambdaRoe(z)**2)/(four*lambdaeps*RoeAvga) +               &
-           lambdaeps*RoeAvga
+  do i = 1,3
+    if ( abs(lambdaRoe(i)) <= two*lambdaeps*RoeAvga ) then
+      lambdaRoe(i) = (lambdaRoe(i)**2)/(four*lambdaeps*RoeAvga)                &
+                   + lambdaeps*RoeAvga
     end if
   end do
 
-  dw(1) = (rhoR-rhoL) - (PR-PL)/RoeAvga**2
-  dw(2) = (uR-uL) + (PR-PL)/(RoeAvgrho*RoeAvga)
-  dw(3) = (uR-uL) - (PR-PL)/(RoeAvgrho*RoeAvga)
+  dw(1) = (rhoR-rhoL) - (pR-pL)/RoeAvga**2
+  dw(2) = (uR-uL) + (pR-pL)/(RoeAvgrho*RoeAvga)
+  dw(3) = (uR-uL) - (pR-pL)/(RoeAvgrho*RoeAvga)
 
   r1RoeAvg(:) = (/one, RoeAvgu, half*RoeAvgu**2/)
-  r2RoeAvg(:) = (half*RoeAvgrho/RoeAvga) *                                      &
+  r2RoeAvg(:) = (half*RoeAvgrho/RoeAvga) *                                     &
                 (/one, RoeAvgu+RoeAvga, RoeAvght+RoeAvgu*RoeAvga/)
-  r3RoeAvg(:) = (-half*RoeAvgrho/RoeAvga) *                                     &
+  r3RoeAvg(:) = (-half*RoeAvgrho/RoeAvga) *                                    &
                 (/one, RoeAvgu-RoeAvga, RoeAvght-RoeAvgu*RoeAvga/)
 
 !Calculate Interface Fluxes
-  F(:) = half*((FL(:)+FR(:))                                                    &
-       - (abs(lambdaRoe(1))*dw(1)*r1RoeAvg(:)                                   &
-       +  abs(lambdaRoe(2))*dw(2)*r2RoeAvg(:)                                   &
+  F(:) = half*((FL(:)+FR(:))                                                   &
+       - (abs(lambdaRoe(1))*dw(1)*r1RoeAvg(:)                                  &
+       +  abs(lambdaRoe(2))*dw(2)*r2RoeAvg(:)                                  &
        +  abs(lambdaRoe(3))*dw(3)*r3RoeAvg(:)))
 
 end function roes_fds
