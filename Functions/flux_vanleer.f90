@@ -1,6 +1,6 @@
 !=============================== flux_vanleer ================================80
 !
-! Takes gamma, and left and right primitive variables.  Returns flux
+! Takes left and right primitive variables.  Returns flux
 !
 !=============================================================================80
 pure function flux_vanleer(qL, qR) result(F)
