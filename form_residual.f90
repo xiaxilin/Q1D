@@ -4,18 +4,57 @@
 !
 !=============================================================================80
 
-subroutine form_residual(iteration, dt, prim_cc,)
+subroutine form_residual( cells, faces, iteration, dt, prim_cc,)
 
   use set_precision, only : dp
+  use set_constants, only : one
 
 ! FIXME... figure out where these will come from
-  use XXXXXXX, only : flux_type, firstorder, kappa, muscl, limiter
+  use XXXXXXX, only : flux_type
+
+
+
+! FIXME... needed by muscl_extrapolation
+  use XXXXXX, only : firstorder, kappa, muscl, limiter
 
   implicit none
 
+  integer, intent(in) :: cells, faces, iterations
+  real(dp), 
 
 
+  integer :: i
 
+  continue
+
+! FIXME: formulate as:
+!  call create_fluxes
+!  call create_source
+
+!  do i = 2, cells+1
+!    residual(:,i) = (one/(dx*area_cc(i))) 
+!                  * ( dx*S(:,i) - (F(:,i)*area_f(i)) + (F(:,i-1)*area_f(i-1)) )
+!  end do
+
+end subroutine form_residual
+
+!=============================================================================80
+!
+! 
+!
+!=============================================================================80
+
+subroutine create_fluxes( faces, iteration, prim_cc, flux )
+
+  use set_precision, only : dp
+
+  implicit none
+
+  integer,                     intent(in)  :: faces, iteration
+  real, dimension(3, faces+1), intent(in)  :: prim_cc
+  real, dimension(3, faces),   intent(out) :: flux
+
+  real, allocatable, dimension(:,:) :: prim_left, prim_right
   integer :: i
 
   continue
@@ -60,4 +99,41 @@ subroutine form_residual(iteration, dt, prim_cc,)
 
   end select
 
+end subroutine create_fluxes
+
+!=============================================================================80
+!
+! 
+!
+!=============================================================================80
+
+subroutine create_source( cells, pressure, dadx_cc, source )
+
+  use set_precision, only : dp
+  use set_constants, only : zero
   
+  implicit none
+
+  integer,                         intent(in)  :: cells
+  real(dp), dimension(1, cells+2), intent(in)  :: pressure, dadx_cc
+  real(dp), dimension(3, cells+2), intent(out) :: source
+
+  integer :: i
+
+  continue
+
+  source = zero
+  do i = 2, cells+1
+    source(2,i) = pressure(i)*dadx_cc(i)
+  end do
+
+end subroutine create_source
+
+! FIXME: includes!
+
+ include 'flux_*.f90'
+ include 'flux_*.f90'
+ include 'flux_*.f90'
+ include 'flux_*.f90'
+ include 'flux_*.f90'
+ include 'flux_*.f90'
