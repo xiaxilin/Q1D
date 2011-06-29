@@ -7,6 +7,9 @@ module matrix_manip
   public :: ludcmp
   public :: lubkslv
   public :: matrix_inv
+!  public :: det_3x3
+!  public :: det_4x4
+!  public :: det_5x5
 
 contains
 
@@ -78,6 +81,12 @@ contains
 
   end subroutine ludcmp
 
+!=============================================================================80
+!
+!
+!
+!=============================================================================80
+
   subroutine lubkslv(neq, lower, upper, b, x)
 
     use set_precision, only : dp
@@ -119,6 +128,12 @@ contains
     end do
 
   end subroutine lubkslv
+
+!=============================================================================80
+!
+!
+!
+!=============================================================================80
 
   subroutine matrix_inv(neq, matrix, inv)
 
