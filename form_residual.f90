@@ -243,18 +243,18 @@ contains
 
     else
 
-! calculate left side variations
+! calculate left side variations, r>=0
       do i = 1, faces-1
-        r_L(:,i)  = (vars_cc(:,i+2) - vars_cc (:,i+1))                      &
-                  / (vars_cc(:,i+1) - vars_cc(:,i) + small_factor)
+        r_L(:,i)  = max( zero, (vars_cc(:,i+2) - vars_cc (:,i+1))              &
+                             / (vars_cc(:,i+1) - vars_cc(:,i) + small_factor) )
       end do
       r_L(:,faces) = one
 
-! calculate right side variations
+! calculate right side variations, r>=0
       r_R(:,1)     = one
       do i = 2, faces
-        r_R(:,i) = (vars_cc(:,i) - vars_cc(:,i-1))
-                 / (vars_cc(:,i+1) - vars_cc(:,i) + small_factor)
+        r_R(:,i) = max( zero, (vars_cc(:,i) - vars_cc(:,i-1))                  &
+                            / (vars_cc(:,i+1) - vars_cc(:,i) + small_factor) )
       end do
 
 ! apply appropriate limiter
@@ -262,33 +262,33 @@ contains
       select case(trim(limiter))
       case('minmod')
         do i = 1, faces
-          psi_L(:,i) = sweby_limiter(r_L(i), 1)
-          psi_R(:,i) = sweby_limiter(r_R(i), 1)        
+          psi_L(:,i) = limiter_sweby(r_L(i), 1)
+          psi_R(:,i) = limiter_sweby(r_R(i), 1)        
         end do
       case('superbee')
         do i = 1, faces
-          psi_L(:,i) = sweby_limiter(r_L(i), 2)
-          psi_R(:,i) = sweby_limiter(r_R(i), 2)  
+          psi_L(:,i) = limiter_sweby(r_L(i), 2)
+          psi_R(:,i) = limiter_sweby(r_R(i), 2)  
         end do
       case('sweby')
         do i = 1, faces
-          psi_L(:,i) = sweby_limiter(r_L(i), 1.5)
-          psi_R(:,i) = sweby_limiter(r_R(i), 1.5)
+          psi_L(:,i) = limiter_sweby(r_L(i), 1.5)
+          psi_R(:,i) = limiter_sweby(r_R(i), 1.5)
         end do
-      case('osprey')
+      case('ospre')
         do i = 1, faces
-          psi_L(:,i) = osprey_limiter(r_L(i))
-          psi_R(:,i) = osprey_limiter(r_R(i))
+          psi_L(:,i) = limiter_ospre(r_L(i))
+          psi_R(:,i) = limiter_ospre(r_R(i))
         end do
       case('vanleer')
         do i = 1, faces
-          psi_L(:,i) = vanleer_limiter(r_L(i))
-          psi_R(:,i) = vanleer_limiter(r_R(i))
+          psi_L(:,i) = limiter_vanleer(r_L(i))
+          psi_R(:,i) = limiter_vanleer(r_R(i))
         end do
       case('vanalbada')
         do i = 1, faces
-          psi_L(:,i) = vanalbada_limiter(r_L(i))
-          psi_R(:,i) = vanalbada_limiter(r_R(i))
+          psi_L(:,i) = limiter_vanalbada(r_L(i))
+          psi_R(:,i) = limiter_vanalbada(r_R(i))
         end do
       case( default )
         psi_L(:,:) = one
@@ -329,10 +329,10 @@ contains
   include 'flux_roe.f90'
 !  include 'flux_*.f90'
 
-  include 'sweby_limiter.f90'
-  include 'osprey_limiter.f90'
-  include 'vanleer_limiter.f90'
-  include 'vanalbada_limiter.f90'
-!  include '*_limiter.f90'
+  include 'limiter_sweby.f90'
+  include 'limiter_ospre.f90'
+  include 'limiter_vanleer.f90'
+  include 'limiter_vanalbada.f90'
+!  include 'limiter_*.f90'
 
 end module form_residual
