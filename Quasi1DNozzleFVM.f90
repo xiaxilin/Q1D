@@ -841,8 +841,7 @@ program quasi1dnozzlefvm
       do i=2,imax
         Resid(:,i) = (one/(dx*Areacent(i))) *                                  &
                ( dx*S(:,i) - (F(:,i)*Areaface(i)) + (F(:,i-1)*Areaface(i-1)) )
-        Unew(:,i) = U0(:,i)                                                    &
-                  + dt*(one/(real(RKorder-RK,dp)+one))*Resid(:,i)
+        Unew(:,i) = U0(:,i) + dt*Resid(:,i)/real(1+RKorder-RK,dp)
       end do
 
 !Calculate new primitive variable vectors
