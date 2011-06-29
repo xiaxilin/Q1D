@@ -864,7 +864,7 @@ program quasi1dnozzlefvm
       V(2,imax+1) = two*V(2,imax)-V(2,imax-1)
       V(3,imax+1) = max(two*V(3,imax)-V(3,imax-1), 500.0_dp)
 
-      if (Pback >= 0.00001_dp) then
+      if (Pback >= 0.0_dp) then
         V(3,imax+1) = Pback
       end if
 

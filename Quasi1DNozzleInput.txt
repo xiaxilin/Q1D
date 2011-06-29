@@ -1,4 +1,4 @@
-257         --> imax, Number of faces
+65         --> imax, Number of faces
 120000     --> Max number of iterations
 1000       --> Check convergence/output residuals to screen every ... time steps
 4          --> Multi-step Runge-Kutta order, choose 1 for Euler explicit
@@ -13,7 +13,7 @@
 1.5        --> Reference Mach Number
 300000.0   --> Inflow stagnation pressure
 600.0      --> Inflow stagnation temperature
-0.0        --> Pback
+-1.0       --> Pback
 1.4        --> gamma, ratio of specific heats
 287.       --> R, gas constant
 
