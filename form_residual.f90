@@ -20,9 +20,6 @@ contains
     use set_precision, only : dp
     use set_constants, only : zero
 
-! FIXME... needed by muscl_extrapolation
-    use XXXXXX, only : firstorder, kappa, muscl, limiter
-
     implicit none
 
     integer,                        intent(in)  :: cells, faces, iterations
@@ -220,9 +217,9 @@ contains
                                   vars_left, vars_right )
 
     use set_precision, only : dp
-    use set_constants, only : zero, fourth, one
-
-    use XXXXXX, only : muscl, kappa, limiter, firstorder
+    use set_constants, only : zero, fourth, one, small
+! FIXME: figure out where these will come from
+    use XXXXXX,        only :  firstorder, muscl, limiter, kappa
 
     implicit none
 
@@ -230,12 +227,12 @@ contains
     real(dp), dimension(3,cells+2), intent(in)  :: vars_cc
     real(dp), dimension(3,faces),   intent(out) :: vars_left, vars_right
 
-    integer  :: i
-    real(dp) :: eps
-    real(dp), dimension(3) :: Rmin, Rplus, Psimin, Psiplus
+    integer                       :: i
+    real(dp), dimension(3, faces) :: r_L, r_R, psi_L, psi_R
+
+    real(dp), parameter :: small_factor = 0.0000001_dp
 
     continue
-
 
     if ( iterations <= firstorder .or. .not. muscl ) then
 ! skip excess computations if only first order
@@ -246,29 +243,78 @@ contains
 
     else
 
-! FIXME: handle limiter differently
-      i = 1
-      vars_left(:,i) = vars_cc(:,i) + fourth                                   &
-                     * ((one+kappa)*(vars_cc(:,i+1) - vars_cc(:,i)))
+! calculate left side variations
+      do i = 1, faces-1
+        r_L(:,i)  = (vars_cc(:,i+2) - vars_cc (:,i+1))                      &
+                  / (vars_cc(:,i+1) - vars_cc(:,i) + small_factor)
+      end do
+      r_L(:,faces) = one
 
-      do i = 2, cells+1
-        Rmin(:)   = (V(:,i)-V(:,i-1))/(V(:,i+1)-V(:,i)+0.000001_dp)
-        Rplus(:)  = (V(:,i+1)-V(:,i))/(V(:,i)-V(:,i-1)+0.000001_dp)
-
-        Psimin(:)  = one ! max(zero, (Rmin(:)+Rmin(:)**2)/(one+Rmin(:)**2))
-        Psiplus(:) = one ! max(zero, (Rplus(:)+Rplus(:)**2)/(one+Rplus(:)**2))
-
-        vars_right(:,i-1) = vars_cc(:,i) - fourth                              &
-                 * ((one-kappa)*Psimin(:)  * (vars_cc(:,i+1) - vars_cc(:,i))   &
-                 +  (one+kappa)*Psiplus(:) * (vars_cc(:,i)   - vars_cc(:,i-1)))
-        vars_left(:,i)    = vars_cc(:,i) + fourth                              &
-                 * ((one+kappa)*Psimin(:)  * (vars_cc(:,i+1) - vars_cc(:,i))   &
-                 +  (one-kappa)*Psiplus(:) * (vars_cc(:,i)   - vars_cc(:,i-1)))
+! calculate right side variations
+      r_R(:,1)     = one
+      do i = 2, faces
+        r_R(:,i) = (vars_cc(:,i) - vars_cc(:,i-1))
+                 / (vars_cc(:,i+1) - vars_cc(:,i) + small_factor)
       end do
 
-      i = cells+2
-      vars_right(:,i-1) = vars_cc(:,i) - fourth                                &
-                        * ((one+kappa)*(vars_cc(:,i) - vars_cc(:,i-1)))
+! apply appropriate limiter
+
+      select case(trim(limiter))
+      case('minmod')
+        do i = 1, faces
+          psi_L(:,i) = sweby_limiter(r_L(i), 1)
+          psi_R(:,i) = sweby_limiter(r_R(i), 1)        
+        end do
+      case('superbee')
+        do i = 1, faces
+          psi_L(:,i) = sweby_limiter(r_L(i), 2)
+          psi_R(:,i) = sweby_limiter(r_R(i), 2)  
+        end do
+      case('sweby')
+        do i = 1, faces
+          psi_L(:,i) = sweby_limiter(r_L(i), 1.5)
+          psi_R(:,i) = sweby_limiter(r_R(i), 1.5)
+        end do
+      case('osprey')
+        do i = 1, faces
+          psi_L(:,i) = osprey_limiter(r_L(i))
+          psi_R(:,i) = osprey_limiter(r_R(i))
+        end do
+      case('vanleer')
+        do i = 1, faces
+          psi_L(:,i) = vanleer_limiter(r_L(i))
+          psi_R(:,i) = vanleer_limiter(r_R(i))
+        end do
+      case('vanalbada')
+        do i = 1, faces
+          psi_L(:,i) = vanalbada_limiter(r_L(i))
+          psi_R(:,i) = vanalbada_limiter(r_R(i))
+        end do
+      case( default )
+        psi_L(:,:) = one
+        psi_R(:,:) = one
+      end select
+
+! perform MUSCL extrapolation
+      i = 1
+      vars_left(:,i) = vars_cc(:,i) + fourth                                   &
+                * ((one+kappa)*(vars_cc(:,i+1) - vars_cc(:,i)))
+
+      do i = 2, faces
+
+        vars_left(:,i)    = vars_cc(:,i) + fourth                              &
+                * ((one+kappa)*psi_R(:,i)   * (vars_cc(:,i+1) - vars_cc(:,i))  &
+                +  (one-kappa)*psi_L(:,i-1) * (vars_cc(:,i)   - vars_cc(:,i-1)))
+
+        vars_right(:,i-1) = vars_cc(:,i) - fourth                              &
+                * ((one-kappa)*psi_R(:,i)   * (vars_cc(:,i+1) - vars_cc(:,i))  &
+                +  (one+kappa)*psi_L(:,i-1) * (vars_cc(:,i)   - vars_cc(:,i-1)))
+
+      end do
+
+      i = faces
+      vars_right(:,i) = vars_cc(:,i) - fourth                                  &
+                * ((one+kappa)*(vars_cc(:,i) - vars_cc(:,i-1)))
 
     end if
 
@@ -282,5 +328,11 @@ contains
   include 'flux_ausm.f90'
   include 'flux_roe.f90'
 !  include 'flux_*.f90'
+
+  include 'sweby_limiter.f90'
+  include 'osprey_limiter.f90'
+  include 'vanleer_limiter.f90'
+  include 'vanalbada_limiter.f90'
+!  include '*_limiter.f90'
 
 end module form_residual
