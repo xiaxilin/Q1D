@@ -14,7 +14,8 @@ module fluid_constants
 
   private
 
-  public :: gamma
+  public :: r     ! Gas constant
+  public :: gamma ! Ratio of specific heats
   public :: gm1
   public :: gp1
   public :: xg
@@ -22,7 +23,9 @@ module fluid_constants
   public :: gxgm1
   public :: gxg2m1
 
-  real(dp) :: gamma
+! Set initial values
+  real(dp) :: r = 287.0_dp
+  real(dp) :: gamma = 1.4_dp
   real(dp) :: gm1
   real(dp) :: gp1
   real(dp) :: xg

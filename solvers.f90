@@ -1,20 +1,42 @@
 module solvers
 
+  use set_precision, only : dp
+
   private
 
-  public :: iterations
-  public :: firstorder
-  public :: itercheck
-  public :: rk_order
-  public :: cfl
-  public :: limiter
-  public :: muscl
-  public :: kappa
-  public :: toler
+  public :: iterations ! total number of iterations
+  public :: firstorder ! if 2nd order, how many 1st order iters for stability?
+  public :: itercheck  ! check for convergence every itercheck iters
+  public :: rkorder    ! multistep RK order 1, 2, 3, or 4
+  public :: cfl        ! CFL limit
+  public :: muscl      ! MUSCL extrapolation, .true. or .false.
+  public :: kappa      ! form of MUSCL
+  public :: limiter    ! type of variable limiting 
+  public :: toler      ! convergence tolerance
 
-
+  public :: flux_type  ! flux type, '2nd', 'jst', 'sw', 'vanleer', 'roe', 'ausm'
+  public :: k2         ! JST damping coefficient, only for flux_type = 'jst'
+  public :: k4         ! JST damping coefficient, only for flux_type = 'jst'
 
   implicit none
+
+! set initial values
+
+  integer  :: iterations = 100000
+  integer  :: firstorder = 10000
+  integer  :: itercheck  = 1000
+  integer  :: rkorder    = 1
+  logical  :: muscl      = .false.
+  real(dp) :: cfl        = 1.0_dp
+  real(dp) :: kappa      = -1.0_dp
+  real(dp) :: toler      = 1.0e-13_dp
+  character(len=10) :: limiter = 'none'
+
+
+  character(len=10) :: flux_type  = 'jst'
+  real(dp) :: k2 = 0.5_dp
+  real(dp) :: k4 = 0.03125_dp
+
 
 !=============================================================================80
 !
@@ -23,8 +45,6 @@ module solvers
 !=============================================================================80
 
   subroutine explicit_solve( cells, faces, prim_cc, cons_cc)
-
-    use XXXXX, only : iterations, rk_order
 
     implicit none
 

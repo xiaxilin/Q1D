@@ -4,14 +4,22 @@ module initialize_soln
 
   private
 
-  public :: restart
   public :: prim_cc
   public :: cons_cc
-  public :: cons_cc_0
 
+  public :: restart
+  public :: mref       ! Initial mach number in nozzle
+  public :: to         ! Inflow stag. temp
+  public :: po         ! Inflow stag. pressure
+  public :: pback      ! Outflow backpressure, negative for extrapolation
 
-
+! Set defaults
   logical :: restart = .false.
+
+  real(dp) :: mref  = 1.5_dp
+  real(dp) :: to    = 600.0_dp
+  real(dp) :: po    = 300000.0_dp
+  real(dp) :: pback = -1.0_dp
 
   real(dp), allocatable, dimension(:,:) :: prim_cc   ! primitive vars
   real(dp), allocatable, dimension(:,:) :: cons_cc   ! conserved vars

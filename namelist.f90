@@ -1,34 +1,16 @@
 module namelist
 
-  use set_precision, only : dp
+  use set_precision,   only : dp
+  use solvers,         only : iterations, firstorder, itercheck, rkorder, cfl, &
+                              limiter, muscl, kappa, toler, flux_type, k2, k4
+  use initialize_soln, only : mref, to, po, pback
+  use fluid_constants, only : gamma, r
 
   implicit none
 
   private
 
   public :: read_nml
-
-  public :: iterations ! total number of iterations
-  public :: firstorder ! if 2nd order, how many 1st order iters for stability?
-  public :: itercheck  ! check for convergence every itercheck iters
-  public :: rkorder    ! multistep RK order 1, 2, 3, or 4
-  public :: cfl        ! CFL limit
-  public :: muscl      ! MUSCL extrapolation, .true. or .false.
-  public :: kappa      ! form of MUSCL
-  public :: limiter    ! type of variable limiting 
-  public :: toler      ! convergence tolerance
-
-  public :: flux_type  ! flux type, '2nd', 'jst', 'sw', 'vanleer', 'roe', 'ausm'
-  public :: k2         ! JST damping coefficient, only for flux_type = 'jst'
-  public :: k4         ! JST damping coefficient, only for flux_type = 'jst'
-
-  public :: mref       ! Initial mach number in nozzle
-  public :: to         ! Inflow stag. temp
-  public :: po         ! Inflow stag. pressure
-  public :: pback      ! Outflow backpressure, negative for extrapolation
-
-  public :: gamma      ! Ratio of specific heats
-  public :: r          ! Gas constant
 
 ! Define namelist inputs
 
@@ -70,42 +52,20 @@ contains
 
 ! set defaults and read &code_control
 
-    iterations = 100000
-    firstorder = 10000
-    itercheck  = 1000
-    rkorder    = 1
-    cfl        = 1.0
-    muscl      = .false.
-    kappa      = -1.0
-    limiter    = 'none'
-    toler      = 1.0e-13
-
     rewind(nml_unit)
     read(nml_unit, nml=code_control)
 
 ! set defaults and read &flux
-
-    flux_type  = 'jst'
-    k2         = 0.5
-    k4         = 0.03125
 
     rewind(nml_unit)
     read(nml_unit, nml=flux)
 
 ! set defaults and read &conditions
 
-    mref  = 1.5
-    to    = 600.0
-    po    = 300000.0
-    pback = -1.0
-
     rewind(nml_unit)
     read(nml_unit, nml=conditions)
 
 ! set defaults and read &gas_properties
-
-    gamma = 1.4
-    r     = 287.0
 
     rewind(nml_unit)
     read(nml_unit, nml=gas_properties)
