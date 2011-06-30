@@ -1,5 +1,7 @@
 module initialize_soln
 
+  use set_precision, only : dp
+
   implicit none
 
   private
@@ -37,7 +39,7 @@ contains
 
     implicit none
 
-    integer, intent(in) :: cells
+    integer, intent(in) :: neq, cells
 
     continue
 
@@ -59,6 +61,9 @@ contains
     implicit none
 
     integer, intent(in) :: cells
+
+    integer  :: cell, soln_unit
+    real(dp) :: p, psi, t
 
     continue
 

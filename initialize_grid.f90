@@ -85,7 +85,7 @@ contains
 
     area_f  = zero
     area_cc = zero
-    dadx_f  = zero
+    dadx_cc  = zero
     dadx_cc = zero
     x_f     = zero
     x_cc    = zero
