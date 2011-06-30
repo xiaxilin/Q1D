@@ -21,7 +21,7 @@ pure function flux_vanleer(qL, qR) result(F)
   continue
 
 !Calculate Left (+) Flux
-  a = sqrt(gamma*qL(3)/qL(1)) ! FIXME: make function
+  a = speed_of_sound(qL(3), qL(1))
   M = qL(2)/a
 
 !Left sub(sonic) flux
@@ -40,11 +40,11 @@ pure function flux_vanleer(qL, qR) result(F)
   Fiss(3) = qL(1)*a**3*Mfloor*(half*Mfloor**2+xgm1)
 
 !Combine sub and supersonic fluxes, store in final flux vector
-  switch = max(zero, one-int(abs(M)))
+  switch = max(zero, one-real(int(abs(M)),dp))
   F(:) = (one-switch)*Fiss(:) + switch*Fisub(:)
 
 !Calculate Right (-) Fluxes
-  a = sqrt(gamma*qR(3)/qR(1))
+  a = speed_of_sound(qR(3), qR(1))
   M = qmin(2)/a
 
 !Right sub(sonic) flux
@@ -63,7 +63,9 @@ pure function flux_vanleer(qL, qR) result(F)
   Fiss(3) = qR(1)*a**3*Mfloor*(half*Mfloor**2+xgm1)
 
 !Combine sub and supersonic fluxes, finish final flux vector
-  switch = max(zero, one-int(abs(M)))
+  switch = max(zero, one-real(int(abs(M)),dp))
   F(:) = F(:) + (one-switch)*Fiss(:) + switch*Fisub(:)
 
 end function flux_vanleer
+
+include 'speed_of_sound.f90'
