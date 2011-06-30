@@ -2,29 +2,44 @@
 
 program q1d
 
-  use XXX, only : 
-  use XXX, only : 
-  use XXX, only : 
+  use namelist,        only : read_nml
+  use initialize_grid, only : read_grid, cells
+  use initialize_soln, only : allocate_soln, initial_soln
+  use solvers,         only : explicit_solve
   use XXX, only : 
   use XXX, only : 
 
   implicit none
 
+  continue
+
+
+! read inputs
   call read_nml
 
+! read the grid and allocated grid variables
   call read_grid
 
-  call allocate_soln(cells)
+! allocate the soln variables
+  call allocate_soln(3, cells)
 
-  call initialize_soln
-    if ( restart ) call read_restart inside initialize_soln
+! set up initial flow solution or read a restart
+  call initial_soln(cells)
 
-!  if ( explicit ) then
-    call explicit_solve
-!  else
+! perform explicit solve
+  call explicit_solve(cells, faces, prim_cc, cons_cc,                          &
+                      area_f, area_cc, dx_ccdadx_cc)
+
+!  case select( solver_type )
+!  case('explicit')
+!    call explicit_solve
+!  case('implicit')
 !    call implicit_solve
-!  end if
+!  end case select
 
+! do solution output
+  call write_restart
+  call write_plot_data
 
 end program q1d
 
