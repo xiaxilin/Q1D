@@ -4,6 +4,8 @@ module solvers
 
   private
 
+  public :: explicit_solve
+
   public :: iterations ! total number of iterations
   public :: firstorder ! if 2nd order, how many 1st order iters for stability?
   public :: itercheck  ! check for convergence every itercheck iters
@@ -32,7 +34,6 @@ module solvers
   real(dp) :: toler      = 1.0e-13_dp
   character(len=10) :: limiter = 'none'
 
-
   character(len=10) :: flux_type  = 'jst'
   real(dp) :: k2 = 0.5_dp
   real(dp) :: k4 = 0.03125_dp
@@ -44,16 +45,19 @@ module solvers
 !
 !=============================================================================80
 
-  subroutine explicit_solve( cells, faces, prim_cc, cons_cc)
+  subroutine explicit_solve( cells, faces, prim_cc, cons_cc,                   &
+                             area_f, area_cc, dx_cc, dadx_cc )
 
     implicit none
 
-    integer, intent(in) :: cells, faces
+    integer,                        intent(in)    :: cells, faces
+    real(dp), dimension(3,cells+2), intent(inout) :: prim_cc, cons_cc
+    real(dp), dimension(faces),     intent(in)    :: area_f
+    real(dp), dimension(cells+2),   intent(in)    :: area_cc, dx_cc, dadx_cc
 
-
-    integer :: n, rk,
-    real(dp), dimension(3, cells+2) :: cons_cc_0
-    real(dp), dimension(cells+2)    :: dt
+    integer :: n, rk, cell
+    real(dp), dimension(3,cells+2) :: cons_cc_0, residual
+    real(dp), dimension(cells+2)   :: dt
 
     logical :: convergence_flag = .false.
 
@@ -61,12 +65,12 @@ module solvers
 
     do n = 1, iterations
       dt = set_time_step( dx_cc, prim_cc )
+      
+      cons_cc_0 = cons_cc
 
       do rk = 1, rk_order
         call create_residual( cells, faces, n, prim_cc,                        &
                               area_f, area_cc, dadx_cc, residual )
-
-        if ( rk == 1 ) cons_cc_0 = cons_cc
 
         do cell = 2, cells+1
           cons_cc(:,cell) = cons_cc_0(:,cell)                                  &
@@ -86,11 +90,22 @@ module solvers
 
       call check_convergence(residual, convergence_flag)
 
-      if ( convergence_flag ) break
-
+      if ( convergence_flag ) then
+        write(*,*) 'Solution has converged!'
+        break
+      end if
     end do
 
+    if (.not. convergence_flag ) then
+      write(*,*) 'Solution failed to converge...'
+      write(*,*) 'Consider restarting from q1d_restart.dat'
+    end if
+
   end subroutine explicit_solve
+
+  include 'conserved_to_primitive_1D.f90'
+  include 'floor_primitive_vars_1D.f90'
+  include 'primitive_to_conserved__1D.f90'
 
 !=============================================================================80
 !
@@ -102,7 +117,6 @@ module solvers
 
     use set_precision, only : dp
     use set_constants, only : large
-    use XXXX,          only : cfl
     
     implicit none
 
@@ -172,8 +186,6 @@ module solvers
   subroutine create_fluxes( faces, iteration, prim_cc, flux )
 
     use set_precision, only : dp
-! FIXME... figure out where these will come from
-    use XXXXXXX, only : flux_type
 
     implicit none
 
@@ -336,8 +348,6 @@ module solvers
 
     use set_precision, only : dp
     use set_constants, only : zero, fourth, one, small
-! FIXME: figure out where these will come from
-    use XXXXXX,        only :  firstorder, muscl, limiter, kappa
 
     implicit none
 
