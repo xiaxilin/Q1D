@@ -7,7 +7,7 @@ pure function flux_vanleer(qL, qR) result(F)
 
   use set_precision,   only : dp
   use set_constants,   only : zero, fourth, half, one, two
-  use fluid_constants, only : gamma, gm1, xg, xgm1
+  use fluid_constants, only : gamma, gm1, xg, xgm1, xg2m1
 
   implicit none
 
@@ -45,7 +45,7 @@ pure function flux_vanleer(qL, qR) result(F)
 
 !Calculate Right (-) Fluxes
   a = speed_of_sound(qR(3), qR(1))
-  M = qmin(2)/a
+  M = qR(2)/a
 
 !Right sub(sonic) flux
   fa = -fourth*qR(1)*a*(M-one)**2
@@ -67,5 +67,3 @@ pure function flux_vanleer(qL, qR) result(F)
   F(:) = F(:) + (one-switch)*Fiss(:) + switch*Fisub(:)
 
 end function flux_vanleer
-
-include 'speed_of_sound.f90'

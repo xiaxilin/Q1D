@@ -4,27 +4,27 @@
 !
 !=============================================================================80
 
-pure function flux_roe(lambdaeps, qplus, qmin) result(F)
+pure function flux_roe(qL, qR) result(F)
 
   use set_precision,   only : dp
   use set_constants,   only : half, one, two, four
-  use fluid_constatns, only : gamma, gm1
+  use fluid_constants, only : gamma, gm1
 
   implicit none
 
-  real(dp), intent(in) :: lambdaeps
-  real(dp), dimension(3), intent(in)  :: qplus, qmin
-
-  real(dp), dimension(3) :: F
+  real(dp), dimension(3), intent(in) :: qL, qR
+  real(dp), dimension(3)             :: F
 
   integer  :: i
-  real(dp) :: rhoL, uL, pL, rhoR, uR, pR
+  real(dp) :: rhoL, uL, pL, rhoR, uR, pR, lambdaeps
   real(dp) :: Rhalf, RoeAvgrho, RoeAvgu, RoeAvght, RoeAvga
-  real(dp), dimension(3) :: FL, FR, r1RoeAvg, r2RoeAvg, r3RoeAvg, dw, lambdaRoe
+  real(dp), dimension(3) :: FL, FR, consL, consR
+  real(dp), dimension(3) :: r1RoeAvg, r2RoeAvg, r3RoeAvg, dw, lambdaRoe
 
   continue
 
 ! FIXME: need rho*et term
+  lambdaeps = 0.1_dp
 
   rhoL = qL(1)
   uL   = qL(2)
@@ -34,8 +34,11 @@ pure function flux_roe(lambdaeps, qplus, qmin) result(F)
   uR   = qR(2)
   pR   = qR(3)
 
-  FL(:) = (/rhoL*uL, rhoL*uL**2 + pL, uL*(Qplus(3) + pL)/)
-  FR(:) = (/rhoR*uR, rhoR*uR**2 + pR, uR*(Qmin(3)  + pR)/)
+  consL = primitive_to_conserved_1D(qL)
+  consR = primitive_to_conserved_1D(qR)
+
+  FL(:) = (/rhoL*uL, rhoL*uL**2 + pL, uL*(consL(3) + pL)/)
+  FR(:) = (/rhoR*uR, rhoR*uR**2 + pR, uR*(consR(3) + pR)/)
 
 ! Roe interface variable
   Rhalf = sqrt(rhoR/rhoL)
@@ -43,7 +46,7 @@ pure function flux_roe(lambdaeps, qplus, qmin) result(F)
 ! Calculate Roe average variables
   RoeAvgrho = Rhalf*rhoL
   RoeAvgu   = (Rhalf*uR + uL) / (Rhalf+one)
-  RoeAvght  = (Rhalf*(Qmin(3) + pR)/rhoR + (Qplus(3) + pL)/rhoL) / (Rhalf+one)
+  RoeAvght  = (Rhalf*(consR(3) + pR)/rhoR + (consL(3) + pL)/rhoL) / (Rhalf+one)
   RoeAvga   = sqrt(gm1*(RoeAvght-half*RoeAvgu**2))
 
   lambdaRoe(1) = RoeAvgu

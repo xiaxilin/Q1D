@@ -13,8 +13,8 @@ pure function flux_central(qL, qR) result(F)
   real(dp), dimension(3), intent(in) :: qL, qR
   real(dp), dimension(3)             :: F, consL, consR
 
-  consL = primitive_to_conserved(qL)
-  consR = primitive_to_conserved(qR)
+  consL = primitive_to_conserved_1D(qL)
+  consR = primitive_to_conserved_1D(qR)
 
   F(1) = half * ( consL(2) + consR(2) )
   F(2) = half * ( qL(1)*qL(2)**2 + qL(3) + qR(1)*qR(2)**2 + qR(3) )

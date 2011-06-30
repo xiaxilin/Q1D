@@ -15,7 +15,7 @@ pure function flux_ausm(qpplus, qpmin, Qplus, Qmin) result(F)
   implicit none
 
   real(dp), dimension(3), intent(in)  :: qpplus, qpmin, Qplus, Qmin
-  real(dp), dimension(3),             :: F
+  real(dp), dimension(3)              :: F
 
   real(dp) :: PL, PR, HTL, HTR, al, ar, Ml, Mr, Mlold, Mrold
 
@@ -58,6 +58,5 @@ pure function flux_ausm(qpplus, qpmin, Qplus, Qmin) result(F)
               Qplus(2)*ar*((Ml+Mr) + abs(Ml+Mr))) + (PL+PR)
   F(3) = half*(Qmin(1)*HTR*ar*((Ml+Mr) - abs(Ml+Mr)) +                         &
               Qplus(1)*HTL*ar*((Ml+Mr) + abs(Ml+Mr)))
-  end do
 
-end subroutine flux_ausm
+end function flux_ausm

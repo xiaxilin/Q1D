@@ -20,7 +20,7 @@ pure function flux_sw(qL, qR) result(F)
   real(dp), dimension(3) :: lambda, lambdafloor, FL, FR
 
 !Calculate Left (+) Fluxes
-  a = sqrt(gamma*qL(3)/qL(1))
+  a = speed_of_sound(qL(3), qL(1))
   lambda(1) = qL(2)
   lambda(2) = qL(2) + a
   lambda(3) = qL(2) - a
@@ -38,7 +38,7 @@ pure function flux_sw(qL, qR) result(F)
 
 !Calculate Right (-) Fluxes
 
-  a = sqrt(gamma*qR(3)/qR(1))
+  a = speed_of_sound(qR(3), qR(1))
   lambda(1) = qR(2)
   lambda(2) = qR(2) + a
   lambda(3) = qR(2) - a
@@ -48,9 +48,9 @@ pure function flux_sw(qL, qR) result(F)
   FR(1) = two*gm1*lambdafloor(1)+lambdafloor(2)+lambdafloor(3)
   FR(2) = two*gm1*lambdafloor(1)*lambda(1) +                                   &
           lambdafloor(2)*lambda(2) + lambdafloor(3)*lambda(3)
-  FR(3) = gm1*lambdamin(1)*lambda(1)**2 +                                      &
-          half*(lambdamin(2)*lambda(2)**2 + lambdamin(3)*lambda(3)**2) +       &
-          ((three-gamma)/(two*gm1))*(lambdamin(2)+lambdamin(3))*a**2
+  FR(3) = gm1*lambdafloor(1)*lambda(1)**2 +                                    &
+          half*(lambdafloor(2)*lambda(2)**2 + lambdafloor(3)*lambda(3)**2) +   &
+          ((three-gamma)/(two*gm1))*(lambdafloor(2)+lambdafloor(3))*a**2
 
   FR(:) = (half*qR(1)/gamma)*FR(:)
 
