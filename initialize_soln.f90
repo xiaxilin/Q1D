@@ -4,14 +4,26 @@ module initialize_soln
 
   private
 
+  public :: restart
   public :: prim_cc
   public :: cons_cc
+  public :: cons_cc_0
+
+
+
+  logical :: restart = .false.
 
   real(dp), allocatable, dimension(:,:) :: prim_cc   ! primitive vars
   real(dp), allocatable, dimension(:,:) :: cons_cc   ! conserved vars
   real(dp), allocatable, dimension(:,:) :: cons_cc_0 ! old iter conserved vars
 
 contains
+
+!=============================================================================80
+!
+!
+!
+!=============================================================================80
 
   subroutine allocate_soln(neq, cells)
 
@@ -25,10 +37,15 @@ contains
 
   end subroutine allocate_soln
 
+!=============================================================================80
+!
+!
+!
+!=============================================================================80
+
   subroutine initial_soln(cells)
 
     use set_constants,   only : half, one
-    use XXXXX,           only : restart
     use fluid_constants, only : r, gamma, gm1, gxgm1
 
     implicit none

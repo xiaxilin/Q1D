@@ -17,13 +17,16 @@ module namelist
   public :: kappa      ! form of MUSCL
   public :: limiter    ! type of variable limiting 
   public :: toler      ! convergence tolerance
+
   public :: flux_type  ! flux type, '2nd', 'jst', 'sw', 'vanleer', 'roe', 'ausm'
   public :: k2         ! JST damping coefficient, only for flux_type = 'jst'
   public :: k4         ! JST damping coefficient, only for flux_type = 'jst'
+
   public :: mref       ! Initial mach number in nozzle
   public :: to         ! Inflow stag. temp
   public :: po         ! Inflow stag. pressure
   public :: pback      ! Outflow backpressure, negative for extrapolation
+
   public :: gamma      ! Ratio of specific heats
   public :: r          ! Gas constant
 
