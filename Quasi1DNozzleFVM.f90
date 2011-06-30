@@ -802,6 +802,9 @@ program quasi1dnozzlefvm
       dt = min(((CFL*dx)/(abs(V(2,i))+a(i))),dt)
     end do
 
+! Store off starting solution
+    U0 = U    
+
     do RK=1,RKorder
 
 ! call form_residual(dt)
@@ -834,10 +837,6 @@ program quasi1dnozzlefvm
       end do
 
 !M-Step Runge-Kutta Explicit Iteration
-      if (RK.eq.1) then
-        U0(:,:) = U(:,:)
-      end if
-
       do i=2,imax
         Resid(:,i) = (one/(dx*Areacent(i))) *                                  &
                ( dx*S(:,i) - (F(:,i)*Areaface(i)) + (F(:,i-1)*Areaface(i-1)) )
