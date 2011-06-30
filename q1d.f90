@@ -4,9 +4,7 @@
 
   call read_grid
 
-  call allocate_grid
-
-  call allocate_soln
+  call allocate_soln(cells)
 
   call initialize_soln
     if ( restart ) call read_restart inside initialize_soln
