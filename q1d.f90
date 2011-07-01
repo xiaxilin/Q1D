@@ -12,6 +12,9 @@ program q1d_primal
 
   continue
 
+  print *,'*********************************************'
+  print *,'     Quasi-1D Nozzle : RELEASE 4.0, 2011     '
+  print *,'*********************************************'
 
 ! read inputs
   call read_nml

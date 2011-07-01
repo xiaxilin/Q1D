@@ -81,9 +81,9 @@ module solvers
           prim_cc(:,cell) = floor_primitive_vars(prim_cc(:,cell))
         end do
 
-!        call set_inflow(prim_cc(:,1), prim_cc(:,2), prim_cc(:,3))
-!        call set_outflow(prim_cc(:,cells), prim_cc(:,cells+1),                &
- !                        prim_cc(:,cells+2))
+        call set_inflow( prim_cc(:,1), prim_cc(:,2), prim_cc(:,3) )
+        call set_outflow( prim_cc(:,cells+2),                                  &
+                          prim_cc(:,cells+1), prim_cc(:,cells) )
 
         do cell = 1, cells+2
           cons_cc(:,cell) = primitive_to_conserved_1D(prim_cc(:,cell))
@@ -183,6 +183,80 @@ module solvers
     end do
 
   end subroutine create_residual
+
+!=============================================================================80
+!
+! 
+!
+!=============================================================================80
+
+  subroutine set_inflow( cc_in, cc_1, cc_2 )
+
+    use set_precision,   only : dp
+    use set_constants,   only : one, two
+    use fluid_constants, only : r, gamma, gm1, xgm1, gxgm1
+    use initialize_soln, only : po, to
+
+    implicit none
+
+    real(dp), dimension(3), intent(in)  :: cc_1, cc_2
+    real(dp), dimension(3), intent(out) :: cc_in
+
+    real(dp) :: vel_max, psi
+
+    continue
+
+! set max, physically possible velocity
+    vel_max = sqrt(two*gamma*R*to/gm1)-one
+
+! extrapolate velocity and limit
+    cc_in(2) = max(-vel_max, min(two*cc_1(2)-cc_2(2), vel_max))	
+
+! now calculate inflow 
+    psi = to/(to-(gm1*cc_in(2)**2/(two*gamma*r)))
+
+    cc_in(1) = po/(r*to*psi**xgm1)
+    cc_in(3) = po/psi**gxgm1   
+
+! floor variables
+    cc_in = floor_primitive_vars(cc_in)
+
+  end subroutine set_inflow
+
+!=============================================================================80
+!
+! 
+!
+!=============================================================================80
+
+  subroutine set_outflow( cc_out, cc_1, cc_2 )
+
+    use set_precision,   only : dp
+    use set_constants,   only : two
+    use initialize_soln, only : pback
+
+    implicit none
+
+    real(dp), dimension(3), intent(in)  :: cc_1, cc_2
+    real(dp), dimension(3), intent(out) :: cc_out
+
+    integer :: eq
+
+    continue
+
+! extrapolate all variables
+    do eq = 1, 3
+      cc_out(eq) = two*cc_1(eq) - cc_2(eq)
+    end do
+
+! set back pressure if appropriate
+    if ( pback >= 0.0_dp ) cc_out(3) = pback
+
+! floor variables
+    cc_out = floor_primitive_vars(cc_out)
+
+  end subroutine set_outflow
+
 
 !=============================================================================80
 !
