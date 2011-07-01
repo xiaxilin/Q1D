@@ -14,21 +14,13 @@ module namelist
 
 ! Define namelist inputs
 
-  integer           :: iterations, firstorder, itercheck, rkorder
-  real(dp)          :: cfl, kappa, toler
-  character(len=10) :: limiter
-  logical           :: muscl
   namelist /code_control/ iterations, firstorder, itercheck, rkorder, cfl, &
                           limiter, muscl, kappa, toler
 
-  character(len=10) :: flux_type
-  real(dp)          :: k2, k4
   namelist /flux/ flux_type, k2, k4
 
-  real(dp) :: mref, to, po, pback
   namelist /conditions/ mref, to, po, pback
 
-  real(dp) :: gamma, r
   namelist /gas_properties/ gamma, r
 
 contains
