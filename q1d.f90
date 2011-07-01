@@ -3,11 +3,10 @@
 program q1d
 
   use namelist,        only : read_nml
-  use initialize_grid, only : read_grid, cells
-  use initialize_soln, only : allocate_soln, initial_soln
+  use initialize_grid, only : read_grid, cells, faces,   &
+                              area_f, area_cc, dx_cc, dadx_cc
+  use initialize_soln, only : allocate_soln, initial_soln, prim_cc, cons_cc
   use solvers,         only : explicit_solve
-  use XXX, only : 
-  use XXX, only : 
 
   implicit none
 
@@ -28,7 +27,7 @@ program q1d
 
 ! perform explicit solve
   call explicit_solve(cells, faces, prim_cc, cons_cc,                          &
-                      area_f, area_cc, dx_ccdadx_cc)
+                      area_f, area_cc, dx_cc, dadx_cc)
 
 !  case select( solver_type )
 !  case('explicit')
@@ -38,14 +37,9 @@ program q1d
 !  end case select
 
 ! do solution output
-  call write_restart
-  call write_plot_data
+!  call write_restart
+!  call write_plot_data
 
 end program q1d
 
 ! makefile layout
-
-build all in Libraries
-
-build initialize_grid
-build initialize_soln

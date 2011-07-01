@@ -6,6 +6,9 @@ module initialize_soln
 
   private
 
+  public :: allocate_soln
+  public :: initial_soln
+
   public :: prim_cc
   public :: cons_cc
 
@@ -25,7 +28,6 @@ module initialize_soln
 
   real(dp), allocatable, dimension(:,:) :: prim_cc   ! primitive vars
   real(dp), allocatable, dimension(:,:) :: cons_cc   ! conserved vars
-  real(dp), allocatable, dimension(:,:) :: cons_cc_0 ! old iter conserved vars
 
 contains
 

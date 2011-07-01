@@ -90,7 +90,7 @@ module solvers
         end do
       end do
 
-      call check_convergence(residual, convergence_flag)
+!      call check_convergence(residual, convergence_flag)
 
       if ( convergence_flag ) then
         write(*,*) 'Solution has converged!'
