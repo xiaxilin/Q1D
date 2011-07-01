@@ -4,28 +4,28 @@
 !
 !=============================================================================80
 
-
-! FIXME: broken, comment block a lie as well
-pure function flux_ausm(qpplus, qpmin, Qplus, Qmin) result(F)
+ function flux_ausm(prim_L, prim_R) result(F)
 
   use set_precision,   only : dp
   use set_constants,   only : fourth, half, one
-  use fluid_constants, only : gamma
 
   implicit none
 
-  real(dp), dimension(3), intent(in)  :: qpplus, qpmin, Qplus, Qmin
-  real(dp), dimension(3)              :: F
+  real(dp), dimension(3), intent(in)  :: prim_L, prim_R
+  real(dp), dimension(3)              :: F, cons_L, cons_R
 
   real(dp) :: PL, PR, HTL, HTR, al, ar, Ml, Mr, Mlold, Mrold
 
   continue
 
 !Calculate left (+) state
-  al = sqrt(gamma*qpplus(3)/qpplus(1))
-  Ml = qpplus(2)/al
-  PL = qpplus(3)
-  HTL = (Qplus(3)+PL)/Qplus(1)
+  al = speed_of_sound(prim_L(3), prim_L(1))
+  Ml = prim_L(2)/al
+  PL = prim_L(3)
+
+  cons_L = primitive_to_conserved_1D(prim_L)
+
+  HTL = (cons_L(3)+PL)/cons_L(1)
     
   if (abs(Ml)<1.0_dp) then
     PL = PL*half*(one+Ml)
@@ -37,10 +37,13 @@ pure function flux_ausm(qpplus, qpmin, Qplus, Qmin) result(F)
   end if
 
 !Calculate right (-) state
-  ar = sqrt(gamma*qpmin(3)/qpmin(1))
-  Mr = qpmin(2)/ar
-  PR = qpmin(3)
-  HTR = (Qmin(3)+PR)/Qmin(1)
+  ar = speed_of_sound(prim_R(3), prim_R(1))
+  Mr = prim_R(2)/ar
+  PR = prim_R(3)
+
+  cons_R = primitive_to_conserved_1D(prim_R)
+
+  HTR = (cons_R(3)+PR)/cons_R(1)
 
   if (abs(Mr)<1.0_dp) then
     PR = PR*half*(one-Mr)
@@ -51,12 +54,12 @@ pure function flux_ausm(qpplus, qpmin, Qplus, Qmin) result(F)
     PR = PR*Mr/Mrold
   end if
 
-!Combine
-  F(1) = half*(Qmin(1)*ar*((Ml+Mr) - abs(Ml+Mr)) +                             &
-              Qplus(1)*ar*((Ml+Mr) + abs(Ml+Mr)))
-  F(2) = half*(Qmin(2)*ar*((Ml+Mr) - abs(Ml+Mr)) +                             &
-              Qplus(2)*ar*((Ml+Mr) + abs(Ml+Mr))) + (PL+PR)
-  F(3) = half*(Qmin(1)*HTR*ar*((Ml+Mr) - abs(Ml+Mr)) +                         &
-              Qplus(1)*HTL*ar*((Ml+Mr) + abs(Ml+Mr)))
+!Combine FIXME: should some ar's be al's?
+  F(1) = half*(cons_R(1)*ar*((Ml+Mr) - abs(Ml+Mr)) +                           &
+               cons_L(1)*ar*((Ml+Mr) + abs(Ml+Mr)))
+  F(2) = half*(cons_R(2)*ar*((Ml+Mr) - abs(Ml+Mr)) +                           &
+               cons_L(2)*ar*((Ml+Mr) + abs(Ml+Mr))) + (PL+PR)
+  F(3) = half*(cons_R(1)*HTR*ar*((Ml+Mr) - abs(Ml+Mr)) +                       &
+               cons_L(1)*HTL*ar*((Ml+Mr) + abs(Ml+Mr)))
 
 end function flux_ausm

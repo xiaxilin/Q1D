@@ -71,7 +71,7 @@ module solvers
       cons_cc_0 = cons_cc
 
       do rk = 1, rkorder
-        call create_residual( cells, faces, n, prim_cc,                        &
+        call create_residual( cells, faces, n, prim_cc, cons_cc,               &
                               area_f, area_cc, dadx_cc, dx_cc, residual )
 
         do cell = 2, cells+1
@@ -151,7 +151,7 @@ module solvers
 !
 !=============================================================================80
 
-  subroutine create_residual( cells, faces, iteration, prim_cc,                &
+  subroutine create_residual( cells, faces, iteration, prim_cc, cons_cc,       &
                               area_f, area_cc, dadx_cc, dx_cc, residual )
 
     use set_precision, only : dp
@@ -161,6 +161,7 @@ module solvers
 
     integer,                        intent(in)  :: cells, faces, iteration
     real(dp), dimension(3,cells+2), intent(in)  :: prim_cc
+    real(dp), dimension(3,cells+2), intent(in)  :: cons_cc
     real(dp), dimension(faces),     intent(in)  :: area_f
     real(dp), dimension(cells+2),   intent(in)  :: area_cc
     real(dp), dimension(cells+2),   intent(in)  :: dadx_cc
@@ -172,7 +173,7 @@ module solvers
 
     continue
 
-    call create_fluxes( cells, faces, iteration, prim_cc, F )
+    call create_fluxes( cells, faces, iteration, prim_cc, cons_cc, F )
     call create_source( cells, prim_cc(3,:), dadx_cc, S )
 
     residual = zero
@@ -189,14 +190,15 @@ module solvers
 !
 !=============================================================================80
 
-  subroutine create_fluxes( cells, faces, iteration, prim_cc, flux )
+  subroutine create_fluxes( cells, faces, iteration, prim_cc, cons_cc, flux )
 
     use set_precision, only : dp
 
     implicit none
 
     integer,                         intent(in)  :: cells, faces, iteration
-    real(dp), dimension(3, faces+1), intent(in)  :: prim_cc
+    real(dp), dimension(3, cells+2), intent(in)  :: prim_cc
+    real(dp), dimension(3, cells+2), intent(in)  :: cons_cc
     real(dp), dimension(3, faces),   intent(out) :: flux
 
     real(dp), allocatable, dimension(:,:) :: prim_left, prim_right
@@ -224,7 +226,7 @@ module solvers
       do i = 1, faces
         flux(:,i) = flux_central( prim_cc(:,i), prim_cc(:,i+1) )
       end do
-      call add_jst_damping( cells, faces, prim_cc, flux )
+      call add_jst_damping( cells, faces, prim_cc, cons_cc, flux )
     case('vanleer')
       do i = 1, faces
         flux(:,i) = flux_vanleer( prim_left(:,i), prim_right(:,i) )
@@ -281,7 +283,7 @@ module solvers
 !
 !=============================================================================80
 
-  subroutine add_jst_damping( cells, faces, prim_cc, central_flux )
+  subroutine add_jst_damping( cells, faces, prim_cc, cons_cc, central_flux )
 
     use set_precision, only : dp
     use set_constants, only : zero, half, two, three
@@ -290,6 +292,7 @@ module solvers
 
     integer,                         intent(in)    :: cells, faces
     real(dp), dimension(3, cells+2), intent(in)    :: prim_cc
+    real(dp), dimension(3, cells+2), intent(in)    :: cons_cc
     real(dp), dimension(3, faces),   intent(inout) :: central_flux
 
     integer                      :: i
@@ -318,8 +321,8 @@ module solvers
 
     lambda  = half*(abs(prim_cc(2,i+1))+a(i+1) + abs(prim_cc(2,i))+a(i))
 
-    dissipation(:) = -lambda* (epstwo*(Q(:,i+1) - Q(:,i))                     &
-                   - epsfour*(Q(:,i+2) - three*Q(:,i+1) + two*Q(:,i)))
+    dissipation(:) = -lambda* (epstwo*(cons_cc(:,i+1) - cons_cc(:,i))          &
+       - epsfour*(cons_cc(:,i+2) - three*cons_cc(:,i+1) + two*cons_cc(:,i)))
 
     central_flux(:,i) = central_flux(:,i) + dissipation(:)
                 
@@ -329,8 +332,9 @@ module solvers
 
       lambda  = half*(abs(prim_cc(2,i+1))+a(i+1) + abs(prim_cc(2,i))+a(i))
 
-      dissipation(:) = -lambda*(epstwo*(Q(:,i+1)-Q(:,i))                      &
-        - epsfour*(Q(:,i+2) - three*Q(:,i+1) + three*Q(:,i) - Q(:,i-1)))
+      dissipation(:) = -lambda*(epstwo*(cons_cc(:,i+1)-cons_cc(:,i))           &
+        - epsfour*(cons_cc(:,i+2) - three*cons_cc(:,i+1) + three*cons_cc(:,i)  &
+        - cons_cc(:,i-1)))
 
       central_flux(:,i) = central_flux(:,i) + dissipation(:)
     end do
@@ -341,8 +345,8 @@ module solvers
 
     lambda  = half*(abs(prim_cc(2,i+1))+a(i+1) + abs(prim_cc(2,i))+a(i))
 
-    dissipation(:) = -lambda*(epstwo*(Q(:,i+1) - Q(:,i))                      &
-                   - epsfour*(-two*Q(:,i+1) + three*Q(:,i) - Q(:,i-1)))
+    dissipation(:) = -lambda*(epstwo*(cons_cc(:,i+1) - cons_cc(:,i))           &
+      - epsfour*(-two*cons_cc(:,i+1) + three*cons_cc(:,i) - cons_cc(:,i-1)))
 
     central_flux(:,i) = central_flux(:,i) + dissipation(:)
 
