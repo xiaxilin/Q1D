@@ -28,3 +28,4 @@ Try to avoid CAPS, except in comments
 
 Explicitly declare public routines in modules
 Use functions wherever possible
+gfortran -O0 -g -Wall -fbounds-check -Werror -o q1d set_precision.f90 set_constants.f90 fluid_constants.f90 initialize_grid.f90 initialize_soln.f90 solvers.f90 namelist.f90 q1d.f90

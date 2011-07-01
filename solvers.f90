@@ -371,7 +371,7 @@ module solvers
 
     integer                      :: i
     real(dp), dimension(cells+2) :: nu, a
-    real(dp), dimension(3)       :: dissipation, cons_left, cons_right
+    real(dp), dimension(3)       :: dissipation
     real(dp)                     :: lambda, epstwo, epsfour
 
     continue
@@ -451,7 +451,7 @@ module solvers
 
     continue
 
-    if ( iterations <= firstorder .or. .not. muscl ) then
+    if ( iteration <= firstorder .or. .not. muscl ) then
 ! skip excess computations if only first order
       do i = 1, faces
         vars_left(:,i)  = vars_cc(:,i)
