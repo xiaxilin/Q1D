@@ -76,7 +76,7 @@ module solvers
 
         do cell = 2, cells+1
           cons_cc(:,cell) = cons_cc_0(:,cell)                                  &
-                          + dt*residual(:,cell)/real(1+rkorder-rk,dp)
+                          + dt(cell)*residual(:,cell)/real(1+rkorder-rk,dp)
           prim_cc(:,cell) = conserved_to_primitive_1D(cons_cc(:,cell))
           prim_cc(:,cell) = floor_primitive_vars(prim_cc(:,cell))
         end do
@@ -169,7 +169,8 @@ module solvers
     real(dp), dimension(3,cells+2), intent(out) :: residual
 
     integer :: i
-    real(dp), dimension(3,faces) :: F, S
+    real(dp), dimension(3,faces)   :: F
+    real(dp), dimension(3,cells+2) :: S
 
     continue
 
@@ -178,7 +179,8 @@ module solvers
 
     residual = zero
     do i = 2, cells+1
-      residual(:,i) = (dx_cc*S(:,i) - area_f(i)*F(:,i) + area_f(i-1)*F(:,i-1)) &
+      residual(:,i) = (dx_cc(i)*S(:,i)                                         &
+                    - area_f(i)*F(:,i) + area_f(i-1)*F(:,i-1))                 &
                     / (dx_cc(i)*area_cc(i))
     end do
 
