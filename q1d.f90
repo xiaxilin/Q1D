@@ -1,6 +1,6 @@
-! Will hold new q1d_nozzle code
+! TODO: move initial_soln into solvers
 
-program q1d
+program q1d_primal
 
   use namelist,        only : read_nml
   use initialize_grid, only : read_grid, cells, faces,   &
@@ -29,6 +29,7 @@ program q1d
   call explicit_solve(cells, faces, prim_cc, cons_cc,                          &
                       area_f, area_cc, dx_cc, dadx_cc)
 
+! FIXME: when implicit solver becomes live, implement this system
 !  case select( solver_type )
 !  case('explicit')
 !    call explicit_solve
@@ -40,6 +41,6 @@ program q1d
 !  call write_restart
 !  call write_plot_data
 
-end program q1d
+end program q1d_primal
 
 ! makefile layout
