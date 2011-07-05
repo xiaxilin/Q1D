@@ -57,13 +57,13 @@ program q1d_grid
     areaface(i) = 0.2_dp + 0.4_dp * (1.0_dp + sin(pi*(x(i) - 0.5_dp)))
   end do
 
-  do i = 1, cells
+  do i = 2, cells+1
     areacent(i) = 0.2_dp + 0.4_dp &
-                * (1.0_dp + sin(pi*( 0.5_dp*(x(i)+x(i+1)) - 0.5_dp )))
-    dadx(i) = 0.4_dp * pi * cos(pi*( 0.5_dp*(x(i)+x(i+1)) - 0.5_dp ))
+                * (1.0_dp + sin(pi*( 0.5_dp*(x(i)+x(i-1)) - 0.5_dp )))
+    dadx(i) = 0.4_dp * pi * cos(pi*( 0.5_dp*(x(i)+x(i-1)) - 0.5_dp ))
   end do
-  areacent(cells+1) = areacent(cells)
-  dadx(cells+1) = dadx(cells)
+  areacent(1) = areacent(2)
+  dadx(1) = dadx(2)
 
 ! Write data to file
   available_unit = find_available_unit()
