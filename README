@@ -3,6 +3,24 @@ Quasi-1D Nozzle, written in Fortran 9X
 This is a FVM code with a multistep Runge-Kutta explicit solver.
 Both first order and second order ( via MUSCL primitive variable extrapolation )
 fluxes are included for a variety of schemes.
+
+! The code requires that the number of interior cells, N, be specified,
+! however, two additional cells, cell(1) and cell(N+2), are ghost cells,
+! while the interior domain is contained by cell(2,N+1).
+! Since there are N interior cells, there are N+1 faces.
+! Hopefully the below diagram explains this:
+
+! DOMAIN: inflow |        interior        | outflow
+!        -----------------------------------------
+! CELLS:     1   |   2   | ...... |  N+1  |  N+2
+!        -----------------------------------------
+! FACES:         1       2        N      N+1
+
+! Where appropriate, the code will loop over faces, 
+! such as when it is calculating fluxes, or over cells, 
+! such as when the explicit iteration is being performed.
+
+
 The code has been branched and merged several times, 
 with this repo starting at an intermediate step in the attempt to correct some
 issues and apply lessons learned.

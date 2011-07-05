@@ -1,4 +1,5 @@
 ! TODO: move initial_soln into solvers
+! TODO: fix central difference fluxes and van leer flux
 
 program q1d_primal
 
