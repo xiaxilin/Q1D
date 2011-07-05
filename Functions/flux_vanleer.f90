@@ -58,7 +58,7 @@ pure function flux_vanleer(qL, qR) result(F)
 !Floor the mach number for +supersonic flows
   Mfloor = half*(M - abs(M))
 
-  Fiss(1) = qR(1)*a*M
+  Fiss(1) = qR(1)*a*Mfloor
   Fiss(2) = (Mfloor/M)*qR(1)*a**2*(Mfloor**2+xg)
   Fiss(3) = qR(1)*a**3*Mfloor*(half*Mfloor**2+xgm1)
 
