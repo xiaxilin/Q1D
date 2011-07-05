@@ -52,7 +52,7 @@ pure function flux_sw(qL, qR) result(F)
           half*(lambdafloor(2)*lambda(2)**2 + lambdafloor(3)*lambda(3)**2) +   &
           ((three-gamma)/(two*gm1))*(lambdafloor(2)+lambdafloor(3))*a**2
 
-  FR(:) = (half*qR(1)/gamma)*FR(:)
+  FR(:) = (half*qR(1)*xg)*FR(:)
 
 !Calculate Interface Flux
   F(:) = FL(:) + FR(:)
