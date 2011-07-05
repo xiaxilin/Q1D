@@ -1,5 +1,5 @@
-! TODO: move initial_soln into solvers
-! TODO: fix central difference fluxes and van leer flux
+! TODO: add soln restart output and visualization
+! TODO: add convergence checks
 
 program q1d_primal
 
@@ -50,5 +50,3 @@ program q1d_primal
 !  call write_plot_data
 
 end program q1d_primal
-
-! makefile layout
