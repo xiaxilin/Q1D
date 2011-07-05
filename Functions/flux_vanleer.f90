@@ -49,7 +49,7 @@ pure function flux_vanleer(qL, qR) result(F)
 
 !Right sub(sonic) flux
   fa = -fourth*qR(1)*a*(M-one)**2
-  fb = -a*(gm1*M + two)
+  fb = a*(gm1*M - two)
 
   Fisub(1) = fa
   Fisub(2) = fa*fb*xg
