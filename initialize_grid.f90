@@ -10,24 +10,26 @@ module initialize_grid
 
   public :: cells
   public :: faces
+  public :: dxsi
   public :: area_f
   public :: area_cc
   public :: x_f
   public :: x_cc
   public :: dadx_cc
-  public :: dx_cc
+  public :: dxdxsi_cc
 
   public :: read_grid
 
-  integer :: cells
-  integer :: faces
+  integer  :: cells ! # of interior cells
+  integer  :: faces ! # of cell faces
+  real(dp) :: dxsi  ! curvilinear stretching term
 
   real(dp), allocatable, dimension(:) :: area_f  ! face area
   real(dp), allocatable, dimension(:) :: area_cc ! cell center area
   real(dp), allocatable, dimension(:) :: x_f     ! face node location
   real(dp), allocatable, dimension(:) :: x_cc    ! cell center node location
   real(dp), allocatable, dimension(:) :: dadx_cc ! cell center da/dx
-  real(dp), allocatable, dimension(:) :: dx_cc   ! cell dx (length)
+  real(dp), allocatable, dimension(:) :: dxdxsi_cc ! cell dx/dxsi metric
 
 contains
 
@@ -37,11 +39,12 @@ contains
 
   subroutine read_grid
 
-    use set_constants, only : half
+    use set_constants, only : half, one
 
     implicit none
 
-    integer :: grid_unit, face
+    integer  :: grid_unit, face
+    real(dp) :: dx
 
     continue
 
@@ -53,6 +56,8 @@ contains
 
     faces = cells + 1
 
+    dxsi = one/real(cells, dp)
+
     call allocate_grid()
 
     do face = 1, faces
@@ -62,8 +67,9 @@ contains
     close(grid_unit)
 
     do face = 2, faces
-      dx_cc(face) = x_f(face) - x_f(face-1)
-      x_cc(face)  = x_f(face-1) + half*dx_cc(face)
+      dx = x_f(face) - x_f(face-1)
+      dxdxsi_cc(face) = dx/dxsi
+      x_cc(face)  = x_f(face-1) + half*dx
     end do
 
   end subroutine read_grid
@@ -81,14 +87,15 @@ contains
     continue
 
     allocate( area_f(faces), x_f(faces), area_cc(cells+2), x_cc(cells+2) )
-    allocate( dadx_cc(cells+2), dx_cc(cells+2))
+    allocate( dadx_cc(cells+2), dxdxsi_cc(cells+2))
 
     area_f  = zero
-    area_cc = zero
-    dadx_cc = zero
-    dadx_cc = zero
     x_f     = zero
+    area_cc = zero
     x_cc    = zero
+    dadx_cc = zero
+    dxdxsi_cc = zero
+
 
   end subroutine allocate_grid
 

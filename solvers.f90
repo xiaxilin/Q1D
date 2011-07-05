@@ -46,15 +46,16 @@ module solvers
 !
 !=============================================================================80
 
-  subroutine explicit_solve( cells, faces, prim_cc, cons_cc,                   &
-                             area_f, area_cc, dx_cc, dadx_cc )
+  subroutine explicit_solve( cells, faces, dxsi, prim_cc, cons_cc,             &
+                             area_f, area_cc, dxdxsi_cc, dadx_cc )
 
     implicit none
 
     integer,                        intent(in)    :: cells, faces
+    real(dp),                       intent(in)    :: dxsi
     real(dp), dimension(3,cells+2), intent(inout) :: prim_cc, cons_cc
     real(dp), dimension(faces),     intent(in)    :: area_f
-    real(dp), dimension(cells+2),   intent(in)    :: area_cc, dx_cc, dadx_cc
+    real(dp), dimension(cells+2),   intent(in)    :: area_cc, dxdxsi_cc, dadx_cc
 
     integer  :: n, rk, cell
     real(dp) :: dt_global
@@ -66,13 +67,13 @@ module solvers
     continue
 
     do n = 1, iterations
-      call set_time_step( cells, dx_cc, prim_cc, dt, dt_global )
+      call set_time_step( cells, dxsi, prim_cc, dt, dt_global )
       
       cons_cc_0 = cons_cc
 
       do rk = 1, rkorder
-        call create_residual( cells, faces, n, prim_cc, cons_cc,               &
-                              area_f, area_cc, dadx_cc, dx_cc, residual )
+        call create_residual( cells, faces, n, dxsi, prim_cc, cons_cc,         &
+                              area_f, area_cc, dadx_cc, dxdxsi_cc, residual )
 
         do cell = 2, cells+1
           cons_cc(:,cell) = cons_cc_0(:,cell)                                  &
@@ -115,7 +116,7 @@ module solvers
 !
 !=============================================================================80
 
-  subroutine set_time_step( cells, dx_cc, prim_cc, dt, dt_global)
+  subroutine set_time_step( cells, dxsi, prim_cc, dt, dt_global)
 
     use set_precision, only : dp
     use set_constants, only : large
@@ -123,7 +124,7 @@ module solvers
     implicit none
 
     integer,                         intent(in)  :: cells
-    real(dp), dimension(cells+2),    intent(in)  :: dx_cc
+    real(dp),                        intent(in)  :: dxsi
     real(dp), dimension(3, cells+2), intent(in)  :: prim_cc
     real(dp), dimension(cells+2),    intent(out) :: dt
     real(dp),                        intent(out) :: dt_global
@@ -137,7 +138,7 @@ module solvers
 
     do cell = 1, cells+2
       a = speed_of_sound( prim_cc(3,cell), prim_cc(1,cell) )
-      dt(cell) = cfl*dx_cc(cell) / ( abs(prim_cc(2,cell)) + a )
+      dt(cell) = cfl*dxsi / ( abs(prim_cc(2,cell)) + a )
       dt_global = min(dt_global, dt(cell))
     end do
 
@@ -151,8 +152,8 @@ module solvers
 !
 !=============================================================================80
 
-  subroutine create_residual( cells, faces, iteration, prim_cc, cons_cc,       &
-                              area_f, area_cc, dadx_cc, dx_cc, residual )
+  subroutine create_residual( cells, faces, iteration, dxsi, prim_cc, cons_cc, &
+                              area_f, area_cc, dadx_cc, dxdxsi_cc, residual )
 
     use set_precision, only : dp
     use set_constants, only : zero
@@ -160,12 +161,13 @@ module solvers
     implicit none
 
     integer,                        intent(in)  :: cells, faces, iteration
+    real(dp),                       intent(in)  :: dxsi
     real(dp), dimension(3,cells+2), intent(in)  :: prim_cc
     real(dp), dimension(3,cells+2), intent(in)  :: cons_cc
     real(dp), dimension(faces),     intent(in)  :: area_f
     real(dp), dimension(cells+2),   intent(in)  :: area_cc
     real(dp), dimension(cells+2),   intent(in)  :: dadx_cc
-    real(dp), dimension(cells+2),   intent(in)  :: dx_cc
+    real(dp), dimension(cells+2),   intent(in)  :: dxdxsi_cc
     real(dp), dimension(3,cells+2), intent(out) :: residual
 
     integer :: i
@@ -179,9 +181,9 @@ module solvers
 
     residual = zero
     do i = 2, cells+1
-      residual(:,i) = (dx_cc(i)*S(:,i)                                         &
+      residual(:,i) = (dxdxsi_cc(i)*dxsi*S(:,i)                                &
                     - area_f(i)*F(:,i) + area_f(i-1)*F(:,i-1))                 &
-                    / (dx_cc(i)*area_cc(i))
+                    / (dxdxsi_cc(i)*dxsi*area_cc(i))
     end do
 
   end subroutine create_residual

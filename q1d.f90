@@ -5,8 +5,8 @@ program q1d_primal
 
   use namelist,        only : read_nml
   use fluid_constants, only : set_gamma_constants
-  use initialize_grid, only : read_grid, cells, faces,   &
-                              area_f, area_cc, dx_cc, dadx_cc
+  use initialize_grid, only : read_grid, cells, faces, dxsi,                   &
+                              area_f, area_cc, dxdxsi_cc, dadx_cc
   use initialize_soln, only : allocate_soln, initial_soln, prim_cc, cons_cc
   use solvers,         only : explicit_solve
 
@@ -34,8 +34,8 @@ program q1d_primal
   call initial_soln(cells)
 
 ! perform explicit solve
-  call explicit_solve(cells, faces, prim_cc, cons_cc,                          &
-                      area_f, area_cc, dx_cc, dadx_cc)
+  call explicit_solve(cells, faces, dxsi, prim_cc, cons_cc,                    &
+                      area_f, area_cc, dxdxsi_cc, dadx_cc)
 
 ! FIXME: when implicit solver becomes live, implement this system
 !  case select( solver_type )
