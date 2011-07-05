@@ -209,12 +209,12 @@ module solvers
     continue
 
 ! set max, physically possible velocity
-    vel_max = sqrt(two*gamma*R*to/gm1)-one
+    vel_max = sqrt(two*gamma*r*to/gm1)-one
 
 ! extrapolate velocity and limit
     cc_in(2) = max(-vel_max, min(two*cc_1(2)-cc_2(2), vel_max))	
 
-! now calculate inflow 
+! now calculate inflow
     psi = to/(to-(gm1*cc_in(2)**2/(two*gamma*r)))
 
     cc_in(1) = po/(r*to*psi**xgm1)

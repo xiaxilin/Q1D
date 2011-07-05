@@ -3,6 +3,7 @@
 program q1d_primal
 
   use namelist,        only : read_nml
+  use fluid_constants, only : set_gamma_constants
   use initialize_grid, only : read_grid, cells, faces,   &
                               area_f, area_cc, dx_cc, dadx_cc
   use initialize_soln, only : allocate_soln, initial_soln, prim_cc, cons_cc
@@ -18,6 +19,9 @@ program q1d_primal
 
 ! read inputs
   call read_nml
+
+! set derived fluid constants
+  call set_gamma_constants()
 
 ! read the grid and allocated grid variables
   call read_grid

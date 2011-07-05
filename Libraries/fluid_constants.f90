@@ -24,6 +24,8 @@ module fluid_constants
   public :: xg2m1
   public :: gxg2m1
 
+  public :: set_gamma_constants
+
 ! Set initial values
   real(dp) :: r = 287.0_dp
   real(dp) :: gamma = 1.4_dp
