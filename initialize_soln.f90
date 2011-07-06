@@ -13,6 +13,10 @@ module initialize_soln
   public :: prim_cc
   public :: cons_cc
 
+  public :: L1_init
+  public :: L2_init
+  public :: Linf_init
+
   public :: restart
   public :: mref       ! Initial mach number in nozzle
   public :: to         ! Inflow stag. temp
@@ -26,6 +30,8 @@ module initialize_soln
   real(dp) :: to    = 600.0_dp
   real(dp) :: po    = 300000.0_dp
   real(dp) :: pback = -1.0_dp
+
+  real(dp), dimension(3) :: L1_init, L2_init, Linf_init
 
   real(dp), allocatable, dimension(:,:) :: prim_cc   ! primitive vars
   real(dp), allocatable, dimension(:,:) :: cons_cc   ! conserved vars
@@ -85,6 +91,10 @@ contains
     real(dp) :: p, psi, t
 
     continue
+
+    L1_init(:)   = one
+    L2_init(:)   = one
+    Linf_init(:) = one
 
     if (restart) then
 

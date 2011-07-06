@@ -220,6 +220,7 @@ module solvers
 
     use set_precision, only : dp
     use set_constants, only : zero
+    use initialize_soln, only : L1_init, L2_init, Linf_init
 
     implicit none
 
@@ -244,6 +245,16 @@ module solvers
 
     L1(:) = L1(:)/real(cells,dp)
     L2(:) = sqrt(L2(:))/real(cells,dp)
+
+    if (iteration == 0) then
+      L1_init(:)   = L1(:)
+      L2_init(:)   = L2(:)
+      Linf_init(:) = Linf(:)
+    end if
+
+    L1(:)   = L1(:)/L1_init(:)
+    L2(:)   = L2(:)/L2_init(:)
+    Linf(:) = Linf(:)/Linf_init(:)
 
     write(*,300) iteration, L2(1), L2(2), L2(3)
 300 format(1X,i8,2(e15.6),3(e15.6),4(e15.6))
