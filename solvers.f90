@@ -70,7 +70,10 @@ module solvers
 
     do n = 0, iterations
       call set_time_step( cells, dxsi, prim_cc, dt, dt_global )
-      
+
+! make sure global stepping is enforced for RK schemes      
+      if (rkorder > 1) dt(:) = dt_global
+
       cons_cc_0 = cons_cc
 
       do rk = 1, rkorder
