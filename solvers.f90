@@ -73,11 +73,12 @@ module solvers
 
       do rk = 1, rkorder
         call create_residual( cells, faces, n, dxsi, prim_cc, cons_cc,         &
-                              area_f, area_cc, dadx_cc, dxdxsi_cc, residual )
+                              area_f, dadx_cc, dxdxsi_cc, residual )
 
         do cell = 2, cells+1
           cons_cc(:,cell) = cons_cc_0(:,cell)                                  &
-                          + dt(cell)*residual(:,cell)/real(1+rkorder-rk,dp)
+                          + (dt(cell)/area_cc(cell)) * residual(:,cell)        &
+                          / real(1+rkorder-rk,dp)
           prim_cc(:,cell) = conserved_to_primitive_1D(cons_cc(:,cell))
           prim_cc(:,cell) = floor_primitive_vars(prim_cc(:,cell))
         end do
@@ -91,7 +92,17 @@ module solvers
         end do
       end do
 
-!      call check_convergence(residual, convergence_flag)
+!      if (mod(n,iter_conv) == 0) then
+!        call check_convergence(cells, residual, convergence_flag)
+!      end if
+
+!      if (iter_out >= 0 .and. mod(n,iter_out) == 0) then
+!        call write_soln(cells, faces, prim_cc, cons_cc)
+!      end if
+
+!      if (iter_restar >= 0 .and. mod(n,iter_restart) == 0) then
+!        call write_restart(cells, prim_cc)
+!      end if
 
       if ( convergence_flag ) then
         write(*,*) 'Solution has converged!'
@@ -153,7 +164,7 @@ module solvers
 !=============================================================================80
 
   subroutine create_residual( cells, faces, iteration, dxsi, prim_cc, cons_cc, &
-                              area_f, area_cc, dadx_cc, dxdxsi_cc, residual )
+                              area_f, dadx_cc, dxdxsi_cc, residual )
 
     use set_precision, only : dp
     use set_constants, only : zero
@@ -165,12 +176,11 @@ module solvers
     real(dp), dimension(3,cells+2), intent(in)  :: prim_cc
     real(dp), dimension(3,cells+2), intent(in)  :: cons_cc
     real(dp), dimension(faces),     intent(in)  :: area_f
-    real(dp), dimension(cells+2),   intent(in)  :: area_cc
     real(dp), dimension(cells+2),   intent(in)  :: dadx_cc
     real(dp), dimension(cells+2),   intent(in)  :: dxdxsi_cc
     real(dp), dimension(3,cells+2), intent(out) :: residual
 
-    integer :: i
+    integer :: cell
     real(dp), dimension(3,faces)   :: F
     real(dp), dimension(3,cells+2) :: S
 
@@ -180,10 +190,10 @@ module solvers
     call create_source( cells, prim_cc(3,:), dadx_cc, S )
 
     residual = zero
-    do i = 2, cells+1
-      residual(:,i) = (dxdxsi_cc(i)*dxsi*S(:,i)                                &
-                    - area_f(i)*F(:,i) + area_f(i-1)*F(:,i-1))                 &
-                    / (dxdxsi_cc(i)*dxsi*area_cc(i))
+    do cell = 2, cells+1
+      residual(:,cell) = S(:,cell)                                             &
+                       - (area_f(cell)*F(:,cell) - area_f(cell-1)*F(:,cell-1)) &
+                       / (dxdxsi_cc(cell)*dxsi)
     end do
 
   end subroutine create_residual

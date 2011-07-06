@@ -46,7 +46,7 @@ program q1d_primal
 !  end case select
 
 ! do solution output
-!  call write_restart
-!  call write_plot_data
+!  call write_restart(cells, prim_cc)
+!  call write_soln(cells, face, prim_cc, cons_cc)
 
 end program q1d_primal
