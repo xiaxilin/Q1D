@@ -19,6 +19,7 @@ module initialize_grid
   public :: dxdxsi_cc
 
   public :: read_grid
+  public :: deallocate_grid
 
   integer  :: cells ! # of interior cells
   integer  :: faces ! # of cell faces
@@ -98,6 +99,20 @@ contains
 
 
   end subroutine allocate_grid
+
+!=============================================================================80
+!
+!=============================================================================80
+
+  subroutine deallocate_grid
+
+    implicit none
+
+    continue
+
+    deallocate( area_f, x_f, area_cc, x_cc, dadx_cc, dxdxsi_cc)
+
+  end subroutine deallocate_grid
 
   include 'find_available_unit.f90'
 

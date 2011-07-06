@@ -321,10 +321,11 @@ module solvers
 
 !=============================================================================80
 !
-! 
+!
 !
 !=============================================================================80
 
+! FIXME: investigate the cost of allocatable arrays here
   subroutine create_fluxes( cells, faces, iteration, prim_cc, cons_cc, flux )
 
     use set_precision, only : dp
@@ -352,6 +353,7 @@ module solvers
       end do
     end if
 
+! create flux vectors
     select case(trim(flux_type))
     case ('central')
       do i = 1, faces
@@ -381,6 +383,10 @@ module solvers
     case('hllc')
 
     end select
+
+    if (trim(flux_type) /= 'jst' .or. trim(flux_type) /= 'central') then    
+      deallocate(prim_left, prim_right)
+    end if
 
   end subroutine create_fluxes
 

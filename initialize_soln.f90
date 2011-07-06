@@ -7,6 +7,7 @@ module initialize_soln
   private
 
   public :: allocate_soln
+  public :: deallocate_soln
   public :: initial_soln
 
   public :: prim_cc
@@ -48,6 +49,22 @@ contains
     allocate( prim_cc(neq, cells+2), cons_cc(neq, cells+2) )
 
   end subroutine allocate_soln
+
+!=============================================================================80
+!
+!
+!
+!=============================================================================80
+
+  subroutine deallocate_soln()
+
+    implicit none
+
+    continue
+
+    deallocate( prim_cc, cons_cc )
+
+  end subroutine deallocate_soln
 
 !=============================================================================80
 !
