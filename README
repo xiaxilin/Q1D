@@ -1,26 +1,61 @@
-TODO: clean this thing up!
+Quasi-1D Nozzle Suite
 
-Quasi-1D Nozzle, written in Fortran 9X
+Executables: q1d, g1d_grid, q1d_exact q1d_dual
 
-This is a FVM code with a multistep Runge-Kutta explicit solver.
-Both first order and second order ( via MUSCL primitive variable extrapolation )
-fluxes are included for a variety of schemes.
+q1d_grid  : grid generator
+q1d       : primal solver
+q1d_exact : exact primal solution
+q1d_dual  : dual solver
 
-! The code requires that the number of interior cells, N, be specified,
-! however, two additional cells, cell(1) and cell(N+2), are ghost cells,
-! while the interior domain is contained by cell(2,N+1).
-! Since there are N interior cells, there are N+1 faces.
-! Hopefully the below diagram explains this:
+Written in Fortran 9X by Joe Derlaga
 
-! DOMAIN: inflow |        interior        | outflow
-!        -----------------------------------------
-! CELLS:     1   |   2   | ...... |  N+1  |  N+2
-!        -----------------------------------------
-! FACES:         1       2        N      N+1
+This directory includes a suite of codes to study the Quasi-1D Nozzle problem.
 
-! Where appropriate, the code will loop over faces, 
-! such as when it is calculating fluxes, or over cells, 
-! such as when the explicit iteration is being performed.
+
+The heart of the suite, q1d, 
+is a FVM code with a multistep Runge-Kutta explicit solver.
+When running Euler explicit, local time stepping is used,
+while any of the RK schemes force global time stepping for stability.
+
+The code defaults to a first order mode, but second order is reach via
+MUSCL extrapolation of primitive variables.
+A variety of flux schemes and variable limiters are available:
+
+Flux schemes:
+Central Difference ( unstable, included for rigor! )
+Cent. Diff + JST Damping
+Roe's FDS
+van Leer FVS
+Steger-Warming FVS
+AUSM
+HLLC ( to be added! )
+
+Variable limiters:
+OSPRE
+van Albada
+van Leer
+Sweby
+minmod
+superbee
+
+Due to the modularity of the code, it is a simple matter to add additional
+flux schemes or variable limiters
+
+The code requires that the number of interior cells, N, be specified,
+however, two additional cells, cell(1) and cell(N+2), are ghost cells,
+while the interior domain is contained by cell(2,N+1).
+Since there are N interior cells, there are N+1 faces.
+Hopefully the below diagram explains this:
+
+DOMAIN: inflow |        interior        | outflow
+       -----------------------------------------
+CELLS:     1   |   2   | ...... |  N+1  |  N+2
+       -----------------------------------------
+FACES:         1       2        N      N+1
+
+Where appropriate, the code will loop over faces, 
+such as when it is calculating fluxes, or over cells, 
+such as when the explicit iteration is being performed.
 
 Files:
 
@@ -33,20 +68,12 @@ Files:
   q1d_lines.tec == tecplot XY formatted data file
   q1d_cells.tec == tecplot cell-centered color plot file
 
-The code has been branched and merged several times, 
-with this repo starting at an intermediate step in the attempt to correct some
-issues and apply lessons learned.
+This code is under development!
+Once the explicit code base is up to standard,
+an implicit solver will be implemented, followed by an adjoint code.
 
-The code base will be split into several files,
-and many of the current methods will be adjusted to work as functions to aid 
-unit-testing.
-
-Due to the splitting of the source code into multiple files, 
-a makefile for Linux systems will be appearing shortly followed by a 
-slink file for Windows systems with a Silverfrost compiler.
-
-Once this code base is up to standard, an implicit solver will be implemented,
-followed by an adjoint code.
+The implicit path, and the dual solver, 
+will only allow for Roe's FDS and van Leer FVS!
 
 Example unit-tests will be added.
 
@@ -54,8 +81,5 @@ Coding standard:
 80 column line limit for readability
 No tabs, only spaces for indentation, run untabify in emacs
 No trailing whitespace
-Try to avoid CAPS, except in comments
-
-Explicitly declare public routines in modules
-Use functions wherever possible
-gfortran -O0 -g -Wall -fbounds-check -Werror -o q1d set_precision.f90 set_constants.f90 fluid_constants.f90 initialize_grid.f90 initialize_soln.f90 solvers.f90 namelist.f90 q1d.f90
+Try to avoid CAPS, except in comments, 
+and where differentiating between 1, l, I, L are important.
