@@ -11,7 +11,6 @@ Written in Fortran 9X by Joe Derlaga
 
 This directory includes a suite of codes to study the Quasi-1D Nozzle problem.
 
-
 The heart of the suite, q1d, 
 is a FVM code with a multistep Runge-Kutta explicit solver.
 When running Euler explicit, local time stepping is used,
@@ -56,6 +55,15 @@ FACES:         1       2        N      N+1
 Where appropriate, the code will loop over faces, 
 such as when it is calculating fluxes, or over cells, 
 such as when the explicit iteration is being performed.
+
+To build, execute the following:
+
+./bootstrap
+./configure FC=gfortran FCFLAGS="-O2"
+./make
+
+Once you've set up a grid by running ./q1d_grid,
+set up the q1d.nml input file, and execute ./q1d
 
 Files:
 
