@@ -90,7 +90,7 @@ contains
 
       soln_unit = find_available_unit()
 
-      open(soln_unit, file='q1d.sln', status='old')
+      open(soln_unit, file='q1d.rst', status='old')
 
       do cell = 1, cells+2
         read(soln_unit,*) prim_cc(1, cell), prim_cc(2, cell), prim_cc(3,cell)

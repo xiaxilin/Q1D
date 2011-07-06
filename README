@@ -1,3 +1,5 @@
+TODO: clean this thing up!
+
 Quasi-1D Nozzle, written in Fortran 9X
 
 This is a FVM code with a multistep Runge-Kutta explicit solver.
@@ -20,6 +22,16 @@ fluxes are included for a variety of schemes.
 ! such as when it is calculating fluxes, or over cells, 
 ! such as when the explicit iteration is being performed.
 
+Files:
+
+  q1d.nml == input file
+  q1d.grd == grid file
+
+  q1d.rst == restart file
+  q1d.hst == convergence history file
+
+  q1d_lines.tec == tecplot XY formatted data file
+  q1d_cells.tec == tecplot cell-centered color plot file
 
 The code has been branched and merged several times, 
 with this repo starting at an intermediate step in the attempt to correct some

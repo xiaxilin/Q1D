@@ -18,7 +18,7 @@ module solvers
   public :: limiter    ! type of variable limiting 
   public :: toler      ! convergence tolerance
 
-  public :: flux_type  ! flux type, '2nd', 'jst', 'sw', 'vanleer', 'roe', 'ausm'
+  public :: flux_type  ! 'central', 'jst', 'sw', 'vanleer', 'roe', 'ausm'
   public :: k2         ! JST damping coefficient, only for flux_type = 'jst'
   public :: k4         ! JST damping coefficient, only for flux_type = 'jst'
 
@@ -114,7 +114,7 @@ module solvers
 
     if (.not. convergence_flag ) then
       write(*,*) 'Solution failed to converge...'
-      write(*,*) 'Consider restarting from q1d_restart.dat'
+      write(*,*) 'Consider continuing from q1d.rst'
     end if
 
   end subroutine explicit_solve
