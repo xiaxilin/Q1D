@@ -1,5 +1,5 @@
 &code_control
-  iterations = 100000
+  iterations = 10000
   firstorder = 10000
   itercheck  = 1000
   rkorder    = 1
@@ -17,6 +17,7 @@
 /
 
 &conditions
+  restart = .false.
   mref  = 1.5
   to    = 600.0
   po    = 300000.0

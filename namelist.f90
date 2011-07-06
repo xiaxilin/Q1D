@@ -3,7 +3,7 @@ module namelist
   use set_precision,   only : dp
   use solvers,         only : iterations, firstorder, itercheck, rkorder, cfl, &
                               limiter, muscl, kappa, toler, flux_type, k2, k4
-  use initialize_soln, only : mref, to, po, pback
+  use initialize_soln, only : restart, mref, to, po, pback
   use fluid_constants, only : gamma, r
 
   implicit none
@@ -19,7 +19,7 @@ module namelist
 
   namelist /flux/ flux_type, k2, k4
 
-  namelist /conditions/ mref, to, po, pback
+  namelist /conditions/ restart, mref, to, po, pback
 
   namelist /gas_properties/ gamma, r
 
