@@ -3,7 +3,7 @@
   firstorder = 10000
   itercheck  = 1000
   rkorder    = 1
-  cfl        = 1.0
+  cfl        = 0.1
   limiter    = 'none'
   muscl      = .false.
   kappa      = -1.0
