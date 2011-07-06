@@ -15,3 +15,18 @@ Makefile.in
 /COPYING
 /INSTALL
 
+# added by jderlaga for this project
+Makefile
+.deps
+
+*.a
+*.o
+*.mod
+*.log
+*.status
+*.rst
+*.grd
+
+
+q1d
+q1d_grid
