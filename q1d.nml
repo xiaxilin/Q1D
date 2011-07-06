@@ -1,5 +1,5 @@
 &code_control
-  iterations = 10000
+  iterations = 40000
   firstorder = 10000
   itercheck  = 1000
   rkorder    = 1
