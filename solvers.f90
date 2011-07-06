@@ -1,3 +1,10 @@
+!TODO: add L*_init to initialize_soln.f90
+!      if (restart) read q1d.hst to get L*_init, else set equal to one
+!      add logic to write_hist to append to file if restart
+!      actually write a write_hist subroutine
+!      Figure out a way to read final iteration value from q1d.rst
+
+
 module solvers
 
   use set_precision, only : dp
