@@ -10,6 +10,7 @@ program q1d_primal
   use initialize_soln, only : allocate_soln, initial_soln, prim_cc, cons_cc,   &
                               deallocate_soln
   use solvers,         only : explicit_solve
+  use write_soln,      only : write_restart
 
   implicit none
 
@@ -47,7 +48,7 @@ program q1d_primal
 !  end case select
 
 ! do solution output
-!  call write_restart(cells, prim_cc)
+  call write_restart(cells, prim_cc)
 !  call write_soln(cells, face, prim_cc, cons_cc)
 
 ! free memory
