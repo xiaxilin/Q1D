@@ -49,6 +49,8 @@ module solvers
   subroutine explicit_solve( cells, faces, dxsi, prim_cc, cons_cc,             &
                              area_f, area_cc, dxdxsi_cc, dadx_cc )
 
+    use set_precision, only : dp
+
     implicit none
 
     integer,                        intent(in)    :: cells, faces
@@ -66,7 +68,7 @@ module solvers
 
     continue
 
-    do n = 1, iterations
+    do n = 0, iterations
       call set_time_step( cells, dxsi, prim_cc, dt, dt_global )
       
       cons_cc_0 = cons_cc
@@ -92,9 +94,9 @@ module solvers
         end do
       end do
 
-!      if (mod(n,iter_conv) == 0) then
-!        call check_convergence(cells, residual, convergence_flag)
-!      end if
+      if (mod(n,itercheck) == 0) then
+        call check_convergence(cells, n, residual, convergence_flag)
+      end if
 
 !      if (iter_out >= 0 .and. mod(n,iter_out) == 0) then
 !        call write_soln(cells, faces, prim_cc, cons_cc)
@@ -106,7 +108,7 @@ module solvers
 
       if ( convergence_flag ) then
         write(*,*) 'Solution has converged!'
-        return
+        exit
       end if
     end do
 
@@ -197,6 +199,51 @@ module solvers
     end do
 
   end subroutine create_residual
+
+!=============================================================================80
+!
+!
+!
+!=============================================================================80
+
+  subroutine check_convergence(cells, iteration, residuals, convergence_flag)
+
+    use set_precision, only : dp
+    use set_constants, only : zero
+
+    implicit none
+
+    integer,                        intent(in)  :: cells, iteration
+    real(dp), dimension(3,cells+2), intent(in)  :: residuals
+    logical,                        intent(out) :: convergence_flag
+
+    integer :: cell
+    real(dp), dimension(3) :: L1, L2, Linf
+
+    continue
+
+    L1 = zero
+    L2 = zero
+    Linf = zero
+
+    do cell = 2, cells+1
+      L1(:) = L1(:) + abs(residuals(:,cell))
+      L2(:) = L2(:) + residuals(:,cell)**2
+      Linf(:) = max(Linf(:), abs(residuals(:,cell)))
+    end do
+
+    L1(:) = L1(:)/real(cells,dp)
+    L2(:) = sqrt(L2(:))/real(cells,dp)
+
+    write(*,300) iteration, L2(1), L2(2), L2(3)
+300 format(1X,i8,2(e15.6),3(e15.6),4(e15.6))
+
+    convergence_flag = .false.
+    if (L2(1) <= toler .and. L2(2) <= toler .and. L2(3) <= toler ) then
+      convergence_flag = .true.
+    end if
+
+  end subroutine check_convergence
 
 !=============================================================================80
 !
