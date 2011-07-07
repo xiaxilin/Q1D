@@ -76,17 +76,21 @@ module solvers
     continue
 
     do n = 0, iterations
+! set both local and global time step
       call set_time_step( cells, dxsi, prim_cc, dt, dt_global )
 
 ! make sure global stepping is enforced for RK schemes      
       if (rkorder > 1) dt(:) = dt_global
 
+! make copy of solution for RK schemes... 
+! wouldn't be necessary for pure Euler explict
       cons_cc_0 = cons_cc
 
       do rk = 1, rkorder
         call create_residual( cells, faces, n, dxsi, prim_cc, cons_cc,         &
                               area_f, dadx_cc, dxdxsi_cc, residual )
 
+! perform explicit iterations on interior cells
         do cell = 2, cells+1
           cons_cc(:,cell) = cons_cc_0(:,cell)                                  &
                           + (dt(cell)/area_cc(cell)) * residual(:,cell)        &

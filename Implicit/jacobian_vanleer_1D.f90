@@ -1,6 +1,6 @@
 !========================= van_leer_jacobian =================================80
 !
-! This subroutine takes the left and right *conserved* variables
+! This subroutine takes the left and right *conserved* variables at a face
 ! and returns the left and right flux jacobians
 !
 !=============================================================================80
