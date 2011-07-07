@@ -1,9 +1,9 @@
-!========================= van_leer_jacobian ==================================80
+!========================= van_leer_jacobian =================================80
 !
 ! This subroutine takes a face normal vector, left and right conserved variables
 ! and returns the left and right flux jacobians
 !
-!==============================================================================80
+!=============================================================================80
 subroutine van_leer_jacobian( normal_vec, ql, qr, jac_l, jac_r )
 
   use set_precision, only : dp
@@ -102,7 +102,7 @@ subroutine van_leer_jacobian( normal_vec, ql, qr, jac_l, jac_r )
   fb = fb/(gamma**2 - one) + half*( u**2 + v**2 +w**2 )
   fb = fb*fa
 
-  dfb_dq(:) = -gm1*two*unorm*dunorm_dq(:) + four*a*da_dq(:)                     &
+  dfb_dq(:) = -gm1*two*unorm*dunorm_dq(:) + four*a*da_dq(:)                    &
             + two*gm1*(dunorm_dq(:)*a + unorm*da_dq(:))
   dfb_dq(:) = dfb_dq(:)/(gamma**2 - one) + u*du_dq(:) + v*dv_dq(:) + w*dw_dq(:)
   dfb_dq(:) = dfb_dq(:)*fa + fb*dfa_dq(:)/fa
@@ -114,11 +114,11 @@ subroutine van_leer_jacobian( normal_vec, ql, qr, jac_l, jac_r )
   if( abs(m)<1.0 ) then
 
     mat(1,:) = dfa_dq(:)
-    mat(2,:) = dfa_dq(:)*( u + nx*(-unorm + two*a)/gamma )                      &
+    mat(2,:) = dfa_dq(:)*( u + nx*(-unorm + two*a)/gamma )                     &
              + fa*( du_dq(:) + nx*( -dunorm_dq(:) + two*da_dq(:) )/gamma )
-    mat(3,:) = dfa_dq(:)*( v + ny*(-unorm + two*a)/gamma )                      &
+    mat(3,:) = dfa_dq(:)*( v + ny*(-unorm + two*a)/gamma )                     &
              + fa*( dv_dq(:) + ny*( -dunorm_dq(:) + two*da_dq(:) )/gamma )
-    mat(4,:) = dfa_dq(:)*( w + nz*(-unorm + two*a)/gamma )                      &
+    mat(4,:) = dfa_dq(:)*( w + nz*(-unorm + two*a)/gamma )                     &
              + fa*( dw_dq(:) + nz*( -dunorm_dq(:) + two*da_dq(:) )/gamma )
     mat(5,:) = dfb_dq(:)
 
@@ -202,7 +202,7 @@ subroutine van_leer_jacobian( normal_vec, ql, qr, jac_l, jac_r )
   fb = fb/(gamma**2 - one) + half*( u**2 + v**2 + w**2 )
   fb = fb*fa
 
-  dfb_dq(:) = -gm1*two*unorm*dunorm_dq(:) + four*a*da_dq(:)                     &
+  dfb_dq(:) = -gm1*two*unorm*dunorm_dq(:) + four*a*da_dq(:)                    &
             - two*gm1*(dunorm_dq(:)*a + unorm*da_dq(:)) 
   dfb_dq(:) = dfb_dq(:)/(gamma**2 - one) + u*du_dq(:) + v*dv_dq(:) + w*dw_dq(:)
   dfb_dq(:) = dfb_dq(:)*fa + fb*dfa_dq(:)/fa
