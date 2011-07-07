@@ -358,14 +358,13 @@ module solvers
     real(dp), dimension(3, cells+2), intent(in)  :: cons_cc
     real(dp), dimension(3, faces),   intent(out) :: flux
 
-    real(dp), allocatable, dimension(:,:) :: prim_left, prim_right
+    real(dp), dimension(3, faces) :: prim_left, prim_right
     integer :: i
 
     continue
 
 ! call muscl extrapolation only where appropriate
     if (trim(flux_type) /= 'jst' .or. trim(flux_type) /= 'central') then
-      allocate( prim_left(3, faces), prim_right(3, faces) )
       call muscl_extrapolation(cells, faces, iteration, &
                                prim_cc, prim_left, prim_right)
       do i = 1, faces
@@ -404,10 +403,6 @@ module solvers
     case('hllc')
 
     end select
-
-    if (trim(flux_type) /= 'jst' .or. trim(flux_type) /= 'central') then    
-      deallocate(prim_left, prim_right)
-    end if
 
   end subroutine create_fluxes
 
