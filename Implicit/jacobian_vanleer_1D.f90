@@ -18,7 +18,7 @@ subroutine jacobian( qL, qR, jac_l, jac_r )
   real(dp) :: rho, rhoinv, u, p, a, m
 
   real(dp), dimension(3)   :: drho_dq, du_dq, dp_dq, dq3_dq
-  real(dp), dimension(3)   :: da_dq, dunorm_dq, dm_dq, dfa_dq, dfb_dq
+  real(dp), dimension(3)   :: da_dq, dm_dq, dfa_dq, dfb_dq
   real(dp), dimension(3,3) :: mat
 
   continue
