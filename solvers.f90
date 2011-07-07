@@ -218,9 +218,9 @@ module solvers
 
   subroutine check_convergence(cells, iteration, residuals, convergence_flag)
 
-    use set_precision, only : dp
-    use set_constants, only : zero
-    use initialize_soln, only : L1_init, L2_init, Linf_init
+    use set_precision,   only : dp
+    use set_constants,   only : zero
+    use initialize_soln, only : restart, L1_init, L2_init, Linf_init
 
     implicit none
 
@@ -246,7 +246,7 @@ module solvers
     L1(:) = L1(:)/real(cells,dp)
     L2(:) = sqrt(L2(:))/real(cells,dp)
 
-    if (iteration == 0) then
+    if (iteration == 0 .and. .not. restart) then
       L1_init(:)   = L1(:)
       L2_init(:)   = L2(:)
       Linf_init(:) = Linf(:)

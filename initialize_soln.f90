@@ -87,7 +87,7 @@ contains
 
     integer, intent(in) :: cells
 
-    integer  :: cell, soln_unit
+    integer  :: cell, restart_unit
     real(dp) :: p, psi, t
 
     continue
@@ -98,16 +98,20 @@ contains
 
     if (restart) then
 
-      soln_unit = find_available_unit()
+      restart_unit = find_available_unit()
 
-      open(soln_unit, file='q1d.rst', status='old')
+      open(restart_unit, file='q1d.rst', status='old')
+
+      read(restart_unit,*) L1_init(1), L1_init(2), L1_init(3)
+      read(restart_unit,*) L2_init(1), L2_init(2), L2_init(3)
+      read(restart_unit,*) Linf_init(1), Linf_init(2), Linf_init(3)
 
       do cell = 1, cells+2
-        read(soln_unit,*) prim_cc(1, cell), prim_cc(2, cell), prim_cc(3,cell)
+        read(restart_unit,*) prim_cc(1, cell), prim_cc(2, cell), prim_cc(3,cell)
         cons_cc(:,cell) = primitive_to_conserved_1D( prim_cc(:,cell) )
       end do
 
-      close(soln_unit)
+      close(restart_unit)
 
     else
 

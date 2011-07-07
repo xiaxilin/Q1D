@@ -15,7 +15,8 @@ contains
 !=============================================================================80
   subroutine write_restart(cells, prim_cc)
 
-    use set_precision, only : dp
+    use set_precision,   only : dp
+    use initialize_soln, only : L1_init, L2_init, Linf_init
 
     implicit none
 
@@ -28,6 +29,10 @@ contains
 
     restart_unit = find_available_unit()
     open(restart_unit, file='q1d.rst', status='replace')
+
+    write(restart_unit,*) L1_init(1), L1_init(2), L1_init(3)
+    write(restart_unit,*) L2_init(1), L2_init(2), L2_init(3)
+    write(restart_unit,*) Linf_init(1), Linf_init(2), Linf_init(3)
 
     do cell = 1, cells+2
       write(restart_unit,*) prim_cc(1, cell), prim_cc(2, cell), prim_cc(3,cell)
