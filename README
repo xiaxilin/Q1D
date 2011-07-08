@@ -58,9 +58,9 @@ such as when the explicit iteration is being performed.
 
 To build, execute the following:
 
-./bootstrap
-./configure FC=gfortran FCFLAGS="-O2"
-./make
+prompt% ./bootstrap
+prompt% ./configure FC=gfortran FCFLAGS="-O2"
+prompt% make
 
 Once you've set up a grid by running ./q1d_grid,
 set up the q1d.nml input file, and execute ./q1d
