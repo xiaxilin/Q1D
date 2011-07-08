@@ -5,6 +5,8 @@ module write_soln
   private
 
   public :: write_restart
+  public :: write_soln_line
+  public :: init_write_files
 
 contains
 
@@ -42,13 +44,63 @@ contains
 
   end subroutine write_restart
 
+!
+
+  subroutine init_write_files()
+
+    implicit none
+
+    integer :: line_unit
+
+    continue
+
+    open(line_unit, file='q1d_lines.tec', status='replace')
+    close(line_unit)
+
+  end subroutine init_write_files
+
 !=============================================================================80
 !
 ! Writes solution as simple X-Y line output
 !
 !=============================================================================80
 
-  subroutine write_soln_line()
+  subroutine write_soln_line(iteration, cells, x_cc, prim_cc, cons_cc)
+
+    use set_precision, only : dp
+
+    implicit none
+
+    integer,                        intent(in) :: iteration, cells
+    real(dp), dimension(cells+2),   intent(in) :: x_cc
+    real(dp), dimension(3,cells+2), intent(in) :: prim_cc, cons_cc
+
+    integer :: i, var, line_unit
+
+    continue
+
+    line_unit = find_available_unit()
+
+    open(line_unit, file='q1d_lines.tec', access='append', status='old')
+
+    write(line_unit,*) 'VARIABLES = "X_cc", "rho", "U", "P", "rho*U", "rho*E"'
+    write(line_unit,*) 'ZONE DATAPACKING=BLOCK, I=', cells
+    write(line_unit,*) 'T="', iteration,'" '
+    do i = 2, cells+1
+      write(line_unit,*) x_cc(i)
+    end do
+    do var = 1,3
+      do i = 2, cells+1
+        write(line_unit,*) prim_cc(var,i)
+      end do
+    end do
+    do var = 2,3
+      do i = 2, cells+1
+        write(line_unit,*) cons_cc(var,i)
+      end do
+    end do
+
+    close(line_unit)
 
   end subroutine write_soln_line
 

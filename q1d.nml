@@ -3,7 +3,7 @@
   firstorder = 10000
   itercheck  = 1000
   rkorder    = 1
-  cfl        = 0.1
+  cfl        = 0.5
   limiter    = 'none'
   muscl      = .false.
   kappa      = -1.0
@@ -11,7 +11,7 @@
 /
 
 &flux
-  flux_type  = 'jst'
+  flux_type  = 'vanleer'
   k2         = 0.5
   k4         = 0.03125
 /
@@ -21,7 +21,7 @@
   mref  = 1.5
   to    = 600.0
   po    = 300000.0
-  pback = -1.0
+  pback = 120000.0
 /
 
 &gas_properties

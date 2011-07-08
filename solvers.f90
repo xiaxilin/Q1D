@@ -18,6 +18,7 @@ module solvers
   public :: iterations ! total number of iterations
   public :: firstorder ! if 2nd order, how many 1st order iters for stability?
   public :: itercheck  ! check for convergence every itercheck iters
+  public :: iter_out   ! write solution every iter_out iterations
   public :: rkorder    ! multistep RK order 1, 2, 3, or 4
   public :: cfl        ! CFL limit
   public :: muscl      ! MUSCL extrapolation, .true. or .false.
@@ -34,6 +35,7 @@ module solvers
   integer  :: iterations = 100000
   integer  :: firstorder = 10000
   integer  :: itercheck  = 1000
+  integer  :: iter_out   = 1000
   integer  :: rkorder    = 1
   logical  :: muscl      = .false.
   real(dp) :: cfl        = 1.0_dp
@@ -54,9 +56,10 @@ module solvers
 !=============================================================================80
 
   subroutine explicit_solve( cells, faces, dxsi, prim_cc, cons_cc,             &
-                             area_f, area_cc, dxdxsi_cc, dadx_cc )
+                             area_f, area_cc, dxdxsi_cc, dadx_cc, x_cc )
 
     use set_precision, only : dp
+    use write_soln,    only : write_soln_line
 
     implicit none
 
@@ -65,6 +68,7 @@ module solvers
     real(dp), dimension(3,cells+2), intent(inout) :: prim_cc, cons_cc
     real(dp), dimension(faces),     intent(in)    :: area_f
     real(dp), dimension(cells+2),   intent(in)    :: area_cc, dxdxsi_cc, dadx_cc
+    real(dp), dimension(cells+2),   intent(in)    :: x_cc
 
     integer  :: n, rk, cell
     real(dp) :: dt_global
@@ -112,9 +116,9 @@ module solvers
         call check_convergence(cells, n, residual, convergence_flag)
       end if
 
-!      if (iter_out >= 0 .and. mod(n,iter_out) == 0) then
-!        call write_soln(cells, faces, prim_cc, cons_cc)
-!      end if
+      if (iter_out >= 0 .and. mod(n,iter_out) == 0) then
+        call write_soln_line(n, cells, x_cc, prim_cc, cons_cc)
+      end if
 
 !      if (iter_restar >= 0 .and. mod(n,iter_restart) == 0) then
 !        call write_restart(cells, prim_cc)
@@ -130,6 +134,8 @@ module solvers
       write(*,*) 'Solution failed to converge...'
       write(*,*) 'Consider continuing from q1d.rst'
     end if
+
+    call write_soln_line(iterations, cells, x_cc, prim_cc, cons_cc)
 
   end subroutine explicit_solve
 

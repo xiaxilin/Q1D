@@ -6,11 +6,11 @@ program q1d_primal
   use namelist,        only : read_nml
   use fluid_constants, only : set_gamma_constants
   use initialize_grid, only : read_grid, cells, faces, dxsi, area_f, area_cc,  &
-                              dxdxsi_cc, dadx_cc, deallocate_grid
+                              dxdxsi_cc, dadx_cc, deallocate_grid, x_cc
   use initialize_soln, only : allocate_soln, initial_soln, prim_cc, cons_cc,   &
                               deallocate_soln
   use solvers,         only : explicit_solve
-  use write_soln,      only : write_restart
+  use write_soln,      only : write_restart, init_write_files
 
   implicit none
 
@@ -20,8 +20,13 @@ program q1d_primal
   print *,'         Quasi-1D Nozzle : RELEASE 4.0, 2011         '
   print *,'*****************************************************'
 
+! set up some files
+
 ! read inputs
   call read_nml
+
+! init files
+  call init_write_files
 
 ! set derived fluid constants
   call set_gamma_constants()
@@ -37,7 +42,7 @@ program q1d_primal
 
 ! perform explicit solve
   call explicit_solve(cells, faces, dxsi, prim_cc, cons_cc,                    &
-                      area_f, area_cc, dxdxsi_cc, dadx_cc)
+                      area_f, area_cc, dxdxsi_cc, dadx_cc, x_cc)
 
 ! FIXME: when implicit solver becomes live, implement this system
 !  case select( solver_type )
@@ -49,7 +54,6 @@ program q1d_primal
 
 ! do solution output
   call write_restart(cells, prim_cc)
-!  call write_soln(cells, face, prim_cc, cons_cc)
 
 ! free memory
   call deallocate_grid
