@@ -1,17 +1,25 @@
-subroutine q1d_calculate_exact_soln(imax, throat_area, area, x_cc)
+! The Q1D-nozzle has an exact solution from the mach/area relations
+! This module will hold the routines necessary to calculate the exact soln,
+! form the DE error norms, and calculate the TE.
 
-  use set_precision,      only : dp
-  use constants,          only : half, one
-  use solution_constants, only : gamma, R, To, Po
+module solution_error
+
+
+
+subroutine calculate_exact_soln(cells, throat_area, area, x_cc)
+
+  use set_precision,   only : dp
+  use set_constants,   only : half, one
+  use fluid_constants, only : gm1, gxgm1, R, To, Po
 
   implicit none
 
-  integer,                   intent(in) :: imax
-  real(dp),                  intent(in) :: throat_area
-  real(dp), dimension(imax), intent(in) :: area
-  real(dp), dimension(imax), intent(in) :: x_cc
+  integer,                      intent(in) :: imax
+  real(dp),                     intent(in) :: throat_area
+  real(dp), dimension(cells+2), intent(in) :: area_cc
+  real(dp), dimension(cells+2), intent(in) :: x_cc
 
-  real(dp) :: Mach_From_Area ! Define type for isentropic Mach-from-Area function
+  real(dp) :: Mach_From_Area
   real(dp) :: asnd      ! Define type for speed of sound function
   real(dp) :: psi       ! ( = T_0/T )
   real(dp) :: temp      ! (Temperature, T)
@@ -20,7 +28,7 @@ subroutine q1d_calculate_exact_soln(imax, throat_area, area, x_cc)
   real(dp) :: U3        ! entries of cons. var. vector
   real(dp) :: mach_init ! Initial Mach number
   real(dp), dimension(imax)   :: mach_exact
-  real(dp), dimension(3,imax) :: v_exact
+  real(dp), dimension(3,imax) :: soln_exact
 
   continue
 
@@ -40,11 +48,11 @@ subroutine q1d_calculate_exact_soln(imax, throat_area, area, x_cc)
 
 ! once the mach/area solution has been found, calculate the primitive variables
   do i = 1, imax
-    psi = one + half*(gamma - one)*mach_exact(i)**2
+    psi = one + half*gm1*mach_exact(i)**2
     temp = To / psi
-    v_exact(i,3) = Po / ( psi**(gamma/(gamma - one) ) )
-    v_exact(i,1) = v_exact(i,3)/( R*temp )
-    v_exact(i,2) = mach_exact(i)*asnd(v_exact(i,1),v_exact(i,3))
+    v_exact(3,i) = Po / ( psi**gxgm1 ) )
+    v_exact(1,i) = v_exact(3,i)/( R*temp )
+    v_exact(2,i) = mach_exact(i)*speed_of_sound(v_exact(3,i),v_exact(1,i))
   end do
 
 ! set up output file for exact solution
@@ -55,24 +63,25 @@ subroutine q1d_calculate_exact_soln(imax, throat_area, area, x_cc)
   write(57,*) 'ZONE T="Exact Isentropic Nozzle Solution"'
   write(57,*) 'DT=(DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE )'
  
-  do i = 1, imax
-    U1 = v_exact(i,1)
-    U2 = v_exact(i,1)*v_exact(i,2)
-    U3 = v_exact(i,3)/(gamma - one) + half*v_exact(i,1)*v_exact(i,2)**2
-    write(57,*) x_cc(i), area(i), v_exact(i,1), v_exact(i,2), v_exact(i,3),     &
+  do i = 2, cells+1
+    U1 = v_exact(1,i)
+    U2 = v_exact(1,i)*v_exact(2,i)
+    U3 = v_exact(3,i)*xgm1 + half*v_exact(1,i)*v_exact(2,i)**2
+    write(57,*) x_cc(i), area(i), v_exact(1,i), v_exact(2,i), v_exact(i,3),    &
       mach_exact(i,4), U1, U2, U3
   end do
 
   close(57)
 
-end subroutine q1d_calculate_exact_soln
+end subroutine calculate_exact_soln
 
 
 !******************************************************************************
 
 function mach_from_area(A_over_A_star, mach_init, mach_flag)
 
-  use set_precision, only : dp
+  use set_precision,   only : dp
+  use fluid_constants, only : xgm1, xgp1, gm1, gp1
 
   real(dp) :: Mach_From_Area  
   real(dp) :: A_over_A_star    ! Ratio of local area to throat area
@@ -80,12 +89,11 @@ function mach_from_area(A_over_A_star, mach_init, mach_flag)
   integer  :: mach_flag        ! (INPUT) Mach number flag: = 0 for subsonic,
                                !                           = 1 for supersonic
 
-  integer  :: niter            !index for outer iterations for Mach-Area relation
-  integer  :: niter_max = 500  ! Maximum outer iterations for Mach-Area relations
-  integer  :: kiter            !index over iterations for Mach-Area relation
-  integer  :: kiter_max = 1000 ! Maximum Newton iterations for Mach-Area relation
+  integer  :: niter            ! outer iterations for Mach-Area relation
+  integer  :: niter_max = 500  ! Maximum outer iterations
+  integer  :: kiter            ! inner iterations for Mach-Area relation
+  integer  :: kiter_max = 1000 ! Maximum inner iterations for Mach-Area relation
 
-  real(dp) :: gamma = 1.4_dp   ! Ratio of specific heats
   real(dp) :: omega = 1.0_dp   ! under-relaxation factor
   real(dp) :: psi              ! Temporary function
   real(dp) :: funct            ! Function we are trying to drive to zero
@@ -97,21 +105,21 @@ function mach_from_area(A_over_A_star, mach_init, mach_flag)
 
   do niter = 1, niter_max
     do kiter = 1, kiter_max
-      psi = two/(gamma+one)*( one + half*(gamma-one)*mach**2 )
-      funct = psi**( (gamma+one)/(gamma-one) ) - A_over_A_star**2*mach**2
-      dfdm = two*mach*( psi**( two/(gamma-one) ) - A_over_A_star**2 )
+      psi = two*xgp1*( one + half*gm1*mach**2 )
+      funct = psi**(gp1*xgm1) - A_over_A_star**2*mach**2
+      dfdm = two*mach*( psi**( two*xgm1 ) - A_over_A_star**2 )
       mach = mach - omega*funct/dfdm
       mach = abs(mach)
       if(abs(funct).le.tolerance) exit  ! Newton iteration has converged
     end do
     
 ! Check to make sure appropriate root (subsonic or supersonic) has been chosen
-    if( ((mach_flag.eq.0).and.(mach.gt.1.0)) .or.                               &
+    if( ((mach_flag.eq.0).and.(mach.gt.1.0)) .or.                              &
         ((mach_flag.eq.1).and.(mach.lt.1.0)) ) then
       if( A_over_A_star.le.(1.2_dp) ) then
         mach = one - (mach - one)
       else
-        mach_init = mach_init*( 0.8_dp*(one - real(mach_flag, dp))              &
+        mach_init = mach_init*( 0.8_dp*(real(1-mach_flag, dp))             &
                   + 1.2_dp*real(mach_flag, dp) )
         mach = mach_init
       end if
@@ -125,18 +133,6 @@ function mach_from_area(A_over_A_star, mach_init, mach_flag)
 
 end function mach_from_area
 
-pure function asnd(rho, pressure)
+include 'speed_of_sound.f90'
 
-  use set_precision,  only : dp
-  use soln_constants, only : gamma
-
-  implicit none
-
-  real(dp), intent(in) :: rho, pressure
-  real(dp),            :: asnd
-
-  continue
-
-  asnd = sqrt(gamma*pressure/rho)
-
-end function asnd
+end module solution_error
