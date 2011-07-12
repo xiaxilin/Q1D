@@ -20,6 +20,7 @@ module fluid_constants
   public :: gp1
   public :: xg
   public :: xgm1
+  public :: xgp1
   public :: gxgm1
   public :: xg2m1
   public :: gxg2m1
@@ -33,6 +34,7 @@ module fluid_constants
   real(dp) :: gp1
   real(dp) :: xg
   real(dp) :: xgm1
+  real(dp) :: xgp1
   real(dp) :: gxgm1
   real(dp) :: xg2m1
   real(dp) :: gxg2m1
@@ -54,6 +56,7 @@ contains
     gp1    = gamma + one
     xg     = one / gamma
     xgm1   = one / (gamma - one)
+    xgp1   = one / (gamma + one)
     xg2m1  = one / (gamma*gamma - one)
     gxgm1  = gamma / (gamma - one)
     gxg2m1 = gamma / (gamma*gamma - one)

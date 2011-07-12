@@ -10,6 +10,7 @@ bin_PROGRAMS += q1d q1d_grid
 q1d_SOURCES = \
          initialize_grid.f90 \
          initialize_soln.f90 \
+         solution_error.f90 \
          write_soln.f90 \
          solvers.f90 \
          namelist.f90 \
