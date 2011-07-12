@@ -7,6 +7,7 @@ module write_soln
   public :: write_restart
   public :: write_soln_line
   public :: init_write_files
+  public :: write_entropy
 
 contains
 
@@ -44,7 +45,11 @@ contains
 
   end subroutine write_restart
 
+!=============================================================================80
 !
+! Open the lines file so that it replaces the old
+!
+!=============================================================================80
 
   subroutine init_write_files()
 
@@ -103,6 +108,61 @@ contains
     close(line_unit)
 
   end subroutine write_soln_line
+
+!=============================================================================80
+!
+! Writes entropy vars as simple X-Y line output
+!
+!=============================================================================80
+
+  subroutine write_entropy(cells, x_cc, prim_cc, cons_cc)
+
+    use set_precision,   only : dp
+    use set_constants,   only : half
+    use fluid_constants, only : gamma, gp1, gm1, xgm1
+
+    implicit none
+
+    integer,                        intent(in) :: cells
+    real(dp), dimension(cells+2),   intent(in) :: x_cc
+    real(dp), dimension(3,cells+2), intent(in) :: prim_cc, cons_cc
+
+    integer :: i, var, entropy_unit
+    real(dp), dimension(cells+2)    :: entropy
+    real(dp), dimension(3, cells+2) :: ent_var
+
+    continue
+
+    entropy_unit = find_available_unit()
+
+    open(entropy_unit, file='q1d_entropy.tec', status='replace')
+
+    write(entropy_unit,*) 'VARIABLES = "X_cc", "entropy", "S1", "S2", "S3"'
+    write(entropy_unit,*) 'ZONE DATAPACKING=BLOCK, I=', cells
+
+    do i = 2, cells+1
+      write(entropy_unit,*) x_cc(i)
+    end do
+
+    do i = 2, cells+1
+      entropy(i) = log(prim_cc(3,i)/prim_cc(1,i)**gamma)
+      ent_var(1,i) = (gamma - entropy(i))*xgm1                                 &
+                   - half*cons_cc(2,i)**2/prim_cc(1,i)/prim_cc(3,i)
+      ent_var(2,i) = cons_cc(2,i)/prim_cc(3,i)
+      ent_var(3,i) = -prim_cc(1,i)/prim_cc(3,i)
+      write(entropy_unit, *) entropy(i)
+    end do
+
+    do var = 1,3
+      do i = 2, cells+1
+        write(entropy_unit,*) ent_var(var,i)
+      end do
+    end do
+
+    close(entropy_unit)
+
+  end subroutine write_entropy
+
 
 !=============================================================================80
 !

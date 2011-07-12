@@ -10,7 +10,7 @@ program q1d_primal
   use initialize_soln, only : allocate_soln, initial_soln, prim_cc, cons_cc,   &
                               deallocate_soln
   use solvers,         only : explicit_solve
-  use write_soln,      only : write_restart, init_write_files
+  use write_soln,      only : write_restart, init_write_files, write_entropy
 
   implicit none
 
@@ -54,6 +54,9 @@ program q1d_primal
 
 ! do solution output
   call write_restart(cells, prim_cc)
+
+! write the entropy vars
+  call write_entropy(cells, x_cc, prim_cc, cons_cc)
 
 ! free memory
   call deallocate_grid
