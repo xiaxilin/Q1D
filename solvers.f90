@@ -358,7 +358,6 @@ module solvers
 !
 !=============================================================================80
 
-! FIXME: investigate the cost of allocatable arrays here
   subroutine create_fluxes( cells, faces, iteration, prim_cc, cons_cc, flux )
 
     use set_precision, only : dp
