@@ -3,6 +3,7 @@
 
 program q1d_primal
 
+  use set_precision,   only : dp
   use namelist,        only : read_nml
   use fluid_constants, only : set_gamma_constants
   use initialize_grid, only : read_grid, cells, faces, dxsi, area_f, area_cc,  &
@@ -11,6 +12,7 @@ program q1d_primal
                               deallocate_soln
   use solvers,         only : explicit_solve
   use write_soln,      only : write_restart, init_write_files, write_entropy
+  use solution_error,  only : calculate_exact_soln
 
   implicit none
 
@@ -57,6 +59,9 @@ program q1d_primal
 
 ! write the entropy vars
   call write_entropy(cells, x_cc, prim_cc, cons_cc)
+
+! get exact solution and plot it
+  call calculate_exact_soln(cells, x_cc, area_cc, 0.2_dp, cons_cc)
 
 ! free memory
   call deallocate_grid

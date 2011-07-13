@@ -12,7 +12,7 @@ module solution_error
 
 contains
 
-  subroutine calculate_exact_soln(cells, x_cc, area_cc, a_star)
+  subroutine calculate_exact_soln(cells, x_cc, area_cc, a_star, cons_cc)
 
     use set_precision,   only : dp
     use set_constants,   only : half, one, two
@@ -25,6 +25,7 @@ contains
     real(dp), dimension(cells+2), intent(in) :: x_cc
     real(dp), dimension(cells+2), intent(in) :: area_cc
     real(dp),                     intent(in) :: a_star
+    real(dp), dimension(3,cells+2), intent(in) :: cons_cc
 
     integer :: i, i_throat
 
@@ -66,19 +67,21 @@ contains
     end do
 
 ! set up output file for exact solution
-    open(57,file='Exact-Solution.dat',status='unknown')
+    open(57,file='Exact-Solution.tec',status='unknown')
     write(57,*) 'TITLE = "Quasi-1D Nozzle: Exact Isentropic Solution"'
     write(57,*) 'variables="x(m)""Area(m^2)""rho(kg/m^3)""u(m/s)""Press(N/m^2)"&
-              & "U1""U2""U3"'
+              & "U1""U2""U3""DE1""DE2""DE3"'
     write(57,*) 'ZONE T="Exact Isentropic Nozzle Solution"'
     write(57,*) 'DT=(DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE&
-               & DOUBLE DOUBLE DOUBLE )'
+               & DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE)'
  
     do i = 2, cells+1
       cons_exact = primitive_to_conserved_1D(soln_exact(:,i))
       write(57,*) x_cc(i), area_cc(i),                                         &
                   soln_exact(1,i), soln_exact(2,i), soln_exact(3,i),           &
-                  cons_exact(1), cons_exact(2), cons_exact(3)
+                  cons_exact(1), cons_exact(2), cons_exact(3),                 &
+                  cons_cc(1,i)-cons_exact(1), cons_cc(2,i)-cons_exact(2), &
+                  cons_cc(3,i)-cons_exact(3)
     end do
 
     close(57)
