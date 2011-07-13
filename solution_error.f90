@@ -32,21 +32,19 @@ contains
     real(dp) :: asnd      ! Define type for speed of sound function
     real(dp) :: psi       ! ( = T_0/T )
     real(dp) :: temp      ! (Temperature, T)
-    real(dp) :: U1        ! entries of cons. var. vector
-    real(dp) :: U2        ! entries of cons. var. vector
-    real(dp) :: U3        ! entries of cons. var. vector
     real(dp) :: mach_init ! Initial Mach number
+    real(dp), dimension(3)         :: cons_exact
     real(dp), dimension(cells+2)   :: mach_exact
     real(dp), dimension(3,cells+2) :: soln_exact
 
     continue
-
+! FIXME: make this general... search for first minimum in area_cc...
     i_throat = 1+cells/2
 
 ! calculate exact mach/area solution
     mach_init = 0.1_dp
 ! subsonic section to throat
-    do i = 1, i_throat
+    do i = 2, i_throat
       mach_exact(i) = mach_from_area(area_cc(i)/a_star, mach_init, 0)
       mach_init = mach_exact(i)
     end do
@@ -58,7 +56,7 @@ contains
     end do
 
 ! once the mach/area solution has been found, calculate the primitive variables
-    do i = 1, cells+2
+    do i = 2, cells+1
       psi = one + half*gm1*mach_exact(i)**2
       temp = to / psi
       soln_exact(3,i) = po / ( psi**gxgm1 )
@@ -71,17 +69,16 @@ contains
     open(57,file='Exact-Solution.dat',status='unknown')
     write(57,*) 'TITLE = "Quasi-1D Nozzle: Exact Isentropic Solution"'
     write(57,*) 'variables="x(m)""Area(m^2)""rho(kg/m^3)""u(m/s)""Press(N/m^2)"&
-              & "Mach""U1""U2""U3"'
+              & "U1""U2""U3"'
     write(57,*) 'ZONE T="Exact Isentropic Nozzle Solution"'
-    write(57,*) 'DT=(DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE&
+    write(57,*) 'DT=(DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE&
                & DOUBLE DOUBLE DOUBLE )'
  
     do i = 2, cells+1
-      U1 = soln_exact(1,i)
-      U2 = soln_exact(1,i)*soln_exact(2,i)
-      U3 = soln_exact(3,i)*xgm1 + half*soln_exact(1,i)*soln_exact(2,i)**2
-      write(57,*) x_cc(i), area_cc(i), &
-             soln_exact(1,i), soln_exact(2,i), soln_exact(i,3), U1, U2, U3
+      cons_exact = primitive_to_conserved_1D(soln_exact(:,i))
+      write(57,*) x_cc(i), area_cc(i),                                         &
+                  soln_exact(1,i), soln_exact(2,i), soln_exact(3,i),           &
+                  cons_exact(1), cons_exact(2), cons_exact(3)
     end do
 
     close(57)
@@ -91,7 +88,7 @@ contains
 
 !******************************************************************************
 
-  function mach_from_area(A_over_A_star, mach_init, mach_flag)
+  function mach_from_area(a_over_a_star, mach_init, mach_flag)
 
     use set_precision,   only : dp
     use set_constants,   only : half, one, two
@@ -150,5 +147,6 @@ contains
   end function mach_from_area
 
   include 'speed_of_sound.f90'
+  include 'primitive_to_conserved_1D.f90'
 
 end module solution_error
