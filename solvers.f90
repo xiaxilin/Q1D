@@ -35,7 +35,7 @@ module solvers
   integer  :: iterations = 100000
   integer  :: firstorder = 10000
   integer  :: itercheck  = 1000
-  integer  :: iter_out   = 1000
+  integer  :: iter_out   = -1
   integer  :: rkorder    = 1
   logical  :: muscl      = .false.
   real(dp) :: cfl        = 1.0_dp

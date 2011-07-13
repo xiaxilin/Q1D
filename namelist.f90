@@ -1,8 +1,9 @@
 module namelist
 
   use set_precision,   only : dp
-  use solvers,         only : iterations, firstorder, itercheck, rkorder, cfl, &
-                              limiter, muscl, kappa, toler, flux_type, k2, k4
+  use solvers,         only : iterations, firstorder, itercheck, iter_out,     &
+                              rkorder, cfl, limiter, muscl, kappa, toler,      &
+                              flux_type, k2, k4
   use initialize_soln, only : restart, mref, to, po, pback
   use fluid_constants, only : gamma, r
 
@@ -14,8 +15,8 @@ module namelist
 
 ! Define namelist inputs
 
-  namelist /code_control/ iterations, firstorder, itercheck, rkorder, cfl, &
-                          limiter, muscl, kappa, toler
+  namelist /code_control/ iterations, firstorder, itercheck, iter_out,         &
+                          rkorder, cfl, limiter, muscl, kappa, toler
 
   namelist /flux/ flux_type, k2, k4
 

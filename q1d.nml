@@ -2,6 +2,7 @@
   iterations = 40000
   firstorder = 10000
   itercheck  = 1000
+  iter_out   = -1
   rkorder    = 1
   cfl        = 0.5
   limiter    = 'none'
