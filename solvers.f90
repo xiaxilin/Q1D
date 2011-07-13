@@ -83,8 +83,10 @@ module solvers
 ! set both local and global time step
       call set_time_step( cells, dxsi, prim_cc, dt, dt_global )
 
-! make sure global stepping is enforced for RK schemes      
-      if (rkorder > 1) dt(:) = dt_global
+! FIXME: make sure global stepping is enforced for RK schemes
+! Needed for all schemes for stability
+!      if (rkorder > 1) dt(:) = dt_global
+      dt(:) = dt_global
 
 ! make copy of solution for RK schemes... 
 ! wouldn't be necessary for pure Euler explict
@@ -299,7 +301,7 @@ module solvers
     continue
 
 ! set max, physically possible velocity
-    vel_max = sqrt(two*gamma*r*to/gm1)-one
+    vel_max = sqrt(two*gamma*r*to*xgm1)-one
 
 ! extrapolate velocity and limit
     cc_in(2) = max(-vel_max, min(two*cc_1(2)-cc_2(2), vel_max))	
