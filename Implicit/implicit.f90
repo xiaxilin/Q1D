@@ -41,6 +41,13 @@ subroutine implicit_solve( cells, faces, dxsi, prim_cc, cons_cc,               &
 
 ! form LHS
 
+! velocity for subsonic inflow = 2*vel_2_n+1 - vel_3_n to preserve tridiagonal
+! freeze rho and p
+! |1 0 0| |0 0 0 |
+! |0 1 0| |0 -2 0| ZEROS {} = 
+! |0 0 1| |0 0 0 |
+
+
 ! calculate Jacobians for 1st ghost cell and 1st interior cell
 
     call jacobian_vanleer_1D( cons_cc(:,1), cons_cc(:,1),                      &

@@ -66,7 +66,7 @@ module solvers
     real(dp), dimension(cells+2),   intent(in)    :: area_cc, dxdxsi_cc, dadx_cc
     real(dp), dimension(cells+2),   intent(in)    :: x_cc
 
-    integer  :: n, rk, cell
+    integer  :: n, rk, cell, eq
     real(dp) :: dt_global
     real(dp), dimension(3,cells+2) :: cons_cc_0, residual
     real(dp), dimension(cells+2)   :: dt
@@ -94,15 +94,19 @@ module solvers
 
 ! perform explicit iterations on interior cells
 
-!$OMP parallel do
-        do cell = 2, cells+1
-          cons_cc(:,cell) = cons_cc_0(:,cell)                                  &
-                          + (dt(cell)/area_cc(cell)) * residual(:,cell)        &
-                          / real(1+rkorder-rk,dp)
+!$OMP parallel
+  !$OMP do
+        do cell = 2,cells+1
+          do eq = 1,3
+            cons_cc(eq,cell) = cons_cc_0(eq,cell)                              &
+                            + (dt(cell)/area_cc(cell)) * residual(eq,cell)     &
+                            / real(1+rkorder-rk,dp)
+          end do
           prim_cc(:,cell) = conserved_to_primitive_1D(cons_cc(:,cell))
           prim_cc(:,cell) = floor_primitive_vars(prim_cc(:,cell))
         end do
-!$OMP end parallel do
+  !$OMP end do
+!$OMP end parallel
 
         call set_inflow( prim_cc(:,1), prim_cc(:,2), prim_cc(:,3) )
         call set_outflow( prim_cc(:,cells+2),                                  &
@@ -221,7 +225,7 @@ module solvers
       residual(eq,cell) = S(eq,cell)                                           &
                         - (area_f(cell)*F(eq,cell)                             &
                         - area_f(cell-1)*F(eq,cell-1))                         &
-                       / (dxdxsi_cc(cell)*dxsi)
+                        / (dxdxsi_cc(cell)*dxsi)
       end do
     end do
   !$OMP end do
@@ -566,32 +570,32 @@ module solvers
 
     if ( iteration <= firstorder .or. .not. muscl ) then
 ! skip excess computations if only first order
-!$OMP parallel do
+!OMP parallel do
       do i = 1, faces
         vars_left(:,i)  = vars_cc(:,i)
         vars_right(:,i) = vars_cc(:,i+1)
       end do
-!$OMP end parallel do
+!OMP end parallel do
     else
 
 ! calculate left side variations, r>=0
-!$OMP parallel do
+!OMP parallel do
       do i = 1, faces-1
         r_L(:,i)  = max( zero, (vars_cc(:,i+2) - vars_cc (:,i+1))              &
                              / (vars_cc(:,i+1) - vars_cc(:,i) + small_factor) )
       end do
-!$OMP end parallel do
+!OMP end parallel do
       r_L(:,faces) = one
 
 ! calculate right side variations, r>=0
 
       r_R(:,1)     = one
-!$OMP parallel do
+!OMP parallel do
       do i = 2, faces
         r_R(:,i) = max( zero, (vars_cc(:,i) - vars_cc(:,i-1))                  &
                             / (vars_cc(:,i+1) - vars_cc(:,i) + small_factor) )
       end do
-!$OMP end parallel do
+!OMP end parallel do
 
 ! apply appropriate limiter
 !OMP for each of these
@@ -636,7 +640,7 @@ module solvers
       vars_left(:,i) = vars_cc(:,i) + fourth                                   &
                 * ((one+kappa)*(vars_cc(:,i+1) - vars_cc(:,i)))
 
-!$OMP parallel do
+!OMP parallel do
       do i = 2, faces
         vars_left(:,i)    = vars_cc(:,i) + fourth                              &
                 * ((one+kappa)*psi_R(:,i)   * (vars_cc(:,i+1) - vars_cc(:,i))  &
@@ -646,7 +650,7 @@ module solvers
                 * ((one-kappa)*psi_R(:,i)   * (vars_cc(:,i+1) - vars_cc(:,i))  &
                 +  (one+kappa)*psi_L(:,i-1) * (vars_cc(:,i)   - vars_cc(:,i-1)))
       end do
-!$OMP end parallel do
+!OMP end parallel do
 
       i = faces
       vars_right(:,i) = vars_cc(:,i) - fourth                                  &
