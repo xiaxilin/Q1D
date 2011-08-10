@@ -93,7 +93,8 @@ module solvers
                               area_f, dadx_cc, dxdxsi_cc, residual )
 
 ! perform explicit iterations on interior cells
-!OMP
+
+!$OMP parallel do
         do cell = 2, cells+1
           cons_cc(:,cell) = cons_cc_0(:,cell)                                  &
                           + (dt(cell)/area_cc(cell)) * residual(:,cell)        &
@@ -101,6 +102,7 @@ module solvers
           prim_cc(:,cell) = conserved_to_primitive_1D(cons_cc(:,cell))
           prim_cc(:,cell) = floor_primitive_vars(prim_cc(:,cell))
         end do
+!$OMP end parallel do
 
         call set_inflow( prim_cc(:,1), prim_cc(:,2), prim_cc(:,3) )
         call set_outflow( prim_cc(:,cells+2),                                  &
@@ -201,7 +203,7 @@ module solvers
     real(dp), dimension(cells+2),   intent(in)  :: dxdxsi_cc
     real(dp), dimension(3,cells+2), intent(out) :: residual
 
-    integer :: cell
+    integer :: cell, eq
     real(dp), dimension(3,faces)   :: F
     real(dp), dimension(3,cells+2) :: S
 
@@ -210,13 +212,20 @@ module solvers
     call create_fluxes( cells, faces, iteration, prim_cc, cons_cc, F )
     call create_source( cells, prim_cc(3,:), dadx_cc, S )
 
-!OMP
     residual = zero
+
+!$OMP parallel 
+  !$OMP do
     do cell = 2, cells+1
-      residual(:,cell) = S(:,cell)                                             &
-                       - (area_f(cell)*F(:,cell) - area_f(cell-1)*F(:,cell-1)) &
+      do eq = 1,3
+      residual(eq,cell) = S(eq,cell)                                           &
+                        - (area_f(cell)*F(eq,cell)                             &
+                        - area_f(cell-1)*F(eq,cell-1))                         &
                        / (dxdxsi_cc(cell)*dxsi)
+      end do
     end do
+  !$OMP end do
+!$OMP end parallel
 
   end subroutine create_residual
 
@@ -376,15 +385,18 @@ module solvers
     if (trim(flux_type) /= 'jst' .or. trim(flux_type) /= 'central') then
       call muscl_extrapolation(cells, faces, iteration, &
                                prim_cc, prim_left, prim_right)
-!OMP
+
+!$OMP parallel do
       do i = 1, faces
         prim_left(:,i)  = floor_primitive_vars(prim_left(:,i))
         prim_right(:,i) = floor_primitive_vars(prim_right(:,i))
       end do
+!$OMP end parallel do
+
     end if
 
 ! create flux vectors
-!OMP for each of these cases
+! could be made $OMP for each of these cases
     select case(trim(flux_type))
     case ('central')
       do i = 1, faces
@@ -437,11 +449,14 @@ module solvers
     integer :: i
 
     continue
-!OMP
+
     source = zero
+
+!$OMP parallel do
     do i = 2, cells+1
       source(2,i) = pressure(i)*dadx_cc(i)
     end do
+!$OMP end parallel do
 
   end subroutine create_source
 
@@ -471,17 +486,20 @@ module solvers
     continue
 
 ! calculate pressure switch
-!OMP
+!$OMP parallel do
     do i = 2, cells+1
       nu(i) = abs((prim_cc(3,i-1) - two*prim_cc(3,i) + prim_cc(3,i+1))         &
             /     (prim_cc(3,i-1) + two*prim_cc(3,i) + prim_cc(3,i+1)))
     end do
+!$OMP end parallel do
     nu(1)       = two*nu(2) - nu(3)
     nu(cells+2) = zero
-!OMP
+
+!$OMP parallel do
     do i = 1, cells+2
       a(i) = speed_of_sound(prim_cc(3,i), prim_cc(1,i))
     end do
+!$OMP end parallel do
 
 ! calculate smoothing terms and dissipation vector, add to flux
     i = 1
@@ -494,7 +512,7 @@ module solvers
        - epsfour*(cons_cc(:,i+2) - three*cons_cc(:,i+1) + two*cons_cc(:,i)))
 
     central_flux(:,i) = central_flux(:,i) + dissipation(:)
-!OMP                
+!Could be made $OMP, need epstwo, epsfour, lambda, dissipation private
     do i = 2, faces-1
       epstwo  = k2*max(nu(i-1), nu(i), nu(i+1), nu(i+2))
       epsfour = max(zero, k4-epstwo)
@@ -548,29 +566,32 @@ module solvers
 
     if ( iteration <= firstorder .or. .not. muscl ) then
 ! skip excess computations if only first order
-!OMP
+!$OMP parallel do
       do i = 1, faces
         vars_left(:,i)  = vars_cc(:,i)
         vars_right(:,i) = vars_cc(:,i+1)
       end do
-
+!$OMP end parallel do
     else
 
 ! calculate left side variations, r>=0
-!OMP
+!$OMP parallel do
       do i = 1, faces-1
         r_L(:,i)  = max( zero, (vars_cc(:,i+2) - vars_cc (:,i+1))              &
                              / (vars_cc(:,i+1) - vars_cc(:,i) + small_factor) )
       end do
+!$OMP end parallel do
       r_L(:,faces) = one
 
 ! calculate right side variations, r>=0
-!OMP
+
       r_R(:,1)     = one
+!$OMP parallel do
       do i = 2, faces
         r_R(:,i) = max( zero, (vars_cc(:,i) - vars_cc(:,i-1))                  &
                             / (vars_cc(:,i+1) - vars_cc(:,i) + small_factor) )
       end do
+!$OMP end parallel do
 
 ! apply appropriate limiter
 !OMP for each of these
@@ -614,7 +635,8 @@ module solvers
       i = 1
       vars_left(:,i) = vars_cc(:,i) + fourth                                   &
                 * ((one+kappa)*(vars_cc(:,i+1) - vars_cc(:,i)))
-!OMP
+
+!$OMP parallel do
       do i = 2, faces
         vars_left(:,i)    = vars_cc(:,i) + fourth                              &
                 * ((one+kappa)*psi_R(:,i)   * (vars_cc(:,i+1) - vars_cc(:,i))  &
@@ -624,6 +646,7 @@ module solvers
                 * ((one-kappa)*psi_R(:,i)   * (vars_cc(:,i+1) - vars_cc(:,i))  &
                 +  (one+kappa)*psi_L(:,i-1) * (vars_cc(:,i)   - vars_cc(:,i-1)))
       end do
+!$OMP end parallel do
 
       i = faces
       vars_right(:,i) = vars_cc(:,i) - fourth                                  &
