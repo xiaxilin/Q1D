@@ -222,10 +222,10 @@ module solvers
   !$OMP do
     do cell = 2, cells+1
       do eq = 1,3
-      residual(eq,cell) = S(eq,cell)                                           &
-                        - (area_f(cell)*F(eq,cell)                             &
-                        - area_f(cell-1)*F(eq,cell-1))                         &
-                        / (dxdxsi_cc(cell)*dxsi)
+        residual(eq,cell) = S(eq,cell)                                         &
+                          - (area_f(cell)   * F(eq,cell)                       &
+                          -  area_f(cell-1) * F(eq,cell-1))                    &
+                          / (dxdxsi_cc(cell)*dxsi)
       end do
     end do
   !$OMP end do
@@ -403,30 +403,42 @@ module solvers
 ! could be made $OMP for each of these cases
     select case(trim(flux_type))
     case ('central')
+!$OMP parallel do
       do i = 1, faces
         flux(:,i) = flux_central( prim_cc(:,i), prim_cc(:,i+1) )
       end do
+!$OMP end parallel do
     case ('jst')
+!$OMP parallel do
       do i = 1, faces
         flux(:,i) = flux_central( prim_cc(:,i), prim_cc(:,i+1) )
       end do
+!$OMP end parallel do
       call add_jst_damping( cells, faces, prim_cc, cons_cc, flux )
     case('vanleer')
+!$OMP parallel do
       do i = 1, faces
         flux(:,i) = flux_vanleer( prim_left(:,i), prim_right(:,i) )
       end do
+!$OMP end parallel do
     case('sw')
+!$OMP parallel do
       do i = 1, faces
         flux(:,i) = flux_sw( prim_left(:,i), prim_right(:,i) )
       end do
+!$OMP end parallel do
     case('ausm')
+!$OMP parallel do
       do i = 1, faces
         flux(:,i) = flux_ausm( prim_left(:,i), prim_right(:,i) )
       end do
+!$OMP end parallel do
     case('roe')
+!$OMP parallel do
       do i = 1, faces
         flux(:,i) = flux_roe( prim_left(:,i), prim_right(:,i) )
       end do
+!$OMP end parallel do
     case('hllc')
 
     end select
