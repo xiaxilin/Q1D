@@ -25,7 +25,7 @@ pure function flux_sw(qL, qR) result(F)
   lambda(2) = qL(2) + a
   lambda(3) = qL(2) - a
 
-  lambdafloor(:) = half*(lambda(:)+abs(lambda(:)))
+  lambdafloor = half*( lambda + abs(lambda) )
     
   FL(1) = two*gm1*lambdafloor(1) + lambdafloor(2) + lambdafloor(3)
   FL(2) = two*gm1*lambdafloor(1)*lambda(1) +                                   &
@@ -34,7 +34,7 @@ pure function flux_sw(qL, qR) result(F)
           half*(lambdafloor(2)*lambda(2)**2+lambdafloor(3)*lambda(3)**2) +     &
           ((three-gamma)/(two*gm1))*(lambdafloor(2)+lambdafloor(3))*a**2
                     
-  FL(:) = (half*qL(1)*xg)*FL(:)
+  FL = (half*qL(1)*xg)*FL
 
 !Calculate Right (-) Fluxes
 
@@ -43,7 +43,7 @@ pure function flux_sw(qL, qR) result(F)
   lambda(2) = qR(2) + a
   lambda(3) = qR(2) - a
 
-  lambdafloor(:) = half*(lambda(:)-abs(lambda(:)))
+  lambdafloor = half*( lambda - abs(lambda) )
     
   FR(1) = two*gm1*lambdafloor(1)+lambdafloor(2)+lambdafloor(3)
   FR(2) = two*gm1*lambdafloor(1)*lambda(1) +                                   &
@@ -52,9 +52,9 @@ pure function flux_sw(qL, qR) result(F)
           half*(lambdafloor(2)*lambda(2)**2 + lambdafloor(3)*lambda(3)**2) +   &
           ((three-gamma)/(two*gm1))*(lambdafloor(2)+lambdafloor(3))*a**2
 
-  FR(:) = (half*qR(1)*xg)*FR(:)
+  FR = (half*qR(1)*xg)*FR
 
 !Calculate Interface Flux
-  F(:) = FL(:) + FR(:)
+  F = FL + FR
 
 end function flux_sw

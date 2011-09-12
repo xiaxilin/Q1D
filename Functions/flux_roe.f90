@@ -37,8 +37,8 @@ pure function flux_roe(qL, qR) result(F)
   consL = primitive_to_conserved_1D(qL)
   consR = primitive_to_conserved_1D(qR)
 
-  FL(:) = (/rhoL*uL, rhoL*uL**2 + pL, uL*(consL(3) + pL)/)
-  FR(:) = (/rhoR*uR, rhoR*uR**2 + pR, uR*(consR(3) + pR)/)
+  FL = (/rhoL*uL, rhoL*uL**2 + pL, uL*(consL(3) + pL)/)
+  FR = (/rhoR*uR, rhoR*uR**2 + pR, uR*(consR(3) + pR)/)
 
 ! Roe interface variable
   Rhalf = sqrt(rhoR/rhoL)
@@ -65,16 +65,16 @@ pure function flux_roe(qL, qR) result(F)
   dw(2) = (uR-uL) + (pR-pL)/(RoeAvgrho*RoeAvga)
   dw(3) = (uR-uL) - (pR-pL)/(RoeAvgrho*RoeAvga)
 
-  r1RoeAvg(:) = (/one, RoeAvgu, half*RoeAvgu**2/)
-  r2RoeAvg(:) = (half*RoeAvgrho/RoeAvga) *                                     &
+  r1RoeAvg = (/one, RoeAvgu, half*RoeAvgu**2/)
+  r2RoeAvg = (half*RoeAvgrho/RoeAvga) *                                        &
                 (/one, RoeAvgu+RoeAvga, RoeAvght+RoeAvgu*RoeAvga/)
-  r3RoeAvg(:) = (-half*RoeAvgrho/RoeAvga) *                                    &
+  r3RoeAvg = (-half*RoeAvgrho/RoeAvga) *                                       &
                 (/one, RoeAvgu-RoeAvga, RoeAvght-RoeAvgu*RoeAvga/)
 
 !Calculate Interface Fluxes
-  F(:) = half*((FL(:)+FR(:))                                                   &
-       - (abs(lambdaRoe(1))*dw(1)*r1RoeAvg(:)                                  &
-       +  abs(lambdaRoe(2))*dw(2)*r2RoeAvg(:)                                  &
-       +  abs(lambdaRoe(3))*dw(3)*r3RoeAvg(:)))
+  F = half*( (FL + FR)                                                         &
+    - (abs(lambdaRoe(1))*dw(1)*r1RoeAvg                                        &
+    +  abs(lambdaRoe(2))*dw(2)*r2RoeAvg                                        &
+    +  abs(lambdaRoe(3))*dw(3)*r3RoeAvg) )
 
 end function flux_roe

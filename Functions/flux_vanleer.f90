@@ -41,7 +41,7 @@ pure function flux_vanleer(qL, qR) result(F)
 
 !Combine sub and supersonic fluxes, store in final flux vector
   switch = max(zero, one-real(int(abs(M)),dp))
-  F(:) = (one-switch)*Fiss(:) + switch*Fisub(:)
+  F = (one-switch)*Fiss + switch*Fisub
 
 !Calculate Right (-) Fluxes
   a = speed_of_sound(qR(3), qR(1))
@@ -64,6 +64,6 @@ pure function flux_vanleer(qL, qR) result(F)
 
 !Combine sub and supersonic fluxes, finish final flux vector
   switch = max(zero, one-real(int(abs(M)),dp))
-  F(:) = F(:) + (one-switch)*Fiss(:) + switch*Fisub(:)
+  F = F + (one-switch)*Fiss + switch*Fisub
 
 end function flux_vanleer
