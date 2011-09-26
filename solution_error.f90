@@ -27,9 +27,9 @@ contains
     real(dp),                     intent(in) :: a_star
     real(dp), dimension(3,cells+2), intent(in) :: cons_cc
 
-    integer :: i, i_throat
+    integer               :: i, i_throat
+    integer, dimension(1) :: i_min      ! needed for minloc function
 
-!    real(dp) :: Mach_From_Area
     real(dp) :: asnd      ! Define type for speed of sound function
     real(dp) :: psi       ! ( = T_0/T )
     real(dp) :: temp      ! (Temperature, T)
@@ -39,8 +39,9 @@ contains
     real(dp), dimension(3,cells+2) :: soln_exact
 
     continue
-! FIXME: make this general... search for first minimum in area_cc...
-    i_throat = 1+cells/2
+
+    i_min = minloc(area_cc)
+    i_throat = i_min(1)
 
 ! calculate exact mach/area solution
     mach_init = 0.1_dp
@@ -55,6 +56,9 @@ contains
       mach_exact(i) = mach_from_area(area_cc(i)/a_star, mach_init, 1)
       mach_init = mach_exact(i)
     end do
+
+! once the isentropic solution has been found, check for shocked case
+! need Pb and Ae for this
 
 ! once the mach/area solution has been found, calculate the primitive variables
     do i = 2, cells+1
