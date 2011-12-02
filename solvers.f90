@@ -1,6 +1,3 @@
-!TODO: add different inflow and outflow condition subroutines
-!      Need: subsonic inflow, subsonic outflow, extrapolation
-
 module solvers
 
   use set_precision, only : dp
@@ -79,13 +76,10 @@ module solvers
 ! set both local and global time step
       call set_time_step( cells, dxsi, prim_cc, dt, dt_global )
 
-! FIXME: make sure global stepping is enforced for RK schemes
-! Needed for all schemes for stability
-!      if (rkorder > 1) dt(:) = dt_global
       dt(:) = dt_global
 
 ! make copy of solution for RK schemes... 
-! wouldn't be necessary for pure Euler explict
+! wouldn't be necessary for pure Euler explicit
       cons_cc_0 = cons_cc
 
       do rk = 1, rkorder
@@ -94,8 +88,6 @@ module solvers
 
 ! perform explicit iterations on interior cells
 
-!$OMP parallel
-  !$OMP do
         do cell = 2,cells+1
           do eq = 1,3
             cons_cc(eq,cell) = cons_cc_0(eq,cell)                              &
@@ -105,12 +97,17 @@ module solvers
           prim_cc(:,cell) = conserved_to_primitive_1D(cons_cc(:,cell))
           prim_cc(:,cell) = floor_primitive_vars(prim_cc(:,cell))
         end do
-  !$OMP end do
-!$OMP end parallel
 
-        call set_inflow( prim_cc(:,1), prim_cc(:,2), prim_cc(:,3) )
-        call set_outflow( prim_cc(:,cells+2),                                  &
-                          prim_cc(:,cells+1), prim_cc(:,cells) )
+!        select case(inflow)
+!        case('sub')
+          call set_sub_sonic_inflow(prim_cc(:,1), prim_cc(:,2), prim_cc(:,3))
+!        case('ss')
+          ! don't need to do anything... they're already set
+!        end select
+
+! This routine handles both sub and supersonic conditions
+          call set_outflow( prim_cc(:,cells+2),                                &
+                            prim_cc(:,cells+1), prim_cc(:,cells) )
 
         do cell = 1, cells+2
           cons_cc(:,cell) = primitive_to_conserved_1D(prim_cc(:,cell))
@@ -295,7 +292,7 @@ module solvers
 !
 !=============================================================================80
 
-  subroutine set_inflow( cc_in, cc_1, cc_2 )
+  subroutine set_sub_sonic_inflow( cc_in, cc_1, cc_2 )
 
     use set_precision,   only : dp
     use set_constants,   only : one, two
@@ -326,7 +323,7 @@ module solvers
 ! floor variables
     cc_in = floor_primitive_vars(cc_in)
 
-  end subroutine set_inflow
+  end subroutine set_sub_sonic_inflow
 
 !=============================================================================80
 !
@@ -468,11 +465,9 @@ module solvers
 
     source = zero
 
-!$OMP parallel do
     do i = 2, cells+1
       source(2,i) = pressure(i)*dadx_cc(i)
     end do
-!$OMP end parallel do
 
   end subroutine create_source
 
@@ -502,20 +497,16 @@ module solvers
     continue
 
 ! calculate pressure switch
-!$OMP parallel do
     do i = 2, cells+1
       nu(i) = abs((prim_cc(3,i-1) - two*prim_cc(3,i) + prim_cc(3,i+1))         &
             /     (prim_cc(3,i-1) + two*prim_cc(3,i) + prim_cc(3,i+1)))
     end do
-!$OMP end parallel do
     nu(1)       = two*nu(2) - nu(3)
     nu(cells+2) = zero
 
-!$OMP parallel do
     do i = 1, cells+2
       a(i) = speed_of_sound(prim_cc(3,i), prim_cc(1,i))
     end do
-!$OMP end parallel do
 
 ! calculate smoothing terms and dissipation vector, add to flux
     i = 1
@@ -528,7 +519,7 @@ module solvers
        - epsfour*(cons_cc(:,i+2) - three*cons_cc(:,i+1) + two*cons_cc(:,i)))
 
     central_flux(:,i) = central_flux(:,i) + dissipation(:)
-!Could be made $OMP, need epstwo, epsfour, lambda, dissipation private
+
     do i = 2, faces-1
       epstwo  = k2*max(nu(i-1), nu(i), nu(i+1), nu(i+2))
       epsfour = max(zero, k4-epstwo)
