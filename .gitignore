@@ -26,7 +26,7 @@ Makefile
 *.status
 *.rst
 *.grd
-
+*.tec
 
 q1d
 q1d_grid
