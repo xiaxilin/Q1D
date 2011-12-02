@@ -25,20 +25,20 @@ module solvers
 
 ! set initial values
 
-  integer  :: iterations = 100000
-  integer  :: firstorder = 10000
-  integer  :: itercheck  = 1000
-  integer  :: iter_out   = -1
-  integer  :: rkorder    = 1
-  logical  :: muscl      = .false.
-  real(dp) :: cfl        = 1.0_dp
-  real(dp) :: kappa      = -1.0_dp
-  real(dp) :: toler      = 1.0e-13_dp
-  character(len=10) :: limiter = 'none'
+  integer  :: iterations
+  integer  :: firstorder
+  integer  :: itercheck
+  integer  :: iter_out
+  integer  :: rkorder
+  logical  :: muscl
+  real(dp) :: cfl
+  real(dp) :: kappa
+  real(dp) :: toler
+  character(len=10) :: limiter
 
-  character(len=10) :: flux_type  = 'jst'
-  real(dp) :: k2 = 0.5_dp
-  real(dp) :: k4 = 0.03125_dp
+  character(len=10) :: flux_type
+  real(dp) :: k2
+  real(dp) :: k4
 
   contains
 

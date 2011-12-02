@@ -28,8 +28,8 @@ module fluid_constants
   public :: set_gamma_constants
 
 ! Set initial values
-  real(dp) :: r = 287.0_dp
-  real(dp) :: gamma = 1.4_dp
+  real(dp) :: r
+  real(dp) :: gamma
   real(dp) :: gm1
   real(dp) :: gp1
   real(dp) :: xg

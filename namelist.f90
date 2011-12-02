@@ -1,6 +1,5 @@
 module namelist
 
-  use set_precision,   only : dp
   use solvers,         only : iterations, firstorder, itercheck, iter_out,     &
                               rkorder, cfl, limiter, muscl, kappa, toler,      &
                               flux_type, k2, k4
@@ -45,20 +44,44 @@ contains
 
 ! set defaults and read &code_control
 
+    iterations = 100000
+    firstorder = 10000
+    itercheck  = 1000
+    iter_out   = -1
+    rkorder    = 1
+    muscl      = .false.
+    cfl        = 1.0_dp
+    kappa      = -1.0_dp
+    toler      = 1.0e-13_dp
+    limiter    = 'none'
+
     rewind(nml_unit)
     read(nml_unit, nml=code_control)
 
 ! set defaults and read &flux
+
+    flux_type  = 'jst'
+    k2 = 0.5_dp
+    k4 = 0.03125_dp
 
     rewind(nml_unit)
     read(nml_unit, nml=flux)
 
 ! set defaults and read &conditions
 
+    restart = .false.
+    mref  = 1.5_dp
+    to    = 600.0_dp
+    po    = 300000.0_dp
+    pback = -1.0_dp
+
     rewind(nml_unit)
     read(nml_unit, nml=conditions)
 
 ! set defaults and read &gas_properties
+
+    r = 287.0_dp
+    gamma = 1.4_dp
 
     rewind(nml_unit)
     read(nml_unit, nml=gas_properties)

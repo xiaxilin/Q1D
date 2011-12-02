@@ -24,12 +24,12 @@ module initialize_soln
   public :: pback      ! Outflow backpressure, negative for extrapolation
 
 ! Set defaults
-  logical :: restart = .false.
+  logical :: restart
 
-  real(dp) :: mref  = 1.5_dp
-  real(dp) :: to    = 600.0_dp
-  real(dp) :: po    = 300000.0_dp
-  real(dp) :: pback = -1.0_dp
+  real(dp) :: mref
+  real(dp) :: to
+  real(dp) :: po
+  real(dp) :: pback
 
   real(dp), dimension(3) :: L1_init, L2_init, Linf_init
 
