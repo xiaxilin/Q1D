@@ -295,7 +295,7 @@ module solvers
   subroutine set_sub_sonic_inflow( cc_in, cc_1, cc_2 )
 
     use set_precision,   only : dp
-    use set_constants,   only : one, two
+    use set_constants,   only : one, half, two
     use fluid_constants, only : r, gamma, gm1, xgm1, gxgm1
     use initialize_soln, only : po, to
 
@@ -306,19 +306,36 @@ module solvers
 
     real(dp) :: vel_max, psi
 
+! testing
+!    real(dp) :: rho0, h0, s0, p, u
+
     continue
 
 ! set max, physically possible velocity
     vel_max = sqrt(two*gamma*r*to*xgm1)-one
 
 ! extrapolate velocity and limit
-    cc_in(2) = max(-vel_max, min(two*cc_1(2)-cc_2(2), vel_max))	
+    cc_in(2) = max(-vel_max, min(two*cc_1(2)-cc_2(2), vel_max))
 
 ! now calculate inflow
     psi = to/(to-(gm1*cc_in(2)**2/(two*gamma*r)))
 
     cc_in(1) = po/(r*to*psi**xgm1)
-    cc_in(3) = po/psi**gxgm1   
+    cc_in(3) = po/psi**gxgm1
+
+! to test a new version...
+
+!    rho0 = po/(r*to)
+!    h0 = gxgm1*po/rho0
+!    s0 = r*xgm1*log(po/rho0**gamma)
+
+!    cc_in(1) = min(max(two*cc_1(1) - cc_2(1),0.0001_dp),rho0)
+
+!    p = exp(s0*gm1/r)*cc_in(1)**gamma
+!    u = sqrt(two*(h0 - gxgm1*p/cc_in(1)))
+
+!    cc_in(2) = u
+!    cc_in(3) = p
 
 ! floor variables
     cc_in = floor_primitive_vars(cc_in)
