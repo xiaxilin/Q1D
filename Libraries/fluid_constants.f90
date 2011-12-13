@@ -24,6 +24,8 @@ module fluid_constants
   public :: gxgm1
   public :: xg2m1
   public :: gxg2m1
+  public :: gm1xgp1
+  public :: gp1xgm1
 
   public :: set_gamma_constants
 
@@ -38,6 +40,8 @@ module fluid_constants
   real(dp) :: gxgm1
   real(dp) :: xg2m1
   real(dp) :: gxg2m1
+  real(dp) :: gm1xgp1
+  real(dp) :: gp1xgm1
 
 contains
 
@@ -60,6 +64,8 @@ contains
     xg2m1  = one / (gamma*gamma - one)
     gxgm1  = gamma / (gamma - one)
     gxg2m1 = gamma / (gamma*gamma - one)
+    gm1xgp1 = gm1/gp1
+    gp1xgm1 = gp1/gm1
 
   end subroutine set_gamma_constants
 

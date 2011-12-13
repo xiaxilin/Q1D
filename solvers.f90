@@ -101,6 +101,7 @@ module solvers
 !        select case(inflow)
 !        case('sub')
           call set_sub_sonic_inflow(prim_cc(:,1), prim_cc(:,2), prim_cc(:,3))
+!          call set_sub_sonic_inflow_r(prim_cc(:,1), prim_cc(:,2) )
 !        case('ss')
           ! don't need to do anything... they're already set
 !        end select
@@ -288,7 +289,7 @@ module solvers
 
 !=============================================================================80
 !
-! 
+! Uses primitive variables
 !
 !=============================================================================80
 
@@ -296,7 +297,7 @@ module solvers
 
     use set_precision,   only : dp
     use set_constants,   only : one, half, two
-    use fluid_constants, only : r, gamma, gm1, xgm1, gxgm1
+    use fluid_constants, only : r, gamma, gm1, xgm1, gxgm1,gm1xgp1, gp1
     use initialize_soln, only : po, to
 
     implicit none
@@ -323,7 +324,7 @@ module solvers
     cc_in(1) = po/(r*to*psi**xgm1)
     cc_in(3) = po/psi**gxgm1
 
-! to test a new version...
+! to test another version...
 
 !    rho0 = po/(r*to)
 !    h0 = gxgm1*po/rho0
@@ -341,6 +342,49 @@ module solvers
     cc_in = floor_primitive_vars(cc_in)
 
   end subroutine set_sub_sonic_inflow
+!=============================================================================80
+!
+! Uses primitive variables
+!
+!=============================================================================80
+
+  subroutine set_sub_sonic_inflow_r( cc_in, cc_1 )
+
+    use set_precision,   only : dp
+    use set_constants,   only : one, half, two
+    use fluid_constants, only : r, gamma, gm1, xgm1, gxgm1,gm1xgp1, gp1
+    use initialize_soln, only : po, to
+
+    implicit none
+
+    real(dp), dimension(3), intent(in)  :: cc_1
+    real(dp), dimension(3), intent(out) :: cc_in
+
+    real(dp) :: a_1, a_in, a_bound, r_minus, t_in
+
+    continue
+
+    a_1 = speed_of_sound(cc_1(3), cc_1(1))
+
+    a_in = sqrt(half*gm1*cc_1(2)**2+a_1**2)
+
+    r_minus = -cc_1(2)-two*xgm1*a_1
+
+    a_bound = -r_minus*gm1xgp1                                                 &
+            * (one-sqrt((gp1*a_in**2)/(gm1*r_minus**2)-half*gm1))
+
+    t_in = to*(a_bound**2/a_in**2)
+
+    cc_in(3) = po*(t_in/to)**gxgm1
+
+    cc_in(1) = cc_in(3)/(r*t_in)
+
+    cc_in(2) = sqrt(2012.0_dp*(to-t_in))
+
+! floor variables
+    cc_in = floor_primitive_vars(cc_in)
+
+  end subroutine set_sub_sonic_inflow_r
 
 !=============================================================================80
 !
