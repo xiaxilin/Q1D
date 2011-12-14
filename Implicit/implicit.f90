@@ -43,7 +43,7 @@ subroutine implicit_solve( cells, faces, dxsi, prim_cc, cons_cc,               &
 
     L(:,:,1) = zero
     D(:,:,1) = ident3x3
-    U(:,:,1) = ident3x3
+    U(:,:,1) = zero!ident3x3
 
 ! calculate Jacobians for 1st ghost cell and 1st interior cell
 

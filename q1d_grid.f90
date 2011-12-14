@@ -32,6 +32,7 @@ program q1d_grid
 
     do i = 1, faces
       x(i) = -0.5_dp*nozzlelength + dx*real(i-1,dp)
+!      x(i) = dx*real(i-1,dp)
     end do
 
   else
@@ -55,12 +56,16 @@ program q1d_grid
 
   do i = 1, faces
     areaface(i) = 0.2_dp + 0.4_dp * (1.0_dp + sin(pi*(x(i) - 0.5_dp)))
+! From Yee et al., JCP 1985
+!    areaface(i) = 1.398_dp + 0.347_dp*tanh(0.8_dp*x(i)-4.0_dp)
   end do
 
   do i = 2, cells+1
     areacent(i) = 0.2_dp + 0.4_dp &
                 * (1.0_dp + sin(pi*( 0.5_dp*(x(i)+x(i-1)) - 0.5_dp )))
     dadx(i) = 0.4_dp * pi * cos(pi*( 0.5_dp*(x(i)+x(i-1)) - 0.5_dp ))
+!    areacent(i) = 1.398_dp + 0.347_dp*tanh(0.4_dp*(x(i)+x(i-1))-4.0_dp)
+!    dadx(i) = 0.8_dp*0.347_dp/cosh(0.4_dp*(x(i)+x(i-1))-4.0_dp)**2
   end do
   areacent(1) = areacent(2)
   dadx(1) = dadx(2)
