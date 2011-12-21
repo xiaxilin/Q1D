@@ -8,6 +8,7 @@ subroutine implicit_solve( cells, faces, dxsi, prim_cc, cons_cc,               &
                            area_f, area_cc, dxdxsi_cc, dadx_cc )
 
   use set_precision, only : dp
+  use set_constants, only :two
 
   implicit none
 
@@ -21,15 +22,19 @@ subroutine implicit_solve( cells, faces, dxsi, prim_cc, cons_cc,               &
   real(dp) :: dt_global
 
   real(dp), dimension(cells+2)     :: dt
-  real(dp), dimension(3,cells+2)   :: RHS
+  real(dp), dimension(3,cells+2)   :: RHS, delta_cons_cc
   real(dp), dimension(3,3)         :: left_jac_L, right_jac_L
   real(dp), dimension(3,3)         :: left_jac_C, right_jac_C
   real(dp), dimension(3,3)         :: left_jac_R, right_jac_R
   real(dp), dimension(3,3,cells+2) :: L, D, U
 
   logical :: convergence_flag = .false.
+  real(dp), dimension(3,3) :: ident3x3
 
   continue
+
+  ident3x3 = reshape( (/one, zero, zero, zero, one, zero, zero, zero, one/) ,  &
+                      (/3,3/) )
 
   do n = 0, iterations
 
@@ -41,9 +46,10 @@ subroutine implicit_solve( cells, faces, dxsi, prim_cc, cons_cc,               &
 
 ! form LHS
 
+! Inflow, modify according to bc
     L(:,:,1) = zero
     D(:,:,1) = ident3x3
-    U(:,:,1) = zero!ident3x3
+    U(:,:,1) = -two*ident3x3
 
 ! calculate Jacobians for 1st ghost cell and 1st interior cell
 
@@ -72,8 +78,38 @@ subroutine implicit_solve( cells, faces, dxsi, prim_cc, cons_cc,               &
       right_jac_C = right_jac_R
     end do
 
+! Outflow, modify according to bc
+    L(:,:,cells+2) = -two*ident3x3
+    D(:,:,cells+2) = ident3x3
+    U(:,:,cells+2) = zero
+
+! Need to perform matrix modification to preserve block tri-diagonal structure
+
+!    bc = zero
+!    bc(1,1) = one
+
+!    call matrix_inv(3, U(:,:,2), inv)
+!    call mat_inv_3x3(U(:,:,2), inv)
+
+!    inv = matmul(bc, inv)
+
+!    D(:,:,1) = D(:,:,1) - matmul(inv, L(:,:,2))
+!    U(:,:,1) = U(:,:,1) - matmul(inv, D(:,:,2))
+!    RHS(:,1) = RHS(:,1) - matmul(inv, RHS(:,2))
+
+!    call matrix_inv(3, L(:,:,y_nodes-1), inv)
+!    call mat_inv_3x3(L(:,:,y_nodes-1), inv)
+
+!    inv = matmul(bc, inv)
+
+!    L(:,:,y_nodes) = L(:,:,y_nodes) - matmul(inv, D(:,:,y_nodes-1))
+!    D(:,:,y_nodes) = D(:,:,y_nodes) - matmul(inv, U(:,:,y_nodes-1))
+!    RHS(:,y_nodes) = RHS(:,y_nodes) - matmul(inv, RHS(:,y_nodes-1))
+
 ! solve the system of equations
-    call triblocksolve(3, cells+2, L, D, U, RHS, cons_cc)
+    call triblocksolve(3, cells+2, L, D, U, RHS, delta_cons_cc)
+
+    cons_cc = cons_cc+deltat_cons_cc
 
     if (mod(n,itercheck) == 0) then
       call check_convergence(cells, n, RHS, convergence_flag)
