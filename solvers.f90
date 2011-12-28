@@ -74,9 +74,7 @@ module solvers
 
     do n = 0, iterations
 ! set both local and global time step
-      call set_time_step( cells, dxsi, prim_cc, dt, dt_global )
-
-      dt(:) = dt_global
+      dt = set_time_step( cells, dxsi, prim_cc )
 
 ! make copy of solution for RK schemes... 
 ! wouldn't be necessary for pure Euler explicit
@@ -142,17 +140,13 @@ module solvers
 
   end subroutine explicit_solve
 
-  include 'conserved_to_primitive_1D.f90'
-  include 'floor_primitive_vars.f90'
-  include 'primitive_to_conserved_1D.f90'
-
 !=============================================================================80
 !
 !
 !
 !=============================================================================80
 
-  subroutine set_time_step( cells, dxsi, prim_cc, dt, dt_global)
+  pure function set_time_step( cells, dxsi, prim_cc ) result(dt)
 
     use set_precision, only : dp
     use set_constants, only : large
@@ -162,11 +156,10 @@ module solvers
     integer,                         intent(in)  :: cells
     real(dp),                        intent(in)  :: dxsi
     real(dp), dimension(3, cells+2), intent(in)  :: prim_cc
-    real(dp), dimension(cells+2),    intent(out) :: dt
-    real(dp),                        intent(out) :: dt_global
 
     integer  :: cell
-    real(dp) :: a
+    real(dp) :: a, dt_global
+    real(dp), dimension(cells+2) :: dt
 
     continue
 
@@ -178,9 +171,11 @@ module solvers
       dt_global = min(dt_global, dt(cell))
     end do
 
-  end subroutine set_time_step
+!    if ( global ) then
+    dt(:) = dt_global
+!    end if
 
-  include 'speed_of_sound.f90'
+  end function set_time_step
 
 !=============================================================================80
 !
@@ -216,8 +211,6 @@ module solvers
 
     residual = zero
 
-!$OMP parallel 
-  !$OMP do
     do cell = 2, cells+1
       do eq = 1,3
         residual(eq,cell) = S(eq,cell)                                         &
@@ -226,8 +219,6 @@ module solvers
                           / (dxdxsi_cc(cell)*dxsi)
       end do
     end do
-  !$OMP end do
-!$OMP end parallel
 
   end subroutine create_residual
 
@@ -448,55 +439,40 @@ module solvers
       call muscl_extrapolation(cells, faces, iteration, &
                                prim_cc, prim_left, prim_right)
 
-!$OMP parallel do
       do i = 1, faces
         prim_left(:,i)  = floor_primitive_vars(prim_left(:,i))
         prim_right(:,i) = floor_primitive_vars(prim_right(:,i))
       end do
-!$OMP end parallel do
 
     end if
 
 ! create flux vectors
-! could be made $OMP for each of these cases
     select case(trim(flux_type))
     case ('central')
-!$OMP parallel do
       do i = 1, faces
         flux(:,i) = flux_central( prim_cc(:,i), prim_cc(:,i+1) )
       end do
-!$OMP end parallel do
     case ('jst')
-!$OMP parallel do
       do i = 1, faces
         flux(:,i) = flux_central( prim_cc(:,i), prim_cc(:,i+1) )
       end do
-!$OMP end parallel do
       call add_jst_damping( cells, faces, prim_cc, cons_cc, flux )
     case('vanleer')
-!$OMP parallel do
       do i = 1, faces
         flux(:,i) = flux_vanleer( prim_left(:,i), prim_right(:,i) )
       end do
-!$OMP end parallel do
     case('sw')
-!$OMP parallel do
       do i = 1, faces
         flux(:,i) = flux_sw( prim_left(:,i), prim_right(:,i) )
       end do
-!$OMP end parallel do
     case('ausm')
-!$OMP parallel do
       do i = 1, faces
         flux(:,i) = flux_ausm( prim_left(:,i), prim_right(:,i) )
       end do
-!$OMP end parallel do
     case('roe')
-!$OMP parallel do
       do i = 1, faces
         flux(:,i) = flux_roe( prim_left(:,i), prim_right(:,i) )
       end do
-!$OMP end parallel do
     case('hllc')
 
     end select
@@ -634,35 +610,28 @@ module solvers
 
     if ( iteration <= firstorder .or. .not. muscl ) then
 ! skip excess computations if only first order
-!OMP parallel do
       do i = 1, faces
         vars_left(:,i)  = vars_cc(:,i)
         vars_right(:,i) = vars_cc(:,i+1)
       end do
-!OMP end parallel do
     else
 
 ! calculate left side variations, r>=0
-!OMP parallel do
       do i = 1, faces-1
         r_L(:,i)  = max( zero, (vars_cc(:,i+2) - vars_cc (:,i+1))              &
                              / (vars_cc(:,i+1) - vars_cc(:,i) + small_factor) )
       end do
-!OMP end parallel do
       r_L(:,faces) = one
 
 ! calculate right side variations, r>=0
 
       r_R(:,1)     = one
-!OMP parallel do
       do i = 2, faces
         r_R(:,i) = max( zero, (vars_cc(:,i) - vars_cc(:,i-1))                  &
                             / (vars_cc(:,i+1) - vars_cc(:,i) + small_factor) )
       end do
-!OMP end parallel do
 
 ! apply appropriate limiter
-!OMP for each of these
       select case(trim(limiter))
       case('minmod')
         do i = 1, faces
@@ -704,7 +673,6 @@ module solvers
       vars_left(:,i) = vars_cc(:,i) + fourth                                   &
                 * ((one+kappa)*(vars_cc(:,i+1) - vars_cc(:,i)))
 
-!OMP parallel do
       do i = 2, faces
         vars_left(:,i)    = vars_cc(:,i) + fourth                              &
                 * ((one+kappa)*psi_R(:,i)   * (vars_cc(:,i+1) - vars_cc(:,i))  &
@@ -714,7 +682,6 @@ module solvers
                 * ((one-kappa)*psi_R(:,i)   * (vars_cc(:,i+1) - vars_cc(:,i))  &
                 +  (one+kappa)*psi_L(:,i-1) * (vars_cc(:,i)   - vars_cc(:,i-1)))
       end do
-!OMP end parallel do
 
       i = faces
       vars_right(:,i) = vars_cc(:,i) - fourth                                  &
@@ -725,6 +692,12 @@ module solvers
   end subroutine muscl_extrapolation
  
 ! begin include statements
+
+  include 'conserved_to_primitive_1D.f90'
+  include 'floor_primitive_vars.f90'
+  include 'primitive_to_conserved_1D.f90'
+  include 'speed_of_sound.f90'
+
   include 'flux_central.f90'
   include 'flux_vanleer.f90'
   include 'flux_sw.f90'
