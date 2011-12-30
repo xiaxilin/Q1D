@@ -299,7 +299,7 @@ module solvers
     real(dp) :: vel_max, psi
 
 ! testing
-!    real(dp) :: rho0, h0, s0, p, u
+    real(dp) :: rho0, h0, s0, p, u, temp, a2, ao2
 
     continue
 
@@ -316,12 +316,19 @@ module solvers
     cc_in(3) = po/psi**gxgm1
 
 ! to test another version...
+    ao2 = gamma*r*to
+    a2 = ao2 - gm1*half*cc_in(2)**2
+    temp = ao2/a2
+
+    rho0 = po/(r*to)
+!    cc_in(1) = rho0*temp**gm1
+!    cc_in(3) = po*temp**(gm1/gamma)
 
 !    rho0 = po/(r*to)
 !    h0 = gxgm1*po/rho0
 !    s0 = r*xgm1*log(po/rho0**gamma)
 
-!    cc_in(1) = min(max(two*cc_1(1) - cc_2(1),0.0001_dp),rho0)
+!    cc_in(2) = min(max(two*cc_1(1) - cc_2(1),0.0001_dp),rho0)
 
 !    p = exp(s0*gm1/r)*cc_in(1)**gamma
 !    u = sqrt(two*(h0 - gxgm1*p/cc_in(1)))
