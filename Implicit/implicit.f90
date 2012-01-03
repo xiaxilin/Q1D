@@ -38,6 +38,8 @@ subroutine implicit_solve( cells, faces, dxsi, prim_cc, cons_cc,               &
   ident3x3 = reshape( (/one, zero, zero, zero, one, zero, zero, zero, one/) ,  &
                       (/3,3/) )
 
+  source_jac = zero
+
   do n = 0, iterations
 
     call set_time_step( cells, dxsi, prim_cc, dt, dt_global )
@@ -65,6 +67,11 @@ subroutine implicit_solve( cells, faces, dxsi, prim_cc, cons_cc,               &
 
       call jacobian_vanleer_1D( cons_cc(:,cell+1), cons_cc(:,cell+1),          &
                                 right_jac_R, left_jac_R )
+
+      source_jac(2,1) = half*gm1*prim_cc(2,cell)**2
+      source_jac(2,2) = -gm1*prim_cc(2,cell)
+      source_jac(2,3) = gm1
+      source_jac = source_jac*dadx_cc
 
       L(:,:,cell) = -right_jac_L/(dxdsi_cc(cell-1)*dxsi)
       D(:,:,cell) = ident3x3/dt - source_jac                                   &
