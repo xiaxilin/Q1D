@@ -8,7 +8,7 @@ subroutine implicit_solve( cells, faces, dxsi, prim_cc, cons_cc,               &
                            area_f, area_cc, dxdxsi_cc, dadx_cc )
 
   use set_precision, only : dp
-  use set_constants, only :two
+  use set_constants, only : two
 
   implicit none
 
