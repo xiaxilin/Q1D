@@ -119,7 +119,7 @@ contains
                         (/3,3/) )
     DL2 = ident3x3
     DL1 = -two*ident3x3
-    DD  = -ident3x3
+    DD  = ident3x3
 
     RHS = -cc_2 + two*cc_1 - cc_out
 
