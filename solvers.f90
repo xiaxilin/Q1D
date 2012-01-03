@@ -7,6 +7,9 @@ module solvers
   private
 
   public :: explicit_solve
+  public :: create_residual
+  public :: check_convergence
+  public :: set_time_step
 
   public :: iterations ! total number of iterations
   public :: firstorder ! if 2nd order, how many 1st order iters for stability?

@@ -4,7 +4,7 @@ module jacobians
 
   private
 
-  public :: jacobian_vanleer_1D
+  public :: jac_vanleer_1D
 
 contains
 
@@ -14,10 +14,10 @@ contains
 ! and returns the left and right flux jacobians
 !
 !=============================================================================80
-  subroutine jacobian_vanleer_1D( qL, qR, jac_l, jac_r )
+  subroutine jac_vanleer_1D( qL, qR, jac_l, jac_r )
 
     use set_precision,   only : dp
-    use set_constants,   only : zero, fourth, one, two, four
+    use set_constants,   only : zero, fourth, half, one, two, four
     use fluid_constants, only : gamma, gm1, xg, xg2m1
 
     implicit none
@@ -25,7 +25,7 @@ contains
     real(dp), dimension(3),   intent(in)  :: ql, qr
     real(dp), dimension(3,3), intent(out) :: jac_l, jac_r
 
-    real(dp) :: rho, rhoinv, u, p, a, m
+    real(dp) :: rho, rhoinv, u, p, a, m, fa, fb
 
     real(dp), dimension(3)   :: drho_dq, du_dq, dp_dq, dq3_dq
     real(dp), dimension(3)   :: da_dq, dm_dq, dfa_dq, dfb_dq
@@ -146,8 +146,8 @@ contains
     fb = fb*xg2m1 + half*u**2
     fb = fb*fa
 
-    dfb_dq(:) = -gm1*two*unorm*dunorm_dq(:) + four*a*da_dq(:)                  &
-              - two*gm1*(dunorm_dq(:)*a + unorm*da_dq(:)) 
+    dfb_dq(:) = -gm1*two*u*du_dq(:) + four*a*da_dq(:)                          &
+              - two*gm1*(du_dq(:)*a + u*da_dq(:)) 
     dfb_dq(:) = dfb_dq(:)*xg2m1 + u*du_dq(:)
     dfb_dq(:) = dfb_dq(:)*fa + fb*dfa_dq(:)/fa
 
@@ -172,6 +172,8 @@ contains
 
     jac_r = mat
 
-  end subroutine jacobian_vanleer_1D
+  end subroutine jac_vanleer_1D
+
+  include 'speed_of_sound.f90'
 
 end module jacobians

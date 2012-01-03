@@ -14,13 +14,17 @@ module implicit
 contains
 
   subroutine implicit_solve( cells, faces, dxsi, prim_cc, cons_cc,             &
-                             area_f, area_cc, dxdxsi_cc, dadx_cc )
+                             area_f, area_cc, dxdxsi_cc, dadx_cc, x_cc )
 
     use set_precision,   only : dp
-    use set_constants,   only : two
+    use set_constants,   only : zero, half, one, two
     use fluid_constants, only : gm1
+    use solvers,         only : iterations, itercheck, create_residual, &
+                                check_convergence, set_time_step
     use bc,              only : subsonic_inflow, supersonic_outflow
     use jacobians,       only : jac_vanleer_1D
+    use matrix_manip,    only : matrix_inv, triblocksolve
+    use write_soln,      only : write_soln_line
 
     implicit none
 
@@ -29,13 +33,13 @@ contains
     real(dp), dimension(3,cells+2), intent(inout) :: prim_cc, cons_cc
     real(dp), dimension(faces),     intent(in)    :: area_f
     real(dp), dimension(cells+2),   intent(in)    :: area_cc, dxdxsi_cc, dadx_cc
+    real(dp), dimension(cells+2),   intent(in)    :: x_cc
 
     integer  :: n, cell
-    real(dp) :: dt_global
 
     real(dp), dimension(cells+2)     :: dt
     real(dp), dimension(3,cells+2)   :: RHS, delta_cons_cc
-    real(dp), dimension(3,3)         :: DL2, DU2, bc, inv
+    real(dp), dimension(3,3)         :: DL2, DU2, bc, inv, source_jac
     real(dp), dimension(3,3)         :: left_jac_L, right_jac_L
     real(dp), dimension(3,3)         :: left_jac_C, right_jac_C
     real(dp), dimension(3,3)         :: left_jac_R, right_jac_R
@@ -53,7 +57,7 @@ contains
 
     do n = 0, iterations
 
-      call set_time_step( cells, dxsi, prim_cc, dt, dt_global )
+      dt = set_time_step( cells, dxsi, prim_cc )
 
 ! form RHS
       call create_residual( cells, faces, n, dxsi, prim_cc, cons_cc,           &
@@ -64,7 +68,7 @@ contains
 ! Inflow, modify according to bc
       L(:,:,1) = zero
       call subsonic_inflow( cons_cc(:,1), cons_cc(:,2), cons_cc(:,3),          &
-                            D(:,:,1), U(:,:,1), DU2(:,:), RHS(:,1)
+                            D(:,:,1), U(:,:,1), DU2(:,:), RHS(:,1) )
 
 ! calculate Jacobians for 1st ghost cell and 1st interior cell
 
@@ -80,12 +84,12 @@ contains
         source_jac(2,1) = half*gm1*prim_cc(2,cell)**2
         source_jac(2,2) = -gm1*prim_cc(2,cell)
         source_jac(2,3) = gm1
-        source_jac = source_jac*dadx_cc
+        source_jac = source_jac*dadx_cc(cell)
 
-        L(:,:,cell) = -right_jac_L/(dxdsi_cc(cell-1)*dxsi)
-        D(:,:,cell) = ident3x3/dt - source_jac                                 &
-                    + (right_jac_C-left_jac_C)/(dxdsi_cc(cell)*dxsi)
-        U(:,:,cell) =  left_jac_R/(dxdsi_cc(cell+1)*dxsi)
+        L(:,:,cell) = -right_jac_L/(dxdxsi_cc(cell-1)*dxsi)
+        D(:,:,cell) = ident3x3/dt(cell) - source_jac                           &
+                    + (right_jac_C-left_jac_C)/(dxdxsi_cc(cell)*dxsi)
+        U(:,:,cell) =  left_jac_R/(dxdxsi_cc(cell+1)*dxsi)
 
 ! shift Jacobians to avoid recalculation
 
@@ -101,7 +105,7 @@ contains
       call supersonic_outflow( cons_cc(:,cells+2), cons_cc(:,cells+1),         &
                                cons_cc(:,cells),                               &
                                D(:,:,cells+2), L(:,:,cells+2), DL2(:,:),       &
-                               RHS(:,cells+2)
+                               RHS(:,cells+2) )
 
 ! Need to perform matrix modification to preserve block tri-diagonal structure
 ! Needs to be made a subroutine...
@@ -112,7 +116,7 @@ contains
       bc = DU2
 
       call matrix_inv(3, U(:,:,2), inv)
-      call mat_inv_3x3(U(:,:,2), inv)
+!      call mat_inv_3x3(U(:,:,2), inv)
 
       inv = matmul(bc, inv)
 
@@ -124,7 +128,7 @@ contains
       bc = DL2
 
       call matrix_inv(3, L(:,:,cells+1), inv)
-      call mat_inv_3x3(L(:,:,cells+1), inv)
+!      call mat_inv_3x3(L(:,:,cells+1), inv)
 
       inv = matmul(bc, inv)
 
@@ -136,7 +140,7 @@ contains
       call triblocksolve(3, cells+2, L, D, U, RHS, delta_cons_cc)
 
 ! Update the conserved variables
-      cons_cc = cons_cc+deltat_cons_cc
+      cons_cc = cons_cc+delta_cons_cc
 
       if (mod(n,itercheck) == 0) then
         call check_convergence(cells, n, RHS, convergence_flag)
@@ -160,6 +164,8 @@ contains
       write(*,*) 'Solution failed to converge...'
       write(*,*) 'Consider continuing from q1d.rst'
     end if
+
+    call write_soln_line(iterations, cells, x_cc, prim_cc, cons_cc)
 
   end subroutine implicit_solve
 

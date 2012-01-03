@@ -10,6 +10,9 @@ module bc
 
   private
 
+  public :: subsonic_inflow
+  public :: supersonic_outflow
+
 contains
 
 !=============================================================================80
@@ -20,14 +23,21 @@ contains
   subroutine subsonic_inflow(cc_in, cc_1, cc_2, DD, DU1, DU2, RHS)
 
     use set_precision,   only : dp
-    use set_constants,   only : zero, one
-    use fluid_constants, only : gamma, gm1, gxgm1, xgm1, cv
+    use set_constants,   only : zero, half, one, two
+    use fluid_constants, only : gamma, gm1, gxgm1, xgm1, R, cv
 
     implicit none
 
     real(dp), dimension(3),   intent(in)  :: cc_in, cc_1, cc_2
     real(dp), dimension(3,3), intent(out) :: DD, DU1, DU2
     real(dp), dimension(3),   intent(out) :: RHS
+
+    real(dp) :: rho, u, rhoet, p, T, m, factor
+    real(dp) :: dTdrho, dTdrhou, dTdrhoet
+    real(dp) :: dPdrho, dPdrhou, dPdrhoet
+    real(dp) :: dM2drho, dM2drhou, dM2drhoet
+
+    continue
 
     DD  = zero
     DU1 = zero
@@ -93,7 +103,7 @@ contains
   subroutine supersonic_outflow(cc_out, cc_1, cc_2, DD, DL1, DL2, RHS)
 
     use set_precision, only : dp
-    use set_constants, only : two
+    use set_constants, only : zero, one, two
 
     implicit none
 

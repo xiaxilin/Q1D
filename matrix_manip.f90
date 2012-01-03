@@ -152,8 +152,6 @@ contains
     real(dp) :: factor
     real(dp), dimension(neq) :: y
 
-    real(dp), parameter :: zero = 0.0_dp
-
     continue
 
 ! forward substitution
