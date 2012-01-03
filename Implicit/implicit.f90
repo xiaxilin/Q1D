@@ -9,6 +9,7 @@ subroutine implicit_solve( cells, faces, dxsi, prim_cc, cons_cc,               &
 
   use set_precision, only : dp
   use set_constants, only : two
+  use bc,            only : subsonic_inflow, supersonic_outflow
 
   implicit none
 
@@ -48,8 +49,8 @@ subroutine implicit_solve( cells, faces, dxsi, prim_cc, cons_cc,               &
 
 ! Inflow, modify according to bc
     L(:,:,1) = zero
-    D(:,:,1) = ident3x3
-    U(:,:,1) = -two*ident3x3
+    call subsonic_inflow( cons_cc(:,1), cons_cc(:,2), cons_cc(:,3),            &
+                          D(:,:,1), U(:,:,1), DU2(:,:), RHS(:,1)
 
 ! calculate Jacobians for 1st ghost cell and 1st interior cell
 
@@ -79,9 +80,11 @@ subroutine implicit_solve( cells, faces, dxsi, prim_cc, cons_cc,               &
     end do
 
 ! Outflow, modify according to bc
-    L(:,:,cells+2) = -two*ident3x3
-    D(:,:,cells+2) = ident3x3
     U(:,:,cells+2) = zero
+    call supersonic_outflow( cons_cc(:,cells+2), cons_cc(:,cells+1),           &
+                             cons_cc(:,cells),                                 &
+                             D(:,:,cells+2), L(:,:,cells+2), DL2(:,:),         &
+                             RHS(:,cells+2)
 
 ! Need to perform matrix modification to preserve block tri-diagonal structure
 
