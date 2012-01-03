@@ -15,6 +15,8 @@ module fluid_constants
   private
 
   public :: r     ! Gas constant
+  public :: cv
+  public :: cp
   public :: gamma ! Ratio of specific heats
   public :: gm1
   public :: gp1
@@ -31,6 +33,8 @@ module fluid_constants
 
 ! Set initial values
   real(dp) :: r
+  real(dp) :: cv
+  real(dp) :: cp
   real(dp) :: gamma
   real(dp) :: gm1
   real(dp) :: gp1
@@ -66,6 +70,9 @@ contains
     gxg2m1 = gamma / (gamma*gamma - one)
     gm1xgp1 = gm1/gp1
     gp1xgm1 = gp1/gm1
+
+    cv = R*xgm1
+    cp = R*gxgm1
 
   end subroutine set_gamma_constants
 
