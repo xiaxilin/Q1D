@@ -11,6 +11,7 @@ program q1d_primal
   use initialize_soln, only : allocate_soln, initial_soln, prim_cc, cons_cc,   &
                               deallocate_soln
   use solvers,         only : explicit_solve
+  use implicit,        only : implicit_solve
   use write_soln,      only : write_restart, init_write_files, write_entropy
   use solution_error,  only : calculate_exact_soln
 
@@ -45,6 +46,11 @@ program q1d_primal
 ! perform explicit solve
   call explicit_solve(cells, faces, dxsi, prim_cc, cons_cc,                    &
                       area_f, area_cc, dxdxsi_cc, dadx_cc, x_cc)
+
+  if (.false.) then
+    call implicit_solve(cells, faces, dxsi, prim_cc, cons_cc,                  &
+                        area_f, area_cc, dxdxsi_cc, dadx_cc, x_cc) 
+  end if
 
 ! FIXME: when implicit solver becomes live, implement this system
 !  case select( solver_type )
