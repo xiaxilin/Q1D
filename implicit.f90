@@ -92,11 +92,14 @@ contains
         source_jac(2,3) = gm1
         source_jac = source_jac*dadx_cc(cell)
 
-        L(:,:,cell) = -right_jac_L/(dxdxsi_cc(cell)*dxsi) / area_cc(cell)
+        L(:,:,cell) = -right_jac_L*area_f(cell-1)                              &
+                     / (dxdxsi_cc(cell)*dxsi*area_cc(cell))
         D(:,:,cell) = ident3x3/dt(cell)                                        &
-                    + ( (right_jac_C-left_jac_C)/(dxdxsi_cc(cell)*dxsi)        &
+                    + ( (right_jac_C*area_f(cell)-left_jac_C*area_f(cell-1))   &
+                    /(dxdxsi_cc(cell)*dxsi)        &
                     - source_jac ) / area_cc(cell)
-        U(:,:,cell) =  left_jac_R/(dxdxsi_cc(cell)*dxsi) / area_cc(cell)
+        U(:,:,cell) =  left_jac_R*area_f(cell)&
+                    /  (dxdxsi_cc(cell)*dxsi*area_cc(cell))
 
 ! shift Jacobians to avoid recalculation
 
