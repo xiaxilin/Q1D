@@ -8,6 +8,7 @@ module matrix_manip
   public :: ludcmp
   public :: lubkslv
   public :: matrix_inv
+  public :: mat_inv_3x3
 
 !  public :: det_3x3
 !  public :: det_4x4
@@ -210,5 +211,39 @@ contains
     end do
 
   end subroutine matrix_inv
+!=============================== mat_inv_3x3 =================================80
+!
+! Calculates inverse of 3x3 matrix for speed!!!!
+!
+!=============================================================================80
+
+  subroutine mat_inv_3x3(mat, inv)
+
+    use set_precision, only : dp
+
+    implicit none
+
+    real(dp), dimension(3,3), intent(in)  :: mat
+    real(dp), dimension(3,3), intent(out) :: inv
+
+    continue
+
+    inv(1,1) = mat(2,2)*mat(3,3)-mat(2,3)*mat(3,2)
+    inv(1,2) = mat(1,3)*mat(3,2)-mat(1,2)*mat(3,3)
+    inv(1,3) = mat(1,2)*mat(2,3)-mat(1,3)*mat(2,2)
+
+    inv(2,1) = mat(2,3)*mat(3,1)-mat(2,1)*mat(3,3)
+    inv(2,2) = mat(1,1)*mat(3,3)-mat(1,3)*mat(3,1)
+    inv(2,3) = mat(1,3)*mat(2,1)-mat(1,1)*mat(2,3)
+
+    inv(3,1) = mat(2,1)*mat(3,2)-mat(2,2)*mat(3,1)
+    inv(3,2) = mat(1,2)*mat(3,1)-mat(1,1)*mat(3,2)
+    inv(3,3) = mat(1,1)*mat(2,2)-mat(1,2)*mat(2,1)
+
+    inv = inv/det_3x3(mat)
+
+  end subroutine mat_inv_3x3
+
+  include 'det_3x3.f90'
 
 end module matrix_manip
