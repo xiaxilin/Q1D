@@ -52,7 +52,12 @@ contains
 
     ident3x3 = reshape( (/one, zero, zero, zero, one, zero, zero, zero, one/) ,&
                         (/3,3/) )
-
+      print*, cons_cc(:,1)
+      print*, cons_cc(:,2)
+      print*, cons_cc(:,3)
+      print*, cons_cc(:,4)
+      print*, cons_cc(:,5)
+      print*, cons_cc(:,6)
     do n = 0, iterations
 
       dt = set_time_step( cells, dxsi, prim_cc )
@@ -72,14 +77,14 @@ contains
 
 ! calculate Jacobians for 1st ghost cell and 1st interior cell
 
-      call jac_vanleer_1D( cons_cc(:,1), cons_cc(:,1), right_jac_L, left_jac_L)
+      call jac_vanleer_1D( cons_cc(:,1), cons_cc(:,2), right_jac_L, left_jac_C)
 
-      call jac_vanleer_1D( cons_cc(:,2), cons_cc(:,2), right_jac_C, left_jac_C)
+!      call jac_vanleer_1D( cons_cc(:,2), cons_cc(:,3), right_jac_C, left_jac_R)
 
       do cell = 2, cells+1
 
-        call jac_vanleer_1D( cons_cc(:,cell+1), cons_cc(:,cell+1),             &
-                                  right_jac_R, left_jac_R )
+        call jac_vanleer_1D( cons_cc(:,cell), cons_cc(:,cell+1),               &
+                                  right_jac_C, left_jac_R )
 
         source_jac = zero
         source_jac(2,1) = half*gm1*prim_cc(2,cell)**2
@@ -95,11 +100,9 @@ contains
 
 ! shift Jacobians to avoid recalculation
 
-        left_jac_L  = left_jac_C
         right_jac_L = right_jac_C
-
         left_jac_C  = left_jac_R
-        right_jac_C = right_jac_R
+
       end do
 
 ! Outflow, modify according to bc
@@ -115,6 +118,7 @@ contains
 ! Inflow
 
 !      call matrix_inv(3, U(:,:,2), inv)
+
       call mat_inv_3x3(U(:,:,2), inv)
 
       inv = matmul(L(:,:,1), inv)
@@ -138,6 +142,13 @@ contains
 
 ! Update the conserved variables
       cons_cc = cons_cc+delta_cons_cc
+
+      print*, cons_cc(:,1)
+      print*, cons_cc(:,2)
+      print*, cons_cc(:,3)
+      print*, cons_cc(:,4)
+      print*, cons_cc(:,5)
+      print*, cons_cc(:,6)
 
       if (mod(n,itercheck) == 0) then
         call check_convergence(cells, n, RHS, convergence_flag)

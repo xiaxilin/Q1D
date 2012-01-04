@@ -41,6 +41,7 @@ contains
     u = qL(2)*rhoinv
     p = gm1*( qL(3) - half * rho * u**2 )
     a = speed_of_sound(p, rho)
+    m = u/a
 
 ! linearization of primitive variables
     drho_dq = zero
@@ -87,17 +88,19 @@ contains
     mat = zero
 
     if( abs(m)<1.0 ) then
-
       mat(1,:) = dfa_dq(:)
       mat(2,:) = dfa_dq(:)*( u + (-u + two*a)*xg )                             &
                + fa*( du_dq(:) + ( -du_dq(:) + two*da_dq(:) )*xg)
       mat(3,:) = dfb_dq(:)
 
     elseif( m>=1.0 ) then
-
       mat(1,:) = drho_dq(:)*u + rho*du_dq(:)
       mat(2,:) = drho_dq(:)*u*u + two*rho*u*du_dq(:)*u + dp_dq
       mat(3,:) = ( dq3_dq(:) + dp_dq(:) )*u + (ql(3) + p)*du_dq(:)
+
+      print*, mat(1,:)
+      print*, mat(2,:)
+      print*, mat(3,:)
 
     endif
 
@@ -111,6 +114,7 @@ contains
     u = qR(2)*rhoinv
     p = gm1*( qR(3) - half * rho * u**2 )
     a = speed_of_sound(p,rho)
+    m = u/a
 
 ! linearization of right primitive variables
     drho_dq = zero
@@ -156,14 +160,12 @@ contains
     mat = zero
 
     if( abs(m)<1.0 ) then
-
       mat(1,:) = dfa_dq(:)
       mat(2,:) = dfa_dq(:) * ( u + (-u - two*a)*xg )                           &
                + fa * ( du_dq(:) + ( -du_dq(:) - two*da_dq(:) )*xg )
       mat(3,:) = dfb_dq(:)
 
     elseif( m<=-1.0 ) then
-
       mat(1,:) = drho_dq(:)*u   + rho*du_dq(:)
       mat(2,:) = drho_dq(:)*u*u + two*rho*u*du_dq(:) + dp_dq(:)
       mat(3,:) = ( dq3_dq(:) + dp_dq(:) )*u + (qR(3) + p)*du_dq(:)
