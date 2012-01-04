@@ -53,7 +53,6 @@ contains
     end do
 
     call matrix_inv(neq, A, AT_inv)
-
     soln(:,dof) = matmul(AT_inv, y(:,dof))
 
     do i = dof-1,1,-1

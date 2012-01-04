@@ -39,7 +39,7 @@ contains
 
     real(dp), dimension(cells+2)     :: dt
     real(dp), dimension(3,cells+2)   :: RHS, delta_cons_cc
-    real(dp), dimension(3,3)         :: DL2, DU2, bc, inv, source_jac
+    real(dp), dimension(3,3)         :: inv, source_jac
     real(dp), dimension(3,3)         :: left_jac_L, right_jac_L
     real(dp), dimension(3,3)         :: left_jac_C, right_jac_C
     real(dp), dimension(3,3)         :: left_jac_R, right_jac_R
@@ -57,20 +57,20 @@ contains
 
     do n = 0, iterations
 
-      print*, n
-
       dt = set_time_step( cells, dxsi, prim_cc )
 
 ! form RHS
       call create_residual( cells, faces, n, dxsi, prim_cc, cons_cc,           &
                             area_f, dadx_cc, dxdxsi_cc, RHS)
 
+      RHS = -RHS
+
 ! form LHS
 
 ! Inflow, modify according to bc
       L(:,:,1) = zero
       call subsonic_inflow( cons_cc(:,1), cons_cc(:,2), cons_cc(:,3),          &
-                            D(:,:,1), U(:,:,1), DU2(:,:), RHS(:,1) )
+                            D(:,:,1), U(:,:,1), L(:,:,1), RHS(:,1) )
 
 ! calculate Jacobians for 1st ghost cell and 1st interior cell
 
@@ -88,10 +88,11 @@ contains
         source_jac(2,3) = gm1
         source_jac = source_jac*dadx_cc(cell)
 
-        L(:,:,cell) = -right_jac_L/(dxdxsi_cc(cell-1)*dxsi)
-        D(:,:,cell) = ident3x3/dt(cell) - source_jac                           &
-                    + (right_jac_C-left_jac_C)/(dxdxsi_cc(cell)*dxsi)
-        U(:,:,cell) =  left_jac_R/(dxdxsi_cc(cell+1)*dxsi)
+        L(:,:,cell) = -right_jac_L/(dxdxsi_cc(cell)*dxsi)
+        D(:,:,cell) = ident3x3/dt(cell)                                        &
+                    + ( (right_jac_C-left_jac_C)/(dxdxsi_cc(cell)*dxsi)        &
+                    - source_jac ) / area_cc(cell)
+        U(:,:,cell) =  left_jac_R/(dxdxsi_cc(cell)*dxsi)
 
 ! shift Jacobians to avoid recalculation
 
@@ -106,7 +107,7 @@ contains
       U(:,:,cells+2) = zero
       call supersonic_outflow( cons_cc(:,cells+2), cons_cc(:,cells+1),         &
                                cons_cc(:,cells),                               &
-                               D(:,:,cells+2), L(:,:,cells+2), DL2(:,:),       &
+                               D(:,:,cells+2), L(:,:,cells+2), U(:,:,cells+2), &
                                RHS(:,cells+2) )
 
 ! Need to perform matrix modification to preserve block tri-diagonal structure
@@ -115,24 +116,21 @@ contains
 ! Need to store DL2 in U(:,:,cells+2)
 
 ! Inflow
-      bc = DU2
 
       call matrix_inv(3, U(:,:,2), inv)
 !      call mat_inv_3x3(U(:,:,2), inv)
 
-      inv = matmul(bc, inv)
+      inv = matmul(L(:,:,1), inv)
 
       D(:,:,1) = D(:,:,1) - matmul(inv, L(:,:,2))
       U(:,:,1) = U(:,:,1) - matmul(inv, D(:,:,2))
       RHS(:,1) = RHS(:,1) - matmul(inv, RHS(:,2))
 
 ! Outflow
-      bc = DL2
-
       call matrix_inv(3, L(:,:,cells+1), inv)
 !      call mat_inv_3x3(L(:,:,cells+1), inv)
 
-      inv = matmul(bc, inv)
+      inv = matmul(U(:,:,cells+2), inv)
 
       L(:,:,cells+2) = L(:,:,cells+2) - matmul(inv, D(:,:,cells+1))
       D(:,:,cells+2) = D(:,:,cells+2) - matmul(inv, U(:,:,cells+1))
@@ -149,7 +147,7 @@ contains
       end if
 
 !      if (iter_out >= 0 .and. mod(n,iter_out) == 0) then
-!        call write_soln(cells, faces, prim_cc, cons_cc)
+!        call write_soln_line(n, cells, x_cc, prim_cc, cons_cc)
 !      end if
 
 !      if (iter_restar >= 0 .and. mod(n,iter_restart) == 0) then
