@@ -95,7 +95,7 @@ contains
 
         L(:,:,cell) = -right_jac_L*area_f(cell-1) / divisor
         D(:,:,cell) = ident3x3/dt(cell)                                        &
-                    + (right_jac_C*area_f(cell)-left_jac_C*area_f(cell-1))     &
+                    + ( right_jac_C*area_f(cell)-left_jac_C*area_f(cell-1) )   &
                     / divisor - source_jac / area_cc(cell)
         U(:,:,cell) =  left_jac_R*area_f(cell) / divisor
 
@@ -147,9 +147,9 @@ contains
       print*, cons_cc(:,1)
       print*, cons_cc(:,2)
       print*, cons_cc(:,3)
-      print*, cons_cc(:,4)
-      print*, cons_cc(:,5)
-      print*, cons_cc(:,6)
+      print*, cons_cc(:,cells)
+      print*, cons_cc(:,cells+1)
+      print*, cons_cc(:,cells+2)
 
       if (mod(n,itercheck) == 0) then
         call check_convergence(cells, n, RHS, convergence_flag)
