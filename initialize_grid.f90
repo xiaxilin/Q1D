@@ -72,6 +72,8 @@ contains
       dxdxsi_cc(face) = dx/dxsi
       x_cc(face)  = x_f(face-1) + half*dx
     end do
+    dxdxsi_cc(1) = dxdxsi_cc(2)
+    dxdxsi_cc(faces+1) = dxdxsi_cc(faces)
 
   end subroutine read_grid
 

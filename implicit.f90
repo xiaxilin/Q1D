@@ -57,13 +57,13 @@ contains
 
     do n = 0, iterations
 
+      print*, n
+
       dt = set_time_step( cells, dxsi, prim_cc )
 
 ! form RHS
       call create_residual( cells, faces, n, dxsi, prim_cc, cons_cc,           &
                             area_f, dadx_cc, dxdxsi_cc, RHS)
-
-      RHS = -RHS
 
 ! form LHS
 
