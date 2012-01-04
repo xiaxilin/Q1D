@@ -37,6 +37,7 @@ contains
 
     integer  :: n, cell
 
+    real(dp)                         :: divisor
     real(dp), dimension(cells+2)     :: dt
     real(dp), dimension(3,cells+2)   :: RHS, delta_cons_cc
     real(dp), dimension(3,3)         :: inv, source_jac
@@ -75,11 +76,9 @@ contains
       call subsonic_inflow( cons_cc(:,1), cons_cc(:,2), cons_cc(:,3),          &
                             D(:,:,1), U(:,:,1), L(:,:,1), RHS(:,1) )
 
-! calculate Jacobians for 1st ghost cell and 1st interior cell
+! calculate Jacobians for inflow face
 
       call jac_vanleer_1D( cons_cc(:,1), cons_cc(:,2), right_jac_L, left_jac_C)
-
-!      call jac_vanleer_1D( cons_cc(:,2), cons_cc(:,3), right_jac_C, left_jac_R)
 
       do cell = 2, cells+1
 
@@ -92,14 +91,13 @@ contains
         source_jac(2,3) = gm1
         source_jac = source_jac*dadx_cc(cell)
 
-        L(:,:,cell) = -right_jac_L*area_f(cell-1)                              &
-                     / (dxdxsi_cc(cell)*dxsi*area_cc(cell))
+        divisor = dxdxsi_cc(cell)*dxsi*area_cc(cell)
+
+        L(:,:,cell) = -right_jac_L*area_f(cell-1) / divisor
         D(:,:,cell) = ident3x3/dt(cell)                                        &
-                    + ( (right_jac_C*area_f(cell)-left_jac_C*area_f(cell-1))   &
-                    /(dxdxsi_cc(cell)*dxsi)        &
-                    - source_jac ) / area_cc(cell)
-        U(:,:,cell) =  left_jac_R*area_f(cell)&
-                    /  (dxdxsi_cc(cell)*dxsi*area_cc(cell))
+                    + (right_jac_C*area_f(cell)-left_jac_C*area_f(cell-1))     &
+                    / divisor - source_jac / area_cc(cell)
+        U(:,:,cell) =  left_jac_R*area_f(cell) / divisor
 
 ! shift Jacobians to avoid recalculation
 
