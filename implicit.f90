@@ -23,7 +23,7 @@ contains
                                 check_convergence, set_time_step
     use bc,              only : subsonic_inflow, supersonic_outflow
     use jacobians,       only : jac_vanleer_1D
-    use matrix_manip,    only : matrix_inv, triblocksolve
+    use matrix_manip,    only : triblocksolve, mat_inv_3x3, matrix_inv
     use write_soln,      only : write_soln_line
 
     implicit none
@@ -53,19 +53,17 @@ contains
     ident3x3 = reshape( (/one, zero, zero, zero, one, zero, zero, zero, one/) ,&
                         (/3,3/) )
 
-    source_jac = zero
-
     do n = 0, iterations
 
       dt = set_time_step( cells, dxsi, prim_cc )
 
-! form RHS
+! Form RHS
       call create_residual( cells, faces, n, dxsi, prim_cc, cons_cc,           &
                             area_f, dadx_cc, dxdxsi_cc, RHS)
-
+! Set proper sign
       RHS = -RHS
 
-! form LHS
+! Now form LHS.... should be a subroutine
 
 ! Inflow, modify according to bc
       L(:,:,1) = zero
@@ -83,16 +81,17 @@ contains
         call jac_vanleer_1D( cons_cc(:,cell+1), cons_cc(:,cell+1),             &
                                   right_jac_R, left_jac_R )
 
+        source_jac = zero
         source_jac(2,1) = half*gm1*prim_cc(2,cell)**2
         source_jac(2,2) = -gm1*prim_cc(2,cell)
         source_jac(2,3) = gm1
         source_jac = source_jac*dadx_cc(cell)
 
-        L(:,:,cell) = -right_jac_L/(dxdxsi_cc(cell)*dxsi)
+        L(:,:,cell) = -right_jac_L/(dxdxsi_cc(cell)*dxsi) / area_cc(cell)
         D(:,:,cell) = ident3x3/dt(cell)                                        &
                     + ( (right_jac_C-left_jac_C)/(dxdxsi_cc(cell)*dxsi)        &
                     - source_jac ) / area_cc(cell)
-        U(:,:,cell) =  left_jac_R/(dxdxsi_cc(cell)*dxsi)
+        U(:,:,cell) =  left_jac_R/(dxdxsi_cc(cell)*dxsi) / area_cc(cell)
 
 ! shift Jacobians to avoid recalculation
 
@@ -110,15 +109,13 @@ contains
                                D(:,:,cells+2), L(:,:,cells+2), U(:,:,cells+2), &
                                RHS(:,cells+2) )
 
-! Need to perform matrix modification to preserve block tri-diagonal structure
+! Modify matrix to maintain block tridiagonal structure
 ! Needs to be made a subroutine...
-! Need to store DU2 in L(:,:,1)
-! Need to store DL2 in U(:,:,cells+2)
 
 ! Inflow
 
-      call matrix_inv(3, U(:,:,2), inv)
-!      call mat_inv_3x3(U(:,:,2), inv)
+!      call matrix_inv(3, U(:,:,2), inv)
+      call mat_inv_3x3(U(:,:,2), inv)
 
       inv = matmul(L(:,:,1), inv)
 
@@ -127,8 +124,8 @@ contains
       RHS(:,1) = RHS(:,1) - matmul(inv, RHS(:,2))
 
 ! Outflow
-      call matrix_inv(3, L(:,:,cells+1), inv)
-!      call mat_inv_3x3(L(:,:,cells+1), inv)
+!      call matrix_inv(3, L(:,:,cells+1), inv)
+      call mat_inv_3x3(L(:,:,cells+1), inv)
 
       inv = matmul(U(:,:,cells+2), inv)
 

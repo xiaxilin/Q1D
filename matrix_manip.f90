@@ -44,7 +44,8 @@ contains
 
     do i = 2, dof
       AT = transpose(A)
-      call matrix_inv(neq, AT, AT_inv)
+!      call matrix_inv(neq, AT, AT_inv)
+      call mat_inv_3x3(AT, AT_inv)
 
       DD(:,:,i-1) = transpose(AT_inv)
       temp = transpose( matmul( AT_inv, transpose(LD(:,:,i)) ) ) 
@@ -53,7 +54,8 @@ contains
       y(:,i) = RHS(:,i)  - matmul(temp, y(:,i-1))
     end do
 
-    call matrix_inv(neq, A, AT_inv)
+!    call matrix_inv(neq, A, AT_inv)
+    call mat_inv_3x3(AT, AT_inv)
     soln(:,dof) = matmul(AT_inv, y(:,dof))
 
     do i = dof-1,1,-1
