@@ -98,10 +98,6 @@ contains
       mat(2,:) = drho_dq(:)*u*u + two*rho*u*du_dq(:)*u + dp_dq
       mat(3,:) = ( dq3_dq(:) + dp_dq(:) )*u + (ql(3) + p)*du_dq(:)
 
-      print*, mat(1,:)
-      print*, mat(2,:)
-      print*, mat(3,:)
-
     endif
 
     jac_l = mat

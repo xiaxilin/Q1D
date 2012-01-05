@@ -102,8 +102,9 @@ contains
 !=============================================================================80
   subroutine supersonic_outflow(cc_out, cc_1, cc_2, DD, DL1, DL2, RHS)
 
-    use set_precision, only : dp
-    use set_constants, only : zero, one, two
+    use set_precision,   only : dp
+    use set_constants,   only : zero, half, one, two
+    use fluid_constants, only : gm1
 
     implicit none
 
@@ -111,17 +112,55 @@ contains
     real(dp), dimension(3,3), intent(out) :: DD, DL1, DL2
     real(dp), dimension(3),   intent(out) :: RHS
 
-    real(dp), dimension(3,3) :: ident3x3
+    real(dp) :: u_out, u_1, u_2
+    real(dp) :: p_out, p_1, p_2
 
     continue
 
-    ident3x3 = reshape( (/one, zero, zero, zero, one, zero, zero, zero, one/),&
-                        (/3,3/) )
-    DL2 = ident3x3
-    DL1 = -two*ident3x3
-    DD  = ident3x3
+    u_out = cc_out(2) / cc_out(1)
+    u_1   = cc_1(2)   / cc_1(1)
+    u_2   = cc_2(2)   / cc_2(1)
 
-    RHS = -cc_2 + two*cc_1 - cc_out
+    p_out = gm1*(cc_out(3) - half*cc_out(1)*u_out**2)
+    p_1   = gm1*(cc_1(3)   - half*cc_1(1)*u_1**2)
+    p_2   = gm1*(cc_2(3)   - half*cc_2(1)*u_2**2)
+
+! Extrapolate velocity from interior
+    DD(1,1) = one
+    DD(2,1) = -u_out/cc_out(1)
+    DD(3,1) = half*gm1*u_out**2 
+    DD(1,2) = zero
+    DD(2,2) = one/cc_out(1)
+    DD(3,2) = -gm1*u_out
+    DD(1,3) = zero
+    DD(2,3) = zero
+    DD(3,3) = gm1
+
+    DL1(1,1) = one
+    DL1(2,1) = -u_1/cc_1(1)
+    DL1(3,1) = half*gm1*u_1**2
+    DL1(1,2) = zero
+    DL1(2,2) = one/cc_1(1)
+    DL1(3,2) = -gm1*u_1
+    DL1(1,3) = zero
+    DL1(2,3) = zero
+    DL1(3,3) = gm1
+
+    DL1 = -two*DL1
+
+    DL2(1,1) = one
+    DL2(2,1) = -u_2/cc_2(1)
+    DL2(3,1) = half*gm1*u_2**2
+    DL2(1,2) = zero
+    DL2(2,2) = one/cc_2(1)
+    DL2(3,2) = -gm1*u_2
+    DL2(1,3) = zero
+    DL2(2,3) = zero
+    DL2(3,3) = gm1
+
+    RHS(1) = -cc_out(1) + two*cc_1(1) - cc_2(1)
+    RHS(2) = -u_out     + two*u_1     - u_2
+    RHS(3) = -p_out     + two*p_1     - p_2
 
   end subroutine supersonic_outflow
 
