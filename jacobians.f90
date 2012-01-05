@@ -95,7 +95,7 @@ contains
 
     elseif( m>=1.0 ) then
       mat(1,:) = drho_dq(:)*u + rho*du_dq(:)
-      mat(2,:) = drho_dq(:)*u*u + two*rho*u*du_dq(:) + dp_dq
+      mat(2,:) = drho_dq(:)*u*u + two*rho*u*du_dq(:) + dp_dq(:)
       mat(3,:) = ( dq3_dq(:) + dp_dq(:) )*u + (ql(3) + p)*du_dq(:)
 
     endif
