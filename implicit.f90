@@ -56,16 +56,16 @@ contains
       print*, cons_cc(:,1)
       print*, cons_cc(:,2)
       print*, cons_cc(:,3)
-      print*, cons_cc(:,4)
-      print*, cons_cc(:,5)
-      print*, cons_cc(:,6)
+      print*, cons_cc(:,cells)
+      print*, cons_cc(:,cells+1)
+      print*, cons_cc(:,cells+2)
     do n = 0, iterations
 
       dt = set_time_step( cells, dxsi, prim_cc )
 
 ! Form RHS
       call create_residual( cells, faces, n, dxsi, prim_cc, cons_cc,           &
-                            area_f, dadx_cc, dxdxsi_cc, RHS)
+                            area_f, area_cc, dadx_cc, dxdxsi_cc, RHS)
 
 ! Now form LHS.... should be a subroutine
 
@@ -115,11 +115,8 @@ contains
 ! Needs to be made a subroutine...
 
 ! Inflow
-
 !      call matrix_inv(3, U(:,:,2), inv)
-
       call mat_inv_3x3(U(:,:,2), inv)
-
       inv = matmul(L(:,:,1), inv)
 
       D(:,:,1) = D(:,:,1) - matmul(inv, L(:,:,2))
@@ -129,7 +126,6 @@ contains
 ! Outflow
 !      call matrix_inv(3, L(:,:,cells+1), inv)
       call mat_inv_3x3(L(:,:,cells+1), inv)
-
       inv = matmul(U(:,:,cells+2), inv)
 
       L(:,:,cells+2) = L(:,:,cells+2) - matmul(inv, D(:,:,cells+1))
@@ -145,6 +141,9 @@ contains
       print*, cons_cc(:,1)
       print*, cons_cc(:,2)
       print*, cons_cc(:,3)
+      print*, cons_cc(:,cells-3)
+      print*, cons_cc(:,cells-2)
+      print*, cons_cc(:,cells-1)
       print*, cons_cc(:,cells)
       print*, cons_cc(:,cells+1)
       print*, cons_cc(:,cells+2)
@@ -152,6 +151,10 @@ contains
       if (mod(n,itercheck) == 0) then
         call check_convergence(cells, n, RHS, convergence_flag)
       end if
+
+      do cell = 1, cells+2
+        prim_cc(:,cell) = conserved_to_primitive_1D(cons_cc(:,cell))
+      end do
 
 !      if (iter_out >= 0 .and. mod(n,iter_out) == 0) then
 !        call write_soln_line(n, cells, x_cc, prim_cc, cons_cc)
@@ -175,5 +178,7 @@ contains
     call write_soln_line(iterations, cells, x_cc, prim_cc, cons_cc)
 
   end subroutine implicit_solve
+
+  include 'conserved_to_primitive_1D.f90'
 
 end module implicit
