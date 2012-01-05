@@ -53,12 +53,7 @@ contains
 
     ident3x3 = reshape( (/one, zero, zero, zero, one, zero, zero, zero, one/) ,&
                         (/3,3/) )
-      print*, cons_cc(:,1)
-      print*, cons_cc(:,2)
-      print*, cons_cc(:,3)
-      print*, cons_cc(:,cells)
-      print*, cons_cc(:,cells+1)
-      print*, cons_cc(:,cells+2)
+
     do n = 0, iterations
 
       dt = set_time_step( cells, dxsi, prim_cc )
@@ -137,16 +132,6 @@ contains
 
 ! Update the conserved variables
       cons_cc = cons_cc+delta_cons_cc
-
-      print*, cons_cc(:,1)
-      print*, cons_cc(:,2)
-      print*, cons_cc(:,3)
-      print*, cons_cc(:,cells-3)
-      print*, cons_cc(:,cells-2)
-      print*, cons_cc(:,cells-1)
-      print*, cons_cc(:,cells)
-      print*, cons_cc(:,cells+1)
-      print*, cons_cc(:,cells+2)
 
       if (mod(n,itercheck) == 0) then
         call check_convergence(cells, n, RHS, convergence_flag)
