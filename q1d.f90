@@ -44,21 +44,23 @@ program q1d_primal
   call initial_soln(cells)
 
 ! perform explicit solve
-  call explicit_solve(cells, faces, dxsi, prim_cc, cons_cc,                    &
-                      area_f, area_cc, dxdxsi_cc, dadx_cc, x_cc)
-
-  if (.false.) then
+  if (.true.) then
+    call explicit_solve(cells, faces, dxsi, prim_cc, cons_cc,                  &
+                        area_f, area_cc, dxdxsi_cc, dadx_cc, x_cc)
+  else
     call implicit_solve(cells, faces, dxsi, prim_cc, cons_cc,                  &
                         area_f, area_cc, dxdxsi_cc, dadx_cc, x_cc) 
   end if
 
 ! FIXME: when implicit solver becomes live, implement this system
-!  case select( solver_type )
+!  select case( solver_type )
 !  case('explicit')
-!    call explicit_solve
+!    call explicit_solve(cells, faces, dxsi, prim_cc, cons_cc,                  &
+!                        area_f, area_cc, dxdxsi_cc, dadx_cc, x_cc)
 !  case('implicit')
-!    call implicit_solve
-!  end case select
+!    call implicit_solve(cells, faces, dxsi, prim_cc, cons_cc,                  &
+!                        area_f, area_cc, dxdxsi_cc, dadx_cc, x_cc) 
+!  end select
 
 ! do solution output
   call write_restart(cells, prim_cc)
