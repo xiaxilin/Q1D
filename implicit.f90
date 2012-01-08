@@ -86,14 +86,14 @@ contains
         source_jac(2,1) = half*gm1*prim_cc(2,cell)**2
         source_jac(2,2) = -gm1*prim_cc(2,cell)
         source_jac(2,3) = gm1
-        source_jac = source_jac*dadx_cc(cell)/area_cc(cell)
+        source_jac = source_jac*dadx_cc(cell)*dxdxsi_cc(cell)*dxsi
 
         divisor = dxdxsi_cc(cell)*dxsi*area_cc(cell)
 
         L(:,:,cell) = -right_jac_L*area_f(cell-1) / divisor
         D(:,:,cell) = ident3x3/dt(cell)                                        &
-                    - ( right_jac_C*area_f(cell)-left_jac_C*area_f(cell-1) )   &
-                    / divisor + source_jac*dxdxsi_cc(cell)*dxsi
+                    - ( right_jac_C*area_f(cell)-left_jac_C*area_f(cell-1)     &
+                    -  source_jac ) / divisor
         U(:,:,cell) =  left_jac_R*area_f(cell) / divisor
 
 !        L(:,:,cell) = -right_jac_L
