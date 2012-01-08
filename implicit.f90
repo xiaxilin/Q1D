@@ -96,10 +96,6 @@ contains
                     -  source_jac ) / divisor
         U(:,:,cell) =  left_jac_R*area_f(cell) / divisor
 
-!        L(:,:,cell) = -right_jac_L
-!        D(:,:,cell) = ident3x3/dt(cell) + ( right_jac_C-left_jac_C )
-!        U(:,:,cell) =  left_jac_R
-
 ! shift Jacobians to avoid recalculation
 
         right_jac_L = right_jac_C
@@ -133,7 +129,6 @@ contains
 ! Outflow
 !      call matrix_inv(3, L(:,:,cells+1), inv)
 !      call mat_inv_3x3(L(:,:,cells+1), inv)
-
 !      inv = matmul(U(:,:,cells+2), inv)
 
 !      L(:,:,cells+2) = L(:,:,cells+2) - matmul(inv, D(:,:,cells+1))
@@ -145,10 +140,6 @@ contains
 
 ! Update the conserved variables
       cons_cc = cons_cc+delta_cons_cc
-
-!      do cell = 1, cells+2
-!        print*, cons_cc(:,cell)
-!      end do
 
       if (mod(n,itercheck) == 0) then
         call check_convergence(cells, n, RHS, convergence_flag)
@@ -162,9 +153,7 @@ contains
         prim_cc(3,cell) = max(prim_cc(3,cell), 500.0_dp)
         cons_cc(:,cell) = primitive_to_conserved_1D(prim_cc(:,cell))
       end do
-!      do cell = 1, cells+2
-!        print*, cons_cc(:,cell)
-!      end do
+
 !      if (iter_out >= 0 .and. mod(n,iter_out) == 0) then
 !        call write_soln_line(n, cells, x_cc, prim_cc, cons_cc)
 !      end if
