@@ -44,7 +44,7 @@ contains
     DU2 = zero
 
     RHS(1) = zero
-    RHS(2) = -cc_in(2)/cc_in(1) + cc_1(2)/cc_1(1)!two*cc_1(2)/cc_1(1) - cc_2(2)/cc_2(1)
+    RHS(2) = -cc_in(2)/cc_in(1) + two*cc_1(2)/cc_1(1) - cc_2(2)/cc_2(1)
     RHS(3) = zero
 
 ! Extrapolate velocity from interior
@@ -158,9 +158,9 @@ contains
     DL2(2,3) = zero
     DL2(3,3) = gm1
 
-    RHS(1) = -cc_out(1) + cc_1(1)!+ two*cc_1(1) - cc_2(1)
-    RHS(2) = -u_out     + u_1!+ two*u_1     - u_2
-    RHS(3) = -p_out     + p_1  !+ two*p_1     - p_2
+    RHS(1) = -cc_out(1) + two*cc_1(1) - cc_2(1)
+    RHS(2) = -u_out     + two*u_1     - u_2
+    RHS(3) = -p_out     + two*p_1     - p_2
 
   end subroutine supersonic_outflow
 
