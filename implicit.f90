@@ -62,6 +62,8 @@ contains
       call create_residual( cells, faces, n, dxsi, prim_cc, cons_cc,           &
                             area_f, area_cc, dadx_cc, dxdxsi_cc, RHS)
 
+      RHS = -RHS
+
 ! Now form LHS.... should be a subroutine
 
 ! Inflow, modify according to bc
