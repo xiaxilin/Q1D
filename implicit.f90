@@ -94,7 +94,7 @@ contains
 
         L(:,:,cell) = -right_jac_L*area_f(cell-1) / divisor
         D(:,:,cell) = ident3x3/dt(cell)                                        &
-                    - ( right_jac_C*area_f(cell)-left_jac_C*area_f(cell-1)     &
+                    + ( right_jac_C*area_f(cell)-left_jac_C*area_f(cell-1)     &
                     -  source_jac ) / divisor
         U(:,:,cell) =  left_jac_R*area_f(cell) / divisor
 
