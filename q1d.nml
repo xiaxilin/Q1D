@@ -1,4 +1,5 @@
 &code_control
+  solver     = 'explicit'
   iterations = 40000
   firstorder = 10000
   itercheck  = 1000
@@ -19,10 +20,10 @@
 
 &conditions
   restart = .false.
-  mref  = 1.5
+  mref  = 0.5
   to    = 600.0
   po    = 300000.0
-  pback = 120000.0
+  pback = -120000.0
 /
 
 &gas_properties
