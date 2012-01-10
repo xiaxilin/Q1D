@@ -10,7 +10,7 @@ program q1d_primal
                               dxdxsi_cc, dadx_cc, deallocate_grid, x_cc
   use initialize_soln, only : allocate_soln, initial_soln, prim_cc, cons_cc,   &
                               deallocate_soln
-  use solvers,         only : explicit_solve
+  use solvers,         only : explicit_solve, solver
   use implicit,        only : implicit_solve
   use write_soln,      only : write_restart, init_write_files, write_entropy
   use solution_error,  only : calculate_exact_soln
@@ -43,24 +43,16 @@ program q1d_primal
 ! set up initial flow solution or read a restart
   call initial_soln(cells)
 
-! perform explicit solve
-  if (.true.) then
+  select case( solver )
+  case('explicit')
+    print*, 'Beginning Explicit Solve'
     call explicit_solve(cells, faces, dxsi, prim_cc, cons_cc,                  &
                         area_f, area_cc, dxdxsi_cc, dadx_cc, x_cc)
-  else
+  case('implicit')
+    print*, 'Beginning Implicit Solve'
     call implicit_solve(cells, faces, dxsi, prim_cc, cons_cc,                  &
                         area_f, area_cc, dxdxsi_cc, dadx_cc, x_cc) 
-  end if
-
-! FIXME: when implicit solver becomes live, implement this system
-!  select case( solver_type )
-!  case('explicit')
-!    call explicit_solve(cells, faces, dxsi, prim_cc, cons_cc,                  &
-!                        area_f, area_cc, dxdxsi_cc, dadx_cc, x_cc)
-!  case('implicit')
-!    call implicit_solve(cells, faces, dxsi, prim_cc, cons_cc,                  &
-!                        area_f, area_cc, dxdxsi_cc, dadx_cc, x_cc) 
-!  end select
+  end select
 
 ! do solution output
   call write_restart(cells, prim_cc)

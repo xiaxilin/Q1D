@@ -26,6 +26,8 @@ module solvers
   public :: k2         ! JST damping coefficient, only for flux_type = 'jst'
   public :: k4         ! JST damping coefficient, only for flux_type = 'jst'
 
+  public :: solver     ! 'explicit' or 'implicit' solver
+
 ! set initial values
 
   integer  :: iterations
@@ -38,6 +40,8 @@ module solvers
   real(dp) :: kappa
   real(dp) :: toler
   character(len=10) :: limiter
+
+  character(len=8)  :: solver
 
   character(len=10) :: flux_type
   real(dp) :: k2
@@ -173,9 +177,9 @@ module solvers
       dt_global = min(dt_global, dt(cell))
     end do
 
-!    if ( global ) then
-    dt(:) = dt_global
-!    end if
+    if ( solver == 'explicit' ) then
+      dt(:) = dt_global
+    end if
 
   end function set_time_step
 

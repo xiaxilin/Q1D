@@ -25,6 +25,7 @@ contains
     use set_precision,   only : dp
     use set_constants,   only : zero, half, one, two
     use fluid_constants, only : gamma, gm1, gxgm1, xgm1, R, cv
+    use initialize_soln, only : po, to
 
     implicit none
 
@@ -43,10 +44,6 @@ contains
     DU1 = zero
     DU2 = zero
 
-    RHS(1) = zero
-    RHS(2) = -cc_in(2)/cc_in(1) + two*cc_1(2)/cc_1(1) - cc_2(2)/cc_2(1)
-    RHS(3) = zero
-
 ! Extrapolate velocity from interior
     DD(2,1) = -cc_in(2)/cc_in(1)**2
     DD(2,2) = one/cc_in(1)
@@ -54,10 +51,13 @@ contains
     DU1(2,1) = -cc_1(2)/cc_1(1)**2
     DU1(2,2) = one/cc_1(1)
 
-    DU1 = -DU1
+!    DU1 = two*DU1
+!    DU1 = -DU1
 
     DU2(2,1) = -cc_2(2)/cc_2(1)**2
     DU2(2,2) = one/cc_2(1)
+
+    DU2 = -DU2
 
 ! Now need to account for delta Po = delta To = 0 at inflow... DD matrix
 
@@ -92,7 +92,14 @@ contains
     DD(3,1) = factor**gxgm1*dPdrho   + half*gamma*factor**xgm1*P*dM2drho
     DD(3,2) = factor**gxgm1*dPdrhou  + half*gamma*factor**xgm1*P*dM2drhou
     DD(3,3) = factor**gxgm1*dPdrhoet + half*gamma*factor**xgm1*P*dM2drhoet
- 
+
+    DD = -DD
+
+    RHS(1) = zero
+    RHS(2) = cc_in(2)/cc_in(1) - two*cc_1(2)/cc_1(1) + cc_2(2)/cc_2(1)
+    RHS(3) = zero
+
+
   end subroutine subsonic_inflow
 
 !=============================================================================80
@@ -136,6 +143,17 @@ contains
     DD(2,3) = zero
     DD(3,3) = gm1
 
+!    DD(1,1) = one
+!    DD(2,1) = zero
+!    DD(3,1) = zero
+!    DD(1,2) = zero
+!    DD(2,2) = one
+!    DD(3,2) = zero
+!    DD(1,3) = zero
+!    DD(2,3) = zero
+!    DD(3,3) = one
+
+
     DL1(1,1) = one
     DL1(2,1) = -u_1/cc_1(1)
     DL1(3,1) = half*gm1*u_1**2
@@ -145,6 +163,16 @@ contains
     DL1(1,3) = zero
     DL1(2,3) = zero
     DL1(3,3) = gm1
+
+!    DL1(1,1) = one
+!    DL1(2,1) = zero
+!    DL1(3,1) = zero
+!    DL1(1,2) = zero
+!    DL1(2,2) = one
+!    DL1(3,2) = zero
+!    DL1(1,3) = zero
+!    DL1(2,3) = zero
+!    DL1(3,3) = one
 
     DL1 = -DL1
 
@@ -161,6 +189,10 @@ contains
     RHS(1) = -cc_out(1) + two*cc_1(1) - cc_2(1)
     RHS(2) = -u_out     + two*u_1     - u_2
     RHS(3) = -p_out     + two*p_1     - p_2
+
+!    RHS(1) = -cc_out(1) + cc_1(1)
+!    RHS(2) = -cc_out(2) + cc_1(2)
+!    RHS(3) = -cc_out(3) + cc_1(3)
 
   end subroutine supersonic_outflow
 

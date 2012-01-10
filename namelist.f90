@@ -2,7 +2,7 @@ module namelist
 
   use solvers,         only : iterations, firstorder, itercheck, iter_out,     &
                               rkorder, cfl, limiter, muscl, kappa, toler,      &
-                              flux_type, k2, k4
+                              flux_type, k2, k4, solver
   use initialize_soln, only : restart, mref, to, po, pback
   use fluid_constants, only : gamma, r
 
@@ -14,7 +14,7 @@ module namelist
 
 ! Define namelist inputs
 
-  namelist /code_control/ iterations, firstorder, itercheck, iter_out,         &
+  namelist /code_control/ solver, iterations, firstorder, itercheck, iter_out, &
                           rkorder, cfl, limiter, muscl, kappa, toler
 
   namelist /flux/ flux_type, k2, k4
@@ -43,6 +43,9 @@ contains
     open(nml_unit, file='q1d.nml', status='old')
 
 ! set defaults and read &code_control
+
+    solver = 'explicit'
+    !sets solver type between explicit or implicit
 
     iterations = 100000
     !sets the maximum number of iterations
