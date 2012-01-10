@@ -71,10 +71,6 @@ contains
       call subsonic_inflow( cons_cc(:,1), cons_cc(:,2), cons_cc(:,3),          &
                             D(:,:,1), U(:,:,1), L(:,:,1), RHS(:,1) )
 
-      L(:,:,1) = L(:,:,1)/(dxdxsi_cc(3)*dxsi*area_cc(3))
-      D(:,:,1) = D(:,:,1)/(dxdxsi_cc(2)*dxsi*area_f(1))
-      U(:,:,1) = U(:,:,1)/(dxdxsi_cc(2)*dxsi*area_cc(2))
-      
 ! calculate Jacobians for inflow face
 
       call new_jac_vanleer_1D( cons_cc(:,1), cons_cc(:,2), right_jac_L, left_jac_C)
@@ -112,10 +108,6 @@ contains
                                D(:,:,cells+2), L(:,:,cells+2), U(:,:,cells+2), &
                                RHS(:,cells+2) )
 
-      L(:,:,cells+2) = L(:,:,cells+2)/(dxdxsi_cc(cells+1)*dxsi*area_cc(cells+1))
-      D(:,:,cells+2) = D(:,:,cells+2)/(dxdxsi_cc(cells+1)*dxsi*area_f(faces))
-      U(:,:,cells+2) = U(:,:,cells+2)/(dxdxsi_cc(cells)*dxsi*area_cc(cells))
-      
 ! Modify matrix to maintain block tridiagonal structure
 ! Needs to be made a subroutine...
 
