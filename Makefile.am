@@ -12,12 +12,11 @@ q1d_SOURCES = \
          initialize_soln.f90 \
          solution_error.f90 \
          write_soln.f90 \
-         solvers.f90 \
-         namelist.f90 \
 	 matrix_manip.f90 \
 	 jacobians.f90 \
 	 bc.f90 \
-	 implicit.f90 \
+         solvers.f90 \
+         namelist.f90 \
          q1d.f90
 
 q1d_LDADD = Libraries/libconstants.a

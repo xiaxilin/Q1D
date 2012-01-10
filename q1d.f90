@@ -10,8 +10,7 @@ program q1d_primal
                               dxdxsi_cc, dadx_cc, deallocate_grid, x_cc
   use initialize_soln, only : allocate_soln, initial_soln, prim_cc, cons_cc,   &
                               deallocate_soln
-  use solvers,         only : explicit_solve, solver
-  use implicit,        only : implicit_solve
+  use solvers,         only : explicit_solve, implicit_solve, solver
   use write_soln,      only : write_restart, init_write_files, write_entropy
   use solution_error,  only : calculate_exact_soln
 
