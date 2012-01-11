@@ -82,7 +82,7 @@ module solvers
 
     do n = 0, iterations
 ! set both local and global time step
-      dt = set_time_step( cells, dxsi, prim_cc )
+      dt = set_time_step( cells, dxsi, dxdxsi_cc, prim_cc )
 
 ! make copy of solution for RK schemes... 
 ! wouldn't be necessary for pure Euler explicit
@@ -194,7 +194,7 @@ module solvers
 
     do n = 0, iterations
 
-      dt = set_time_step( cells, dxsi, prim_cc )
+      dt = set_time_step( cells, dxsi, dxdxsi_cc, prim_cc )
 
 ! Form RHS
       call create_residual( cells, faces, n, dxsi, prim_cc, cons_cc,           &
@@ -313,7 +313,7 @@ module solvers
 !
 !=============================================================================80
 
-  pure function set_time_step( cells, dxsi, prim_cc ) result(dt)
+  pure function set_time_step( cells, dxsi, dxdxsi_cc, prim_cc ) result(dt)
 
     use set_precision, only : dp
     use set_constants, only : large
@@ -322,6 +322,7 @@ module solvers
 
     integer,                         intent(in)  :: cells
     real(dp),                        intent(in)  :: dxsi
+    real(dp), dimension(cells+2),    intent(in)  :: dxdxsi_cc
     real(dp), dimension(3, cells+2), intent(in)  :: prim_cc
 
     integer  :: cell
