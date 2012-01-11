@@ -335,7 +335,7 @@ module solvers
 
     do cell = 1, cells+2
       a = speed_of_sound( prim_cc(3,cell), prim_cc(1,cell) )
-      dt(cell) = cfl*dxsi / ( abs(prim_cc(2,cell)) + a )
+      dt(cell) = cfl*dxsi*dxdxsi_cc(cell) / ( abs(prim_cc(2,cell)) + a )
       dt_global = min(dt_global, dt(cell))
     end do
 
