@@ -95,9 +95,9 @@ contains
 
     DD = -DD
 
-    RHS(1) = zero
+    RHS(1) = zero!to - T*factor
     RHS(2) = cc_in(2)/cc_in(1) - two*cc_1(2)/cc_1(1) + cc_2(2)/cc_2(1)
-    RHS(3) = zero
+    RHS(3) = zero!po - p*factor**gxgm1
 
 
   end subroutine subsonic_inflow
