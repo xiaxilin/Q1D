@@ -225,11 +225,13 @@ module solvers
 
         divisor = dxdxsi_cc(cell)*dxsi*area_cc(cell)
 
-        L(:,:,cell) = -right_jac_L*area_f(cell-1) / divisor
-        D(:,:,cell) = ident3x3/dt(cell)                                        &
+        L(:,:,cell) = -right_jac_L*area_f(cell-1)! / divisor
+        D(:,:,cell) = ident3x3*divisor/dt(cell)                                &
                     + ( right_jac_C*area_f(cell)-left_jac_C*area_f(cell-1)     &
-                    -  source_jac ) / divisor
-        U(:,:,cell) =  left_jac_R*area_f(cell) / divisor
+                    -  source_jac )! / divisor
+        U(:,:,cell) =  left_jac_R*area_f(cell)! / divisor
+
+        RHS(:,cell) = RHS(:,cell)*divisor
 
 ! shift Jacobians to avoid recalculation
 
@@ -278,9 +280,9 @@ module solvers
 ! Floor variables for stability
       do cell = 1, cells+2
         prim_cc(:,cell) = conserved_to_primitive_1D(cons_cc(:,cell))
-        prim_cc(1,cell) = max(prim_cc(1,cell), 0.0001_dp)
+        prim_cc(1,cell) = max(prim_cc(1,cell), 0.01_dp)
         prim_cc(2,cell) = max(prim_cc(2,cell), 5.0_dp)
-        prim_cc(3,cell) = max(prim_cc(3,cell), 500.0_dp)
+        prim_cc(3,cell) = max(prim_cc(3,cell), 3000.0_dp)
         cons_cc(:,cell) = primitive_to_conserved_1D(prim_cc(:,cell))
       end do
 
