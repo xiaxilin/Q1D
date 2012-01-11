@@ -117,7 +117,7 @@ contains
 
       psi = one + half*gm1*mref*mref
       t   = to/psi
-      p = po/(psi**gxgm1)
+      p   = po/(psi**gxgm1)
 !OMP
       do cell = 1, cells+2
         prim_cc(1,cell) = p/(r*t)
