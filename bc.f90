@@ -143,16 +143,7 @@ contains
     DD(2,3) = zero
     DD(3,3) = gm1
 
-!    DD(1,1) = one
-!    DD(2,1) = zero
-!    DD(3,1) = zero
-!    DD(1,2) = zero
-!    DD(2,2) = one
-!    DD(3,2) = zero
-!    DD(1,3) = zero
-!    DD(2,3) = zero
-!    DD(3,3) = one
-
+!    DD = -DD
 
     DL1(1,1) = one
     DL1(2,1) = -u_1/cc_1(1)
@@ -163,16 +154,6 @@ contains
     DL1(1,3) = zero
     DL1(2,3) = zero
     DL1(3,3) = gm1
-
-!    DL1(1,1) = one
-!    DL1(2,1) = zero
-!    DL1(3,1) = zero
-!    DL1(1,2) = zero
-!    DL1(2,2) = one
-!    DL1(3,2) = zero
-!    DL1(1,3) = zero
-!    DL1(2,3) = zero
-!    DL1(3,3) = one
 
     DL1 = -DL1
 
@@ -189,10 +170,6 @@ contains
     RHS(1) = -cc_out(1) + two*cc_1(1) - cc_2(1)
     RHS(2) = -u_out     + two*u_1     - u_2
     RHS(3) = -p_out     + two*p_1     - p_2
-
-!    RHS(1) = -cc_out(1) + cc_1(1)
-!    RHS(2) = -cc_out(2) + cc_1(2)
-!    RHS(3) = -cc_out(3) + cc_1(3)
 
   end subroutine supersonic_outflow
 
