@@ -176,7 +176,7 @@ module solvers
 
     integer  :: n, cell
 
-    real(dp)                         :: divisor
+    real(dp)                         :: cell_vol
     real(dp), dimension(cells+2)     :: dt
     real(dp), dimension(3,cells+2)   :: RHS, delta_cons_cc
     real(dp), dimension(3,3)         :: inv, source_jac
@@ -224,15 +224,13 @@ module solvers
         source_jac(2,3) = gm1
         source_jac = source_jac*dadx_cc(cell)*dxdxsi_cc(cell)*dxsi
 
-        divisor = dxdxsi_cc(cell)*dxsi*area_cc(cell)
+        cell_vol = dxdxsi_cc(cell)*dxsi*area_cc(cell)
 
         L(:,:,cell) = -right_jac_L*area_f(cell-1)
-        D(:,:,cell) = ident3x3*divisor/dt(cell)                                &
+        D(:,:,cell) = ident3x3*cell_vol/dt(cell)                               &
                     + ( right_jac_C*area_f(cell)-left_jac_C*area_f(cell-1)     &
                     -  source_jac )
         U(:,:,cell) =  left_jac_R*area_f(cell)
-
-        RHS(:,cell) = RHS(:,cell)
 
 ! shift Jacobians to avoid recalculation
 
