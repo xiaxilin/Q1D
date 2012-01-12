@@ -96,8 +96,9 @@ module solvers
 
         do cell = 2,cells+1
           do eq = 1,3
-            cons_cc(eq,cell) = cons_cc_0(eq,cell)                              &
-                            - dt(cell)*residual(eq,cell) / real(1+rkorder-rk,dp)
+            cons_cc(eq,cell) = cons_cc_0(eq,cell) - dt(cell)*residual(eq,cell) &
+                             / (real(1+rkorder-rk,dp)                          &
+                             * dxsi*dxdxsi_cc(cell)*area_cc(cell) )
           end do
           prim_cc(:,cell) = conserved_to_primitive_1D(cons_cc(:,cell))
           prim_cc(:,cell) = floor_primitive_vars(prim_cc(:,cell))
@@ -225,13 +226,13 @@ module solvers
 
         divisor = dxdxsi_cc(cell)*dxsi*area_cc(cell)
 
-        L(:,:,cell) = -right_jac_L*area_f(cell-1)! / divisor
+        L(:,:,cell) = -right_jac_L*area_f(cell-1)
         D(:,:,cell) = ident3x3*divisor/dt(cell)                                &
                     + ( right_jac_C*area_f(cell)-left_jac_C*area_f(cell-1)     &
-                    -  source_jac )! / divisor
-        U(:,:,cell) =  left_jac_R*area_f(cell)! / divisor
+                    -  source_jac )
+        U(:,:,cell) =  left_jac_R*area_f(cell)
 
-        RHS(:,cell) = RHS(:,cell)*divisor
+        RHS(:,cell) = RHS(:,cell)
 
 ! shift Jacobians to avoid recalculation
 
@@ -384,9 +385,9 @@ module solvers
 
     do cell = 2, cells+1
       do eq = 1,3
-        residual(eq,cell) = ((area_f(cell)   * F(eq,cell)                      &
-                          -   area_f(cell-1) * F(eq,cell-1))                   &
-                          / (dxdxsi_cc(cell)*dxsi) - S(eq,cell)) / area_cc(cell)
+        residual(eq,cell) = area_f(cell)   * F(eq,cell)                        &
+                          - area_f(cell-1) * F(eq,cell-1)                      &
+                          - S(eq,cell)*dxsi*dxdxsi_cc(cell)
       end do
     end do
 
