@@ -23,6 +23,8 @@ module namelist
 
   namelist /gas_properties/ gamma, r
 
+!  namelist /ref_properties/ gamma, r, l_ref, rho_ref, a_ref
+
 contains
 
 !================================= read_nml ==================================80
@@ -103,10 +105,10 @@ contains
     !reference inflow mach number if starting from scratch
 
     to    = 600.0_dp
-    !reference total temperature, Kelvins
+    !reference total temperature, assumed SI, Kelvins
 
     po    = 300000.0_dp
-    !reference total pressure, Pa
+    !reference total pressure, assumed SI, Pa
 
     pback = -1.0_dp
     !back pressure, Pa.  set less than 0 for supersonic extrapolation
@@ -116,11 +118,27 @@ contains
 
 ! set defaults and read &gas_properties
 
-    r = 287.0_dp
+    r = 287.058_dp
     !gas constant,
 
     gamma = 1.4_dp
     !ratio of specific heats, 7/5 for diatomic gas, 5/3 for monatomic
+
+!    l_ref = 1.0_dp
+    !reference length
+
+!    rho_ref = 1.225_dp
+    !reference density, assumed SI, STP
+
+!    t_ref = 288.15_dp
+    !reference temperature, assumed SI, STP
+
+!    a_ref = sqrt(gamma*r*t_ref)
+    !reference speed of sound, assumed SI, STP
+
+! Derived reference quantities
+!    p_ref = rho_ref*a_ref**2
+    !reference pressure... p_ref = rho*a**2 = gamma*p, at STP p_ref = 141855 Pa
 
     rewind(nml_unit)
     read(nml_unit, nml=gas_properties)
