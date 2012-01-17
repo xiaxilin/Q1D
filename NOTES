@@ -1,4 +1,6 @@
 Explicit Solver:
+Does not converge if mref < 1.0, 
+velocity is allowed to go negative which could be the problem.
 Some problems with coarse grid convergence... 
 could just be a van Leer FVS dissipation problem, but need to analyze
 
