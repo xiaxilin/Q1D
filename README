@@ -1,20 +1,26 @@
 Quasi-1D Nozzle Suite
 
-Executables: q1d, g1d_grid, q1d_exact q1d_dual
+Executables: q1d, g1d_grid ! FIXME: q1d_exact q1d_dual don't exist yet !
 
 q1d_grid  : grid generator
 q1d       : primal solver
 q1d_exact : exact primal solution
 q1d_dual  : dual solver
 
-Written in Fortran 9X by Joe Derlaga
+Written in Fortran 9X/0X by Joe Derlaga
+
+This code is under development!
+The implicit path is still in testing...
+The lack of nondimensionalization is causing matrix structure problems and
+needs to be resolved!
+Adjoint code to follow!
 
 This directory includes a suite of codes to study the Quasi-1D Nozzle problem.
 
 The heart of the suite, q1d, 
-is a FVM code with a multistep Runge-Kutta explicit solver.
-When running Euler explicit, local time stepping is used,
-while any of the RK schemes force global time stepping for stability.
+is a FVM code with multistep Runge-Kutta explicit and Euler implicit solvers.
+Currently the RK scheme uses global time stepping 
+while the implicit scheme uses local time stepping.
 
 The code defaults to a first order mode, but second order is reach via
 MUSCL extrapolation of primitive variables.
@@ -56,7 +62,7 @@ Where appropriate, the code will loop over faces,
 such as when it is calculating fluxes, or over cells, 
 such as when the explicit iteration is being performed.
 
-To build, execute the following:
+To build, execute the following (insert appropriate compiler and options):
 
 prompt% ./bootstrap
 prompt% ./configure FC=gfortran FCFLAGS="-O2"
@@ -76,18 +82,15 @@ Files:
   q1d_lines.tec == tecplot XY formatted data file
   q1d_cells.tec == tecplot cell-centered color plot file
 
-This code is under development!
-Once the explicit code base is up to standard,
-an implicit solver will be implemented, followed by an adjoint code.
-
-The implicit path, and the dual solver, 
-will only allow for Roe's FDS and van Leer FVS!
-
 Example unit-tests will be added.
 
 Coding standard:
 80 column line limit for readability
 No tabs, only spaces for indentation, run untabify in emacs
 No trailing whitespace
-Try to avoid CAPS, except in comments, 
-and where differentiating between 1, l, I, L are important.
+Remember that Fortran ignores capitalization so ql, qL, Ql, and QL 
+all refer to the same variable.
+Therefore, use CAPS sparingly, i.e., 
+where differentiating between 1, l, I, L are important,
+and where it helps readability.
+Additionally, no one wants to be yelled at while reading code.
