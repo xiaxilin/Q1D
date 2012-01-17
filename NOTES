@@ -1,0 +1,15 @@
+Explicit Solver:
+Some problems with coarse grid convergence... 
+could just be a van Leer FVS dissipation problem, but need to analyze
+
+Implicit Solver:
+Does not converge if mref > 1.0... once again could be van Leer FVS
+Need to check a linear starting solution.
+Need to add CFL ramping.
+Need to nondimensionalize, the matrix structure for the flux Jacobians is:
+
+Row 1: O(1)
+Row 2: O(100)
+Row 3: O(100000)
+
+This is not good for the numerics... will most likely nondim. on STP conditions.
