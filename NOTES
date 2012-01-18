@@ -5,9 +5,9 @@ Some problems with coarse grid convergence...
 could just be a van Leer FVS dissipation problem, but need to analyze
 
 Implicit Solver:
-Does not converge if mref > 1.0... once again could be van Leer FVS
-Need to check a linear starting solution.
-Need to add CFL ramping.
+Dividing through by cell_vol seems to have fixed CFL stability problem,
+still need to revisit time step definition.
+Can ramp/jump from low cfl to over 100 now.
 Need to nondimensionalize, the matrix structure for the flux Jacobians is:
 
 Row 1: O(1)
@@ -15,3 +15,10 @@ Row 2: O(100)
 Row 3: O(100000)
 
 This is not good for the numerics... will most likely nondim. on STP conditions.
+
+TODO:
+Need to check a linear starting solution.
+Need to add CFL ramping.
+Need to create cell_vol vector rather than constantly recalculating it
+Need to move source_jac calculation to jacobians.f90
+Need to create Roe LHS... although Q1D does run with van Leer LHS and Roe RHS
