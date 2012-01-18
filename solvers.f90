@@ -226,11 +226,13 @@ module solvers
 
         cell_vol = dxdxsi_cc(cell)*dxsi*area_cc(cell)
 
-        L(:,:,cell) = -right_jac_L*area_f(cell-1)
-        D(:,:,cell) = ident3x3*cell_vol/dt(cell)                               &
+        L(:,:,cell) = -right_jac_L*area_f(cell-1)/cell_vol
+        D(:,:,cell) = ident3x3/dt(cell)                               &
                     + ( right_jac_C*area_f(cell)-left_jac_C*area_f(cell-1)     &
-                    -  source_jac )
-        U(:,:,cell) =  left_jac_R*area_f(cell)
+                    -  source_jac )/cell_vol
+        U(:,:,cell) =  left_jac_R*area_f(cell)/cell_vol
+
+        RHS(:,cell) = RHS(:,cell)/cell_vol
 
 ! shift Jacobians to avoid recalculation
 
