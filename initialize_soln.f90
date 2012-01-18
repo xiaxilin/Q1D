@@ -81,7 +81,7 @@ contains
   subroutine initial_soln(cells)
 
     use set_constants,   only : half, one
-    use fluid_constants, only : r, gamma, gm1, gxgm1
+    use fluid_constants, only : r, gamma, gm1, gxgm1, cv, cp
 
     implicit none
 
@@ -115,6 +115,8 @@ contains
 
     else
 
+!      cp = cp/r
+!      cv = cv/r
 !      r = 1.0_dp
 !      to = to/(gamma*288.15_dp)
 !      po = po/(gamma*101325.0_dp)

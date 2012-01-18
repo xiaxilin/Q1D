@@ -279,9 +279,9 @@ module solvers
 ! Floor variables for stability
       do cell = 1, cells+2
         prim_cc(:,cell) = conserved_to_primitive_1D(cons_cc(:,cell))
-        prim_cc(1,cell) = max(prim_cc(1,cell), 0.01_dp)
-        prim_cc(2,cell) = max(prim_cc(2,cell), 5.0_dp)
-        prim_cc(3,cell) = max(prim_cc(3,cell), 3000.0_dp)
+        prim_cc(1,cell) = max(prim_cc(1,cell), 0.0001_dp)
+        prim_cc(2,cell) = max(prim_cc(2,cell), 1.0_dp)
+        prim_cc(3,cell) = max(prim_cc(3,cell), 500.0_dp)! /141000.0_dp)
         cons_cc(:,cell) = primitive_to_conserved_1D(prim_cc(:,cell))
       end do
 
