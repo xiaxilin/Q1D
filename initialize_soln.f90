@@ -115,6 +115,10 @@ contains
 
     else
 
+!      r = 1.0_dp
+!      to = to/(gamma*288.15_dp)
+!      po = po/(gamma*101325.0_dp)
+
       psi = one + half*gm1*mref*mref
       t   = to/psi
       p   = po/(psi**gxgm1)
