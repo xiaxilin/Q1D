@@ -163,8 +163,32 @@ contains
 
   end subroutine jac_vanleer_1D
 
-!  subroutine jac_source_1D
-!  end subroutine jac_source_1D
+  subroutine jac_source_1D(vel, dxsi, dadx_cc, dxdxsi_cc, source_jac)
+
+    use set_precision,   only : dp
+    use set_constants,   only : zero, half
+    use fluid_constants, only : gm1
+
+    real(dp),                 intent(in)  :: vel, dxsi, dadx_cc, dxdxsi_cc
+    real(dp), dimension(3,3), intent(out) :: source_jac
+
+    real(dp) :: sidewall_area
+
+    continue
+
+    sidewall_area = dadx_cc*dxdxsi_cc*dxsi
+
+    source_jac(1,1) = zero
+    source_jac(2,1) = half*gm1*vel**2*sidewall_area
+    source_jac(3,1) = zero
+    source_jac(1,2) = zero
+    source_jac(2,2) = -gm1*vel*sidewall_area
+    source_jac(3,2) = zero
+    source_jac(1,3) = zero
+    source_jac(2,3) = gm1*sidewall_area
+    source_jac(3,3) = zero
+
+  end subroutine jac_source_1D
 
   include 'speed_of_sound.f90'
 
