@@ -8,3 +8,4 @@ libconstants_a_SOURCES = \
                     set_constants.f90 \
                     fluid_constants.f90
 
+DISTCLEANFILES = *.mod

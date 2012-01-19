@@ -28,3 +28,5 @@ q1d_grid_SOURCES = q1d_grid.f90
 q1d_grid_LDADD = Libraries/libconstants.a
 
 q1d_grid_FCFLAGS = $(FC_MODINC)$(srcdir)/Functions $(FC_MODINC)Libraries
+
+DISTCLEANFILES = *.mod *.o
