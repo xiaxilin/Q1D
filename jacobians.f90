@@ -5,6 +5,7 @@ module jacobians
   private
 
   public :: jac_vanleer_1D
+  public :: jac_source_1D
 
 contains
 
@@ -163,20 +164,20 @@ contains
 
   end subroutine jac_vanleer_1D
 
-  subroutine jac_source_1D(vel, dxsi, dadx_cc, dxdxsi_cc, source_jac)
+  subroutine jac_source_1D(vel, dadx_cc, cell_jac, source_jac)
 
     use set_precision,   only : dp
     use set_constants,   only : zero, half
     use fluid_constants, only : gm1
 
-    real(dp),                 intent(in)  :: vel, dxsi, dadx_cc, dxdxsi_cc
+    real(dp),                 intent(in)  :: vel, dadx_cc, cell_jac
     real(dp), dimension(3,3), intent(out) :: source_jac
 
     real(dp) :: sidewall_area
 
     continue
 
-    sidewall_area = dadx_cc*dxdxsi_cc*dxsi
+    sidewall_area = dadx_cc*cell_jac
 
     source_jac(1,1) = zero
     source_jac(2,1) = half*gm1*vel**2*sidewall_area

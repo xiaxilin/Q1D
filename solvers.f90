@@ -167,7 +167,7 @@ module solvers
     use set_constants,   only : zero, half, one, two
     use fluid_constants, only : gm1
     use bc,              only : subsonic_inflow, supersonic_outflow
-    use jacobians,       only : jac_vanleer_1D
+    use jacobians,       only : jac_source_1D, jac_vanleer_1D
     use matrix_manip,    only : triblocksolve, mat_inv_3x3, matrix_inv
     use write_soln,      only : write_soln_line
 
@@ -234,16 +234,12 @@ module solvers
 
       do cell = 2, cells+1
 
+        cell_jac = dxdxsi_cc(cell)*dxsi
+
         call jac_vanleer_1D( cons_cc(:,cell), cons_cc(:,cell+1),               &
                              right_jac_C, left_jac_R )
 
-        cell_jac = dxdxsi_cc(cell)*dxsi
-
-        source_jac = zero
-        source_jac(2,1) = half*gm1*prim_cc(2,cell)**2
-        source_jac(2,2) = -gm1*prim_cc(2,cell)
-        source_jac(2,3) = gm1
-        source_jac = source_jac*dadx_cc(cell)*cell_jac
+        call jac_source_1D(prim_cc(2,cell), dadx_cc(cell), cell_jac, source_jac)
 
         L(:,:,cell) = -right_jac_L*area_f(cell-1)/cell_jac
         D(:,:,cell) = ident3x3*area_cc(cell)/dt(cell)                          &

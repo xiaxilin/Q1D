@@ -19,7 +19,6 @@ This is not good for the numerics... will most likely nondim. on STP conditions.
 TODO:
 Need to check a linear starting solution.
 Need to create cell_vol vector rather than constantly recalculating it
-Need to move source_jac calculation to jacobians.f90
 Need to create Roe LHS... although Q1D does run with van Leer LHS and Roe RHS
 Need to test linear extrapolation LHS fix
 
