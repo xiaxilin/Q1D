@@ -80,7 +80,7 @@ module solvers
 
     continue
 
-    do n = 0, iterations
+    iteration_loop : do n = 0, iterations
 ! set both local and global time step
       dt = set_time_step( cells, dxsi, dxdxsi_cc, prim_cc )
 
@@ -88,18 +88,9 @@ module solvers
 ! wouldn't be necessary for pure Euler explicit
       cons_cc_0 = cons_cc
 
-      do rk = 1, rkorder
+      rk_loop : do rk = 1, rkorder
         call create_residual( cells, faces, n, dxsi, prim_cc, cons_cc,         &
                               area_f, area_cc, dadx_cc, dxdxsi_cc, residual )
-
-      if (mod(n,itercheck) == 0) then
-        call check_convergence(cells, n, residual, convergence_flag)
-
-        if ( convergence_flag ) then
-          write(*,*) 'Solution has converged!'
-          exit
-        end if
-     end if
 
 ! perform explicit iterations on interior cells
 
@@ -128,17 +119,27 @@ module solvers
         do cell = 1, cells+2
           cons_cc(:,cell) = primitive_to_conserved_1D(prim_cc(:,cell))
         end do
-      end do
+
+      end do rk_loop
 
       if (iter_out >= 0 .and. mod(n,iter_out) == 0) then
         call write_soln_line(n, cells, x_cc, prim_cc, cons_cc)
+      end if
+
+      if (mod(n,itercheck) == 0) then
+        call check_convergence(cells, n, residual, convergence_flag)
+
+        if ( convergence_flag ) then
+          write(*,*) 'Solution has converged!'
+          exit
+        end if
       end if
 
 !      if (iter_restar >= 0 .and. mod(n,iter_restart) == 0) then
 !        call write_restart(cells, prim_cc)
 !      end if
 
-    end do
+    end do iteration_loop
 
     if (.not. convergence_flag ) then
       write(*,*) 'Solution failed to converge...'
