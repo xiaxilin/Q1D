@@ -23,3 +23,6 @@ Need to create cell_vol vector rather than constantly recalculating it
 Need to move source_jac calculation to jacobians.f90
 Need to create Roe LHS... although Q1D does run with van Leer LHS and Roe RHS
 Need to test linear extrapolation LHS fix
+
+Still need to investigate what the cell metric term is for this formulation...
+should it include cell area or not?
