@@ -1,3 +1,6 @@
+Very close to having the adjoint solver puzzled out
+Need to finish the exact solution code
+
 Explicit Solver:
 Does not converge if mref < 1.0, 
 velocity is allowed to go negative which could be the problem.
