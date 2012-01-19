@@ -2,7 +2,7 @@ module namelist
 
   use solvers,         only : iterations, firstorder, itercheck, iter_out,     &
                               rkorder, cfl, limiter, muscl, kappa, toler,      &
-                              flux_type, k2, k4, solver
+                              flux_type, k2, k4, solver, cfl_end, cfl_ramp
   use initialize_soln, only : restart, mref, to, po, pback
   use fluid_constants, only : gamma, r
 
@@ -15,7 +15,8 @@ module namelist
 ! Define namelist inputs
 
   namelist /code_control/ solver, iterations, firstorder, itercheck, iter_out, &
-                          rkorder, cfl, limiter, muscl, kappa, toler
+                          rkorder, cfl, limiter, muscl, kappa, toler, cfl_end, &
+                          cfl_ramp
 
   namelist /flux/ flux_type, k2, k4
 
@@ -69,6 +70,12 @@ contains
 
     cfl        = 1.0_dp
     !sets the CFL number
+
+    cfl_end    = 1.0_dp
+    !sets the max CFL to ramp to
+
+    cfl_ramp   = 1
+    !number of iterations over which to ramp the CFL
 
     kappa      = -1.0_dp
     !sets the type of upwinding, -1 for fully upwind

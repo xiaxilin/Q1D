@@ -6,6 +6,8 @@
   iter_out   = -1
   rkorder    = 1
   cfl        = 0.5
+  cfl_end    = 0.0
+  cfl_ramp  =  1000
   limiter    = 'none'
   muscl      = .false.
   kappa      = -1.0
@@ -20,7 +22,7 @@
 
 &conditions
   restart = .false.
-  mref  = 0.5
+  mref  = 1.5
   to    = 600.0
   po    = 300000.0
   pback = -120000.0

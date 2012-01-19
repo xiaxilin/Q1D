@@ -17,7 +17,9 @@ module solvers
   public :: itercheck  ! check for convergence every itercheck iters
   public :: iter_out   ! write solution every iter_out iterations
   public :: rkorder    ! multistep RK order 1, 2, 3, or 4
-  public :: cfl        ! CFL limit
+  public :: cfl        ! CFL limit at start
+  public :: cfl_end    ! CFL limit at end if ramping
+  public :: cfl_ramp   ! Number of iterations to ramp CFL over
   public :: muscl      ! MUSCL extrapolation, .true. or .false.
   public :: kappa      ! form of MUSCL
   public :: limiter    ! type of variable limiting 
@@ -36,8 +38,10 @@ module solvers
   integer  :: itercheck
   integer  :: iter_out
   integer  :: rkorder
+  integer  :: cfl_ramp
   logical  :: muscl
   real(dp) :: cfl
+  real(dp) :: cfl_end
   real(dp) :: kappa
   real(dp) :: toler
   character(len=10) :: limiter
@@ -196,6 +200,10 @@ module solvers
                         (/3,3/) )
 
     do n = 0, iterations
+
+      if (n <= cfl_ramp) then
+        cfl = cfl + cfl_end/real(cfl_ramp,dp)
+      end if
 
       dt = set_time_step( cells, dxsi, dxdxsi_cc, prim_cc )
 
