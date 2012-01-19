@@ -92,6 +92,15 @@ module solvers
         call create_residual( cells, faces, n, dxsi, prim_cc, cons_cc,         &
                               area_f, area_cc, dadx_cc, dxdxsi_cc, residual )
 
+      if (mod(n,itercheck) == 0) then
+        call check_convergence(cells, n, residual, convergence_flag)
+
+        if ( convergence_flag ) then
+          write(*,*) 'Solution has converged!'
+          exit
+        end if
+     end if
+
 ! perform explicit iterations on interior cells
 
         do cell = 2,cells+1
@@ -121,10 +130,6 @@ module solvers
         end do
       end do
 
-      if (mod(n,itercheck) == 0) then
-        call check_convergence(cells, n, residual, convergence_flag)
-      end if
-
       if (iter_out >= 0 .and. mod(n,iter_out) == 0) then
         call write_soln_line(n, cells, x_cc, prim_cc, cons_cc)
       end if
@@ -133,10 +138,6 @@ module solvers
 !        call write_restart(cells, prim_cc)
 !      end if
 
-      if ( convergence_flag ) then
-        write(*,*) 'Solution has converged!'
-        exit
-      end if
     end do
 
     if (.not. convergence_flag ) then
@@ -176,7 +177,7 @@ module solvers
 
     integer  :: n, cell
 
-    real(dp)                         :: cell_vol
+    real(dp)                         :: cell_vol, cell_jac
     real(dp), dimension(cells+2)     :: dt
     real(dp), dimension(3,cells+2)   :: RHS, delta_cons_cc
     real(dp), dimension(3,3)         :: inv, source_jac
@@ -201,6 +202,15 @@ module solvers
       call create_residual( cells, faces, n, dxsi, prim_cc, cons_cc,           &
                             area_f, area_cc, dadx_cc, dxdxsi_cc, RHS)
 
+      if (mod(n,itercheck) == 0) then
+        call check_convergence(cells, n, RHS, convergence_flag)
+
+        if ( convergence_flag ) then
+          write(*,*) 'Solution has converged!'
+          exit
+        end if
+      end if
+
       RHS = -RHS
 
 ! Now form LHS.... should be a subroutine
@@ -218,21 +228,21 @@ module solvers
         call jac_vanleer_1D( cons_cc(:,cell), cons_cc(:,cell+1),               &
                              right_jac_C, left_jac_R )
 
+        cell_jac = dxdxsi_cc(cell)*dxsi
+
         source_jac = zero
         source_jac(2,1) = half*gm1*prim_cc(2,cell)**2
         source_jac(2,2) = -gm1*prim_cc(2,cell)
         source_jac(2,3) = gm1
-        source_jac = source_jac*dadx_cc(cell)*dxdxsi_cc(cell)*dxsi
+        source_jac = source_jac*dadx_cc(cell)*cell_jac
 
-        cell_vol = dxdxsi_cc(cell)*dxsi*area_cc(cell)
-
-        L(:,:,cell) = -right_jac_L*area_f(cell-1)/cell_vol
-        D(:,:,cell) = ident3x3/dt(cell)                               &
+        L(:,:,cell) = -right_jac_L*area_f(cell-1)/cell_jac
+        D(:,:,cell) = ident3x3*area_cc(cell)/dt(cell)                          &
                     + ( right_jac_C*area_f(cell)-left_jac_C*area_f(cell-1)     &
-                    -  source_jac )/cell_vol
-        U(:,:,cell) =  left_jac_R*area_f(cell)/cell_vol
+                    -  source_jac )/cell_jac
+        U(:,:,cell) =  left_jac_R*area_f(cell)/cell_jac
 
-        RHS(:,cell) = RHS(:,cell)/cell_vol
+        RHS(:,cell) = RHS(:,cell)/cell_jac
 
 ! shift Jacobians to avoid recalculation
 
@@ -274,31 +284,24 @@ module solvers
 ! Update the conserved variables
       cons_cc = cons_cc+delta_cons_cc
 
-      if (mod(n,itercheck) == 0) then
-        call check_convergence(cells, n, RHS, convergence_flag)
-      end if
-
 ! Floor variables for stability
+
       do cell = 1, cells+2
         prim_cc(:,cell) = conserved_to_primitive_1D(cons_cc(:,cell))
-        prim_cc(1,cell) = max(prim_cc(1,cell), 0.0001_dp)
+        prim_cc(1,cell) = max(prim_cc(1,cell), 0.01_dp)
         prim_cc(2,cell) = max(prim_cc(2,cell), 1.0_dp)
-        prim_cc(3,cell) = max(prim_cc(3,cell), 500.0_dp)! /141000.0_dp)
+        prim_cc(3,cell) = max(prim_cc(3,cell), 3000.0_dp)
         cons_cc(:,cell) = primitive_to_conserved_1D(prim_cc(:,cell))
       end do
 
-!      if (iter_out >= 0 .and. mod(n,iter_out) == 0) then
-!        call write_soln_line(n, cells, x_cc, prim_cc, cons_cc)
-!      end if
+      if (iter_out >= 0 .and. mod(n,iter_out) == 0) then
+        call write_soln_line(n, cells, x_cc, prim_cc, cons_cc)
+      end if
 
 !      if (iter_restar >= 0 .and. mod(n,iter_restart) == 0) then
 !        call write_restart(cells, prim_cc)
 !      end if
 
-      if ( convergence_flag ) then
-        write(*,*) 'Solution has converged!'
-        exit
-      end if
     end do
 
     if (.not. convergence_flag ) then
@@ -342,6 +345,7 @@ module solvers
       dt_global = min(dt_global, dt(cell))
     end do
 
+!    if ( solver == 'explicit' .or. time_accurate) then
     if ( solver == 'explicit' ) then
       dt(:) = dt_global
     end if
