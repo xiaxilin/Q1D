@@ -99,7 +99,6 @@ contains
     dadx_cc = zero
     dxdxsi_cc = zero
 
-
   end subroutine allocate_grid
 
 !=============================================================================80
