@@ -45,19 +45,19 @@ contains
     DU2 = zero
 
 ! Extrapolate velocity from interior
-    DD(2,1) = -cc_in(2)/cc_in(1)**2
-    DD(2,2) = one/cc_in(1)
+    DD(1,1) = -cc_in(2)/cc_in(1)**2
+    DD(1,2) = one/cc_in(1)
 
-    DU1(2,1) = -cc_1(2)/cc_1(1)**2
-    DU1(2,2) = one/cc_1(1)
+    DU1(1,1) = -cc_1(2)/cc_1(1)**2
+    DU1(1,2) = one/cc_1(1)
 
-!    DU1 = two*DU1
+!    DU1 = -two*DU1
 !    DU1 = -DU1
 
-    DU2(2,1) = -cc_2(2)/cc_2(1)**2
-    DU2(2,2) = one/cc_2(1)
+    DU2(1,1) = -cc_2(2)/cc_2(1)**2
+    DU2(1,2) = one/cc_2(1)
 
-    DU2 = -DU2
+!    DU2 = -DU2
 
 ! Now need to account for delta Po = delta To = 0 at inflow... DD matrix
 
@@ -80,9 +80,9 @@ contains
     dM2drhoet = -dTdrhoet*m**2/T
 
 ! add To equations...
-    DD(1,1) = factor*dTdrho   + half*gm1*T*dM2drho
-    DD(1,2) = factor*dTdrhou  + half*gm1*T*dM2drhou
-    DD(1,3) = factor*dTdrhoet + half*gm1*T*dM2drhoet
+    DD(2,1) = factor*dTdrho   + half*gm1*T*dM2drho
+    DD(2,2) = factor*dTdrhou  + half*gm1*T*dM2drhou
+    DD(2,3) = factor*dTdrhoet + half*gm1*T*dM2drhoet
 
     dPdrho   = half*gm1*u**2
     dPdrhou  = -gm1*u
@@ -95,8 +95,8 @@ contains
 
     DD = -DD
 
-    RHS(1) = T*factor - to
-    RHS(2) = cc_in(2)/cc_in(1) - two*cc_1(2)/cc_1(1) + cc_2(2)/cc_2(1)
+    RHS(1) = cc_in(2)/cc_in(1) - two*cc_1(2)/cc_1(1) + cc_2(2)/cc_2(1)
+    RHS(2) = T*factor - to
     RHS(3) = p*factor**gxgm1 - po
 
 
