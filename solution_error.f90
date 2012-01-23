@@ -40,7 +40,8 @@ contains
 
     continue
 
-    i_min = minloc(area_cc)
+    i_min = minloc(area_cc(2:cells+1))
+    print*, i_min
     i_throat = i_min(1)
 
 ! calculate exact mach/area solution
