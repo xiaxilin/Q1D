@@ -91,38 +91,46 @@ contains
 
     continue
 
-    A(:,:) = DD(:,:,1)
-    y(:,1) = RHS(:,1)
+! Normalize the first row...
+!    call matrix_inv(neq, DD(:,:,1), temp)
+    call mat_inv_3x3(DD(:,:,1), temp)
 
+    DD(:,:,1)  = matmul(temp,DD(:,:,1))
+    UD(:,:,1)  = matmul(temp,UD(:,:,1))
+    UD2(:,:,1) = matmul(temp,UD2(:,:,1))
+    RHS(:,1)   = matmul(temp,RHS(:,1))
+
+! Eliminate the L2 diagonal
     do i = 3, dof
-
-
-
+      LD(:,:,i) = LD(:,:,i) - matmul(LD2(:,:,i), DD(:,:,i-1))
+      DD(:,:,i) = DD(:,:,i) - matmul(LD2(:,:,i), UD(:,:,i-1))
+      UD(:,:,i) = UD(:,:,i) - matmul(LD2(:,:,i), UD2(:,:,i-1))
+      RHS(:,i)  = RHS(:,i)  - matmul(LD2(:,:,i), RHS(:,i-1))
     end do
 
+! Loop to eliminate lower subdiagonal and then normalize the row
     do i = 2, dof
-      AT = transpose(A)
-!      call matrix_inv(neq, AT, AT_inv)
-      call mat_inv_3x3(AT, AT_inv)
 
-      DD(:,:,i-1) = transpose(AT_inv)
-      temp = transpose( matmul( AT_inv, transpose(LD(:,:,i)) ) )
+      DD(:,:,i) = DD(:,:,i) - matmul(LD(:,:,i), UD(:,:,i-1))
+      UD(:,:,i) = UD(:,:,i) - matmul(LD(:,:,i), UD2(:,:,i-1))
+      RHS(:,i)  = RHS(:,i)  - matmul(LD(:,:,i), RHS(:,i-1))
 
-      A      = DD(:,:,i) - matmul(temp, UD(:,:,i-1))
-      y(:,i) = RHS(:,i)  - matmul(temp, y(:,i-1))
+!      call matrix_inv(neq, DD(:,:,i), temp)
+      call mat_inv_3x3(DD(:,:,i), temp)
+
+      DD(:,:,i)  = matmul(temp,DD(:,:,i))
+      UD(:,:,i)  = matmul(temp,UD(:,:,i))
+      UD2(:,:,i) = matmul(temp,UD2(:,:,i))
+      RHS(:,i)   = matmul(temp,RHS(:,i))
     end do
 
-!    call matrix_inv(neq, A, AT_inv)
-    call mat_inv_3x3(AT, AT_inv)
-    soln(:,dof) = matmul(AT_inv, y(:,dof))
-
-
-
-!    soln(:,dof-1) = matmul( XXX, &
-!                    RHS(:,dof-1) - matmul(UD(:,:,dof-1), soln(:,dof)) )
+! Back solve... since the diagonal is an identity matrix this is easy
+    soln(:,dof)   = RHS(:,dof)
+    soln(:,dof-1) = RHS(:,dof-1) - matmul(UD(:,:,dof-1), soln(:,dof))
 
     do i = dof-2,1,-1
-      soln(:,i) = matmul( DD(:,:,i), (y(:,i) - matmul(UD(:,:,i), soln(:,i+1))) )
+      soln(:,i) = RHS(:,i)                                                     &
+        - matmul(UD(:,:,i), soln(:,i+1)) - matmul(UD2(:,:,i), soln(:,i+2))
     end do
 
   end subroutine pentablocksolve
