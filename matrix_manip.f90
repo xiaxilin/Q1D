@@ -16,9 +16,10 @@ module matrix_manip
 
 contains
 
-!=============================== triblocksolve ===============================80
+!============================== triblocksolve ================================80
 !
 ! Uses the Thomas algorithm to solve a generic block tridiagonal system
+! Destroys the DD, UD, RHS matrices
 !
 !=============================================================================80
   subroutine triblocksolve(neq, dof, LD, DD, UD, RHS, soln)
@@ -32,6 +33,57 @@ contains
     real(dp), dimension(neq,dof),     intent(inout) :: RHS
     real(dp), dimension(neq,dof),     intent(out)   :: soln
 
+    integer                      :: i
+    real(dp), dimension(neq,neq) :: temp
+
+    continue
+
+! Normalize the first row...
+!    call matrix_inv(neq, DD(:,:,1), temp)
+    call mat_inv_3x3(DD(:,:,1), temp)
+
+    DD(:,:,1) = matmul(temp,DD(:,:,1))
+    UD(:,:,1) = matmul(temp,UD(:,:,1))
+    RHS(:,1)  = matmul(temp,RHS(:,1))
+
+! Loop to eliminate lower diagonal and then normalize the row
+    do i = 2, dof
+      DD(:,:,i) = DD(:,:,i) - matmul(LD(:,:,i), UD(:,:,i-1))
+      RHS(:,i)  = RHS(:,i)  - matmul(LD(:,:,i), RHS(:,i-1))
+
+!      call matrix_inv(neq, DD(:,:,i), temp)
+      call mat_inv_3x3(DD(:,:,i), temp)
+
+      DD(:,:,i) = matmul(temp,DD(:,:,i))
+      UD(:,:,i) = matmul(temp,UD(:,:,i))
+      RHS(:,i)  = matmul(temp,RHS(:,i))
+    end do
+
+! Back solve... since the diagonal is an identity matrix this is easy
+    soln(:,dof) = RHS(:,dof)
+
+    do i = dof-1,1,-1
+      soln(:,i) = RHS(:,i) - matmul(UD(:,:,i), soln(:,i+1))
+    end do
+
+  end subroutine triblocksolve
+
+!============================== pentablocksolve ==============================80
+!
+! Uses a modified Thomas algorithm to solve a generic block pentadiagonal system
+!
+!=============================================================================80
+  subroutine pentablocksolve(neq, dof, LD2, LD, DD, UD, UD2, RHS, soln)
+
+    use set_precision, only : dp
+
+    implicit none
+
+    integer,                          intent(in)    :: neq, dof
+    real(dp), dimension(neq,neq,dof), intent(inout) :: LD2, LD, DD, UD, UD2
+    real(dp), dimension(neq,dof),     intent(inout) :: RHS
+    real(dp), dimension(neq,dof),     intent(out)   :: soln
+
     integer :: i
 
     real(dp), dimension(neq,dof) :: y
@@ -41,6 +93,12 @@ contains
 
     A(:,:) = DD(:,:,1)
     y(:,1) = RHS(:,1)
+
+    do i = 3, dof
+
+      
+
+    end do
 
     do i = 2, dof
       AT = transpose(A)
@@ -58,11 +116,16 @@ contains
     call mat_inv_3x3(AT, AT_inv)
     soln(:,dof) = matmul(AT_inv, y(:,dof))
 
-    do i = dof-1,1,-1
+    
+
+!    soln(:,dof-1) = matmul( XXX, &
+!                    RHS(:,dof-1) - matmul(UD(:,:,dof-1), soln(:,dof)) )
+
+    do i = dof-2,1,-1
       soln(:,i) = matmul( DD(:,:,i), (y(:,i) - matmul(UD(:,:,i), soln(:,i+1))) )
     end do
 
-  end subroutine triblocksolve
+  end subroutine pentablocksolve
 
 !================================= ludcmp ====================================80
 !
@@ -231,15 +294,15 @@ contains
     continue
 
     inv(1,1) = mat(2,2)*mat(3,3)-mat(2,3)*mat(3,2)
-    inv(1,2) = mat(1,3)*mat(3,2)-mat(1,2)*mat(3,3)
-    inv(1,3) = mat(1,2)*mat(2,3)-mat(1,3)*mat(2,2)
-
     inv(2,1) = mat(2,3)*mat(3,1)-mat(2,1)*mat(3,3)
-    inv(2,2) = mat(1,1)*mat(3,3)-mat(1,3)*mat(3,1)
-    inv(2,3) = mat(1,3)*mat(2,1)-mat(1,1)*mat(2,3)
-
     inv(3,1) = mat(2,1)*mat(3,2)-mat(2,2)*mat(3,1)
+
+    inv(1,2) = mat(1,3)*mat(3,2)-mat(1,2)*mat(3,3)
+    inv(2,2) = mat(1,1)*mat(3,3)-mat(1,3)*mat(3,1)
     inv(3,2) = mat(1,2)*mat(3,1)-mat(1,1)*mat(3,2)
+
+    inv(1,3) = mat(1,2)*mat(2,3)-mat(1,3)*mat(2,2)
+    inv(2,3) = mat(1,3)*mat(2,1)-mat(1,1)*mat(2,3)
     inv(3,3) = mat(1,1)*mat(2,2)-mat(1,2)*mat(2,1)
 
     inv = inv/det_3x3(mat)
