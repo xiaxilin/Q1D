@@ -1,10 +1,9 @@
 Quasi-1D Nozzle Suite
 
-Executables: q1d, g1d_grid ! FIXME: q1d_exact q1d_dual don't exist yet !
+Executables: q1d, g1d_grid ! FIXME: q1d_dual don't exist yet !
 
 q1d_grid  : grid generator
 q1d       : primal solver
-q1d_exact : exact primal solution
 q1d_dual  : dual solver
 
 Written in Fortran 9X/0X by Joe Derlaga
@@ -30,7 +29,7 @@ Flux schemes:
 Central Difference ( unstable, included for rigor! )
 Cent. Diff + JST Damping
 Roe's FDS
-van Leer FVS
+van Leer FVS, currently the only implicit LHS formulation
 Steger-Warming FVS
 AUSM
 HLLC ( to be added! )
@@ -79,8 +78,11 @@ Files:
   q1d.rst == restart file
   q1d.hst == convergence history file
 
-  q1d_lines.tec == tecplot XY formatted data file
-  q1d_cells.tec == tecplot cell-centered color plot file
+  q1d_lines.dat      == tecplot XY formatted data file
+  q1d_exact_soln.dat == tecplot XY formatted file with exact solution, DE, & TE
+  q1d_entropy.dat    == tecplot XY entropy and entropy adjoint vars
+  q1d_cells.tec      == tecplot cell-centered color plot file,
+                        FIXME: doesn't exist
 
 Example unit-tests will be added.
 
