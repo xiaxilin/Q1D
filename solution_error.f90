@@ -12,6 +12,13 @@ module solution_error
 
 contains
 
+!============================ calculate_exact_soln ===========================80
+!
+! Calculates the exact solution for a converging-diverging quasi-1D nozzle
+! FIXME: needs to be fixed to work with subsonic outflow
+!
+!=============================================================================80
+
   subroutine calculate_exact_soln(cells, x_cc, area_cc, a_star, cons_cc)
 
     use set_precision,   only : dp
@@ -21,13 +28,13 @@ contains
 
     implicit none
 
-    integer,                      intent(in) :: cells
-    real(dp), dimension(cells+2), intent(in) :: x_cc
-    real(dp), dimension(cells+2), intent(in) :: area_cc
-    real(dp),                     intent(in) :: a_star
+    integer,                        intent(in) :: cells
+    real(dp), dimension(cells+2),   intent(in) :: x_cc
+    real(dp), dimension(cells+2),   intent(in) :: area_cc
+    real(dp),                       intent(in) :: a_star
     real(dp), dimension(3,cells+2), intent(in) :: cons_cc
 
-    integer               :: i, i_throat
+    integer               :: i, i_throat, unit
     integer, dimension(1) :: i_min      ! needed for minloc function
 
     real(dp) :: asnd      ! Define type for speed of sound function
@@ -73,30 +80,36 @@ contains
                       * speed_of_sound(soln_exact(3,i), soln_exact(1,i))
     end do
 
+    unit = find_available_unit()
+
 ! set up output file for exact solution
-    open(57,file='q1d_exact_solution.dat',status='unknown')
-    write(57,*) 'TITLE = "Quasi-1D Nozzle: Exact Isentropic Solution"'
-    write(57,*) 'variables="x(m)""Area(m^2)""rho(kg/m^3)""u(m/s)""Press(N/m^2)"&
-              & "U1""U2""U3""DE1""DE2""DE3"'
-    write(57,*) 'ZONE T="Exact Isentropic Nozzle Solution"'
-    write(57,*) 'DT=(DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE&
-               & DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE)'
+    open(unit,file='q1d_exact_solution.dat',status='replace')
+    write(unit,*) 'TITLE = "Quasi-1D Nozzle: Exact Isentropic Solution"'
+    write(unit,*) 'variables="x(m)""Area(m^2)""rho(kg/m^3)""u(m/s)"&
+                  & "Press(N/m^2)""U1""U2""U3""DE1""DE2""DE3"'
+    write(unit,*) 'ZONE T="Exact Isentropic Nozzle Solution"'
+    write(unit,*) 'DT=(DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE&
+                  & DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE)'
 
     do i = 2, cells+1
       cons_exact = primitive_to_conserved_1D(soln_exact(:,i))
-      write(57,*) x_cc(i), area_cc(i),                                         &
-                  soln_exact(1,i), soln_exact(2,i), soln_exact(3,i),           &
-                  cons_exact(1), cons_exact(2), cons_exact(3),                 &
-                  cons_cc(1,i)-cons_exact(1), cons_cc(2,i)-cons_exact(2), &
-                  cons_cc(3,i)-cons_exact(3)
+      write(unit,*) x_cc(i), area_cc(i),                                       &
+                    soln_exact(1,i), soln_exact(2,i), soln_exact(3,i),         &
+                    cons_exact(1), cons_exact(2), cons_exact(3),               &
+                    cons_cc(1,i)-cons_exact(1), cons_cc(2,i)-cons_exact(2),    &
+                    cons_cc(3,i)-cons_exact(3)
     end do
 
-    close(57)
+    close(unit)
 
   end subroutine calculate_exact_soln
 
-
-!******************************************************************************
+!=============================== mach_from_area ==============================80
+!
+! Helper function to calculate Mach from area
+! FIXME: Consider passing mach to speed convergence
+!
+!=============================================================================80
 
   function mach_from_area(a_over_a_star, mach_init, mach_flag)
 
@@ -106,11 +119,11 @@ contains
 
     implicit none
 
-    real(dp) :: Mach_From_Area
-    real(dp) :: A_over_A_star    ! Ratio of local area to throat area
-    real(dp) :: mach_init        ! (INPUT) Initial Mach number
-    integer  :: mach_flag        ! (INPUT) Mach number flag: = 0 for subsonic,
-                                 !                           = 1 for supersonic
+    real(dp), intent(in)    :: A_over_A_star !Ratio of local area to throat area
+    real(dp), intent(inout) :: mach_init  ! Initial Mach number
+    integer,  intent(in)    :: mach_flag  ! Mach number flag: = 0 for subsonic,
+                                          !                   = 1 for supersonic
+    real(dp) :: mach_from_area
 
     integer  :: niter            ! outer iterations for Mach-Area relation
     integer  :: niter_max = 500  ! Max outer iterations
@@ -158,5 +171,6 @@ contains
 
   include 'speed_of_sound.f90'
   include 'primitive_to_conserved_1D.f90'
+  include 'find_available_unit.f90'
 
 end module solution_error
