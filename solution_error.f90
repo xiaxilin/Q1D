@@ -79,7 +79,7 @@ contains
     write(57,*) 'ZONE T="Exact Isentropic Nozzle Solution"'
     write(57,*) 'DT=(DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE&
                & DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE)'
- 
+
     do i = 2, cells+1
       cons_exact = primitive_to_conserved_1D(soln_exact(:,i))
       write(57,*) x_cc(i), area_cc(i),                                         &
@@ -104,7 +104,7 @@ contains
 
     implicit none
 
-    real(dp) :: Mach_From_Area  
+    real(dp) :: Mach_From_Area
     real(dp) :: A_over_A_star    ! Ratio of local area to throat area
     real(dp) :: mach_init        ! (INPUT) Initial Mach number
     integer  :: mach_flag        ! (INPUT) Mach number flag: = 0 for subsonic,
@@ -133,7 +133,7 @@ contains
         mach = abs(mach)
         if(abs(funct).le.tolerance) exit  ! Newton iteration has converged
       end do
-    
+
 ! Check to make sure appropriate root (subsonic or supersonic) has been chosen
       if( ((mach_flag == 0).and.(mach > 1.0)) .or.                            &
           ((mach_flag == 1).and.(mach < 1.0)) ) then
@@ -149,7 +149,7 @@ contains
         exit  ! Converged solution is correct root (subsonic or supersonic)
       end if
     end do
-  
+
     mach_from_area = mach
 
   end function mach_from_area
