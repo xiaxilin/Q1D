@@ -11,6 +11,11 @@ Implicit Solver:
 Dividing through by cell_vol seems to have fixed CFL stability problem,
 still need to revisit time step definition.
 Can ramp/jump from low cfl to over 100 now.
+
+Can run 2nd order with a smooth limiter ( i.e., not minmod, superbee ),
+but convergence will stall depending on options... 
+might need to introduce limiter freezing?
+
 Need to nondimensionalize, the matrix structure for the flux Jacobians is:
 
 Row 1: O(1)
