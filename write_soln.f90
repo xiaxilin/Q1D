@@ -59,7 +59,7 @@ contains
 
     continue
 
-    open(line_unit, file='q1d_lines.tec', status='replace')
+    open(line_unit, file='q1d_lines.dat', status='replace')
     close(line_unit)
 
   end subroutine init_write_files
@@ -86,7 +86,7 @@ contains
 
     line_unit = find_available_unit()
 
-    open(line_unit, file='q1d_lines.tec', access='append', status='old')
+    open(line_unit, file='q1d_lines.dat', access='append', status='old')
 
     write(line_unit,*) 'VARIABLES = "X_cc", "rho", "U", "P", "rho*U", "rho*E"'
     write(line_unit,*) 'ZONE DATAPACKING=BLOCK, I=', cells
@@ -135,7 +135,7 @@ contains
 
     entropy_unit = find_available_unit()
 
-    open(entropy_unit, file='q1d_entropy.tec', status='replace')
+    open(entropy_unit, file='q1d_entropy.dat', status='replace')
 
     write(entropy_unit,*) 'VARIABLES = "X_cc", "entropy", "S1", "S2", "S3"'
     write(entropy_unit,*) 'ZONE DATAPACKING=BLOCK, I=', cells
