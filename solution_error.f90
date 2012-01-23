@@ -15,9 +15,9 @@ contains
   subroutine calculate_exact_soln(cells, x_cc, area_cc, a_star, cons_cc)
 
     use set_precision,   only : dp
-    use set_constants,   only : half, one, two
+    use set_constants,   only : zero, half, one, two
     use fluid_constants, only : gm1, xgm1, gxgm1, r
-    use initialize_soln, only : to, po
+    use initialize_soln, only : to, po, pback
 
     implicit none
 
@@ -41,7 +41,6 @@ contains
     continue
 
     i_min = minloc(area_cc(2:cells+1))
-    print*, i_min
     i_throat = i_min(1)
 
 ! calculate exact mach/area solution
@@ -61,6 +60,9 @@ contains
 ! once the isentropic solution has been found, check for shocked case
 ! need Pb and Ae for this
 
+    if (pback > zero) then
+    end if
+
 ! once the mach/area solution has been found, calculate the primitive variables
     do i = 2, cells+1
       psi = one + half*gm1*mach_exact(i)**2
@@ -72,7 +74,7 @@ contains
     end do
 
 ! set up output file for exact solution
-    open(57,file='Exact-Solution.tec',status='unknown')
+    open(57,file='q1d_exact_solution.dat',status='unknown')
     write(57,*) 'TITLE = "Quasi-1D Nozzle: Exact Isentropic Solution"'
     write(57,*) 'variables="x(m)""Area(m^2)""rho(kg/m^3)""u(m/s)""Press(N/m^2)"&
               & "U1""U2""U3""DE1""DE2""DE3"'
