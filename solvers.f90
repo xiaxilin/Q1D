@@ -256,7 +256,7 @@ module solvers
 
       end do
 
-! Outflow, modify according to bc
+! Outflow
       call set_outflow(cons_cc(:,cells+2),cons_cc(:,cells+1),cons_cc(:,cells), &
                        D(:,:,cells+2), L(:,:,cells+2), U(:,:,cells+2),         &
                        RHS(:,cells+2) )
