@@ -27,6 +27,7 @@ Makefile
 *.rst
 *.grd
 *.tec
+*.dat
 *.phy
 
 q1d
