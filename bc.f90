@@ -11,7 +11,7 @@ module bc
   private
 
   public :: subsonic_inflow
-  public :: supersonic_outflow
+  public :: set_outflow
 
 contains
 
@@ -107,11 +107,12 @@ contains
 ! Creates matrices for variable extrapolation
 !
 !=============================================================================80
-  subroutine supersonic_outflow(cc_out, cc_1, cc_2, DD, DL1, DL2, RHS)
+  subroutine set_outflow(cc_out, cc_1, cc_2, DD, DL1, DL2, RHS)
 
     use set_precision,   only : dp
     use set_constants,   only : zero, half, one, two
     use fluid_constants, only : gm1
+    use initialize_soln, only : pback
 
     implicit none
 
@@ -171,7 +172,13 @@ contains
     RHS(2) = -u_out     + two*u_1     - u_2
     RHS(3) = -p_out     + two*p_1     - p_2
 
-  end subroutine supersonic_outflow
+    if (pback > zero) then
+      DL1(3,:) = zero
+      DL2(3,:) = zero
+      RHS(3) = pback - p_out
+    end if
+
+  end subroutine set_outflow
 
   include 'speed_of_sound.f90'
 

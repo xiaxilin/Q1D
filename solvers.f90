@@ -166,7 +166,7 @@ module solvers
     use set_precision,   only : dp
     use set_constants,   only : zero, half, one, two
     use fluid_constants, only : gm1
-    use bc,              only : subsonic_inflow, supersonic_outflow
+    use bc,              only : subsonic_inflow, set_outflow
     use jacobians,       only : jac_source_1D, jac_vanleer_1D
     use matrix_manip,    only : triblocksolve, mat_inv_3x3, matrix_inv
     use write_soln,      only : write_soln_line
@@ -257,10 +257,9 @@ module solvers
       end do
 
 ! Outflow, modify according to bc
-      call supersonic_outflow( cons_cc(:,cells+2), cons_cc(:,cells+1),         &
-                               cons_cc(:,cells),                               &
-                               D(:,:,cells+2), L(:,:,cells+2), U(:,:,cells+2), &
-                               RHS(:,cells+2) )
+      call set_outflow(cons_cc(:,cells+2),cons_cc(:,cells+1),cons_cc(:,cells), &
+                       D(:,:,cells+2), L(:,:,cells+2), U(:,:,cells+2),         &
+                       RHS(:,cells+2) )
 
 ! Modify matrix to maintain block tridiagonal structure
 ! Needs to be made a subroutine...
