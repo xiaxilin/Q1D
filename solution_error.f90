@@ -83,7 +83,7 @@ contains
     unit = find_available_unit()
 
 ! set up output file for exact solution
-    open(unit,file='q1d_exact_solution.dat',status='replace')
+    open(unit,file='q1d_exact_soln.dat',status='replace')
     write(unit,*) 'TITLE = "Quasi-1D Nozzle: Exact Isentropic Solution"'
     write(unit,*) 'variables="x(m)""Area(m^2)""rho(kg/m^3)""u(m/s)"&
                   & "Press(N/m^2)""U1""U2""U3""DE1""DE2""DE3"'
