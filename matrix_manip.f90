@@ -96,7 +96,7 @@ contains
 
     do i = 3, dof
 
-      
+
 
     end do
 
@@ -106,7 +106,7 @@ contains
       call mat_inv_3x3(AT, AT_inv)
 
       DD(:,:,i-1) = transpose(AT_inv)
-      temp = transpose( matmul( AT_inv, transpose(LD(:,:,i)) ) ) 
+      temp = transpose( matmul( AT_inv, transpose(LD(:,:,i)) ) )
 
       A      = DD(:,:,i) - matmul(temp, UD(:,:,i-1))
       y(:,i) = RHS(:,i)  - matmul(temp, y(:,i-1))
@@ -116,7 +116,7 @@ contains
     call mat_inv_3x3(AT, AT_inv)
     soln(:,dof) = matmul(AT_inv, y(:,dof))
 
-    
+
 
 !    soln(:,dof-1) = matmul( XXX, &
 !                    RHS(:,dof-1) - matmul(UD(:,:,dof-1), soln(:,dof)) )

@@ -2,9 +2,9 @@ Very close to having the adjoint solver puzzled out
 Need to finish the exact solution code
 
 Explicit Solver:
-Does not converge if mref < 1.0, 
+Does not converge if mref < 1.0,
 velocity is allowed to go negative which could be the problem.
-Some problems with coarse grid convergence... 
+Some problems with coarse grid convergence...
 could just be a van Leer FVS dissipation problem, but need to analyze
 
 Implicit Solver:
@@ -13,7 +13,7 @@ still need to revisit time step definition.
 Can ramp/jump from low cfl to over 100 now.
 
 Can run 2nd order with a smooth limiter ( i.e., not minmod, superbee ),
-but convergence will stall depending on options... 
+but convergence will stall depending on options...
 might need to introduce limiter freezing?
 
 Need to nondimensionalize, the matrix structure for the flux Jacobians is:
