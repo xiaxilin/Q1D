@@ -2,6 +2,11 @@
 ! This module will hold the routines necessary to calculate the exact soln,
 ! form the DE error norms, and calculate the TE.
 
+! FIXME: needs to be fixed to work with subsonic outflow
+! FIXME: change subsonic/supersonic flag so that it is calculated from the 
+!        computed solution as well as mach_init
+! FIXME: search area_f and area_cc for throat area
+
 module solution_error
 
   implicit none
@@ -15,11 +20,10 @@ contains
 !============================ calculate_exact_soln ===========================80
 !
 ! Calculates the exact solution for a converging-diverging quasi-1D nozzle
-! FIXME: needs to be fixed to work with subsonic outflow
 !
 !=============================================================================80
 
-  subroutine calculate_exact_soln(cells, x_cc, area_cc, a_star, cons_cc)
+  subroutine calculate_exact_soln(cells, x_cc, area_cc, a_star, a_e, cons_cc)
 
     use set_precision,   only : dp
     use set_constants,   only : zero, half, one, two
@@ -32,6 +36,7 @@ contains
     real(dp), dimension(cells+2),   intent(in) :: x_cc
     real(dp), dimension(cells+2),   intent(in) :: area_cc
     real(dp),                       intent(in) :: a_star
+    real(dp),                       intent(in) :: a_e
     real(dp), dimension(3,cells+2), intent(in) :: cons_cc
 
     integer               :: i, i_throat, unit
@@ -64,7 +69,11 @@ contains
     end do
 
 ! once the isentropic solution has been found, check for shocked case
-! need Pb and Ae for this
+! algorithm...
+! the isentropic solution is known,
+! loop backwards (!) over mach exact to find post shock conditions,
+! find po2/po1 and from that calculate pb/po2
+! check to make sure the area ratio is close
 
     if (pback > zero) then
     end if

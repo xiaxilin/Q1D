@@ -60,7 +60,8 @@ program q1d_primal
   call write_entropy(cells, x_cc, prim_cc, cons_cc)
 
 ! get exact solution and plot it
-  call calculate_exact_soln(cells, x_cc, area_cc, 0.2_dp, cons_cc)
+  call calculate_exact_soln(cells, x_cc, area_cc, 0.2_dp,                      &
+                            area_f(cells+1), cons_cc)
 
 ! free memory
   call deallocate_grid
