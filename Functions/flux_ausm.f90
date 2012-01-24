@@ -33,7 +33,7 @@
   else
     Mlold = Ml
     Ml = half*(Ml+abs(Ml))
-    PL = PL*Ml/Mlold	
+    PL = PL*Ml/Mlold
   end if
 
 !Calculate right (-) state
