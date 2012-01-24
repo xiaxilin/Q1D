@@ -1,3 +1,5 @@
+! FIXME: need to fix cell_jacobian/dx term
+
 module solvers
 
   use set_precision, only : dp
@@ -181,22 +183,13 @@ module solvers
 
     integer  :: n, cell
 
-    real(dp)                         :: cell_jac
     real(dp), dimension(cells+2)     :: dt
     real(dp), dimension(3,cells+2)   :: RHS, delta_cons_cc
-    real(dp), dimension(3,3)         :: source_jac
-    real(dp), dimension(3,3)         :: left_jac_L, right_jac_L
-    real(dp), dimension(3,3)         :: left_jac_C, right_jac_C
-    real(dp), dimension(3,3)         :: left_jac_R, right_jac_R
     real(dp), dimension(3,3,cells+2) :: L, D, U
 
     logical :: convergence_flag = .false.
-    real(dp), dimension(3,3) :: ident3x3
 
     continue
-
-    ident3x3 = reshape( (/one, zero, zero, zero, one, zero, zero, zero, one/) ,&
-                        (/3,3/) )
 
     do n = 0, iterations
 
@@ -219,43 +212,16 @@ module solvers
         end if
       end if
 
+! Account for sign since the residual is moved to the RHS
       RHS = -RHS
 
-! Now form LHS.... should be a subroutine
-
+! Form LHS
+      call fill_lhs( cells, dxsi, dxdxsi_cc, area_cc, area_f, dadx_cc, dt,     &
+                     cons_cc, L, D, U, RHS )
+! Take care of BC's
 ! Inflow, modify according to bc
       call subsonic_inflow( cons_cc(:,1), cons_cc(:,2), cons_cc(:,3),          &
                             D(:,:,1), U(:,:,1), L(:,:,1), RHS(:,1) )
-
-! calculate Jacobians for inflow face
-
-!      call fill_lhs( cells, dxsi, dxdxsi_cc, cons_cc, L, D, U, RHS )
-
-      call jac_vanleer_1D( cons_cc(:,1), cons_cc(:,2), right_jac_L, left_jac_C)
-
-      do cell = 2, cells+1
-
-        cell_jac = dxdxsi_cc(cell)*dxsi
-
-        call jac_vanleer_1D( cons_cc(:,cell), cons_cc(:,cell+1),               &
-                             right_jac_C, left_jac_R )
-
-        call jac_source_1D(prim_cc(2,cell), dadx_cc(cell), cell_jac, source_jac)
-
-        L(:,:,cell) = -right_jac_L*area_f(cell-1)/cell_jac
-        D(:,:,cell) = ident3x3*area_cc(cell)/dt(cell)                          &
-                    + ( right_jac_C*area_f(cell)-left_jac_C*area_f(cell-1)     &
-                    -  source_jac )/cell_jac
-        U(:,:,cell) =  left_jac_R*area_f(cell)/cell_jac
-
-        RHS(:,cell) = RHS(:,cell)/cell_jac
-
-! shift Jacobians to avoid recalculation
-
-        right_jac_L = right_jac_C
-        left_jac_C  = left_jac_R
-
-      end do
 
 ! Outflow
       call set_outflow(cons_cc(:,cells+2),cons_cc(:,cells+1),cons_cc(:,cells), &
@@ -400,6 +366,67 @@ module solvers
     end do
 
   end subroutine create_residual
+
+!=============================================================================80
+!
+!
+!
+!=============================================================================80
+
+  subroutine fill_lhs( cells, dxsi, dxdxsi_cc, area_cc, area_f, dadx_cc, dt, &
+                       cons_cc, L, D, U, RHS )
+
+    use set_precision, only : dp
+    use set_constants, only : zero, one
+    use jacobians,     only : jac_source_1D, jac_vanleer_1D
+
+    implicit none
+
+    integer,                          intent(in)    :: cells
+    real(dp),                         intent(in)    :: dxsi
+    real(dp), dimension(cells+2),     intent(in)    :: area_cc, area_f, dadx_cc
+    real(dp), dimension(cells+2),     intent(in)    :: dxdxsi_cc, dt
+    real(dp), dimension(3,cells+2),   intent(in)    :: cons_cc
+    real(dp), dimension(3,3,cells+2), intent(out)   :: L, D, U
+    real(dp), dimension(3, cells+2),  intent(inout) :: RHS
+
+    integer                  :: cell
+    real(dp)                 :: cell_jac
+    real(dp), dimension(3,3) :: ident3x3, source_jac
+    real(dp), dimension(3,3) :: right_jac_L, left_jac_C, right_jac_C, left_jac_R
+
+    continue
+
+    ident3x3 = reshape( (/one, zero, zero, zero, one, zero, zero, zero, one/) ,&
+                        (/3,3/) )
+
+    call jac_vanleer_1D( cons_cc(:,1), cons_cc(:,2), right_jac_L, left_jac_C)
+
+    do cell = 2, cells+1
+
+      cell_jac = dxdxsi_cc(cell)*dxsi
+
+      call jac_vanleer_1D( cons_cc(:,cell), cons_cc(:,cell+1),                 &
+                           right_jac_C, left_jac_R )
+
+      call jac_source_1D( cons_cc(2,cell)/cons_cc(1,cell), dadx_cc(cell),      &
+                          cell_jac, source_jac )
+
+      L(:,:,cell) = -right_jac_L*area_f(cell-1)/cell_jac
+      D(:,:,cell) = ident3x3*area_cc(cell)/dt(cell)                            &
+                  + ( right_jac_C*area_f(cell)-left_jac_C*area_f(cell-1)       &
+                  -  source_jac )/cell_jac
+      U(:,:,cell) =  left_jac_R*area_f(cell)/cell_jac
+
+      RHS(:,cell) = RHS(:,cell)/cell_jac
+
+! shift Jacobians to avoid recalculation
+      right_jac_L = right_jac_C
+      left_jac_C  = left_jac_R
+
+    end do
+
+  end subroutine fill_lhs
 
 !=============================================================================80
 !
