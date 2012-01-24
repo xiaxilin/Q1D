@@ -76,7 +76,6 @@ module solvers
     real(dp), dimension(cells+2),   intent(in)    :: x_cc
 
     integer  :: n, rk, cell, eq
-    real(dp) :: dt_global
     real(dp), dimension(3,cells+2) :: cons_cc_0, residual
     real(dp), dimension(cells+2)   :: dt
 
@@ -94,7 +93,7 @@ module solvers
 
       rk_loop : do rk = 1, rkorder
         call create_residual( cells, faces, n, dxsi, prim_cc, cons_cc,         &
-                              area_f, area_cc, dadx_cc, dxdxsi_cc, residual )
+                              area_f, dadx_cc, dxdxsi_cc, residual )
 
 ! perform explicit iterations on interior cells
 
@@ -182,10 +181,10 @@ module solvers
 
     integer  :: n, cell
 
-    real(dp)                         :: cell_vol, cell_jac
+    real(dp)                         :: cell_jac
     real(dp), dimension(cells+2)     :: dt
     real(dp), dimension(3,cells+2)   :: RHS, delta_cons_cc
-    real(dp), dimension(3,3)         :: inv, source_jac
+    real(dp), dimension(3,3)         :: source_jac
     real(dp), dimension(3,3)         :: left_jac_L, right_jac_L
     real(dp), dimension(3,3)         :: left_jac_C, right_jac_C
     real(dp), dimension(3,3)         :: left_jac_R, right_jac_R
@@ -209,7 +208,7 @@ module solvers
 
 ! Form RHS
       call create_residual( cells, faces, n, dxsi, prim_cc, cons_cc,           &
-                            area_f, area_cc, dadx_cc, dxdxsi_cc, RHS)
+                            area_f, dadx_cc, dxdxsi_cc, RHS)
 
       if (mod(n,itercheck) == 0) then
         call check_convergence(cells, n, RHS, convergence_flag)
@@ -363,7 +362,7 @@ module solvers
 !=============================================================================80
 
   subroutine create_residual( cells, faces, iteration, dxsi, prim_cc, cons_cc, &
-                              area_f, area_cc, dadx_cc, dxdxsi_cc, residual )
+                              area_f, dadx_cc, dxdxsi_cc, residual )
 
     use set_precision, only : dp
     use set_constants, only : zero
@@ -375,7 +374,6 @@ module solvers
     real(dp), dimension(3,cells+2), intent(in)  :: prim_cc
     real(dp), dimension(3,cells+2), intent(in)  :: cons_cc
     real(dp), dimension(faces),     intent(in)  :: area_f
-    real(dp), dimension(cells+2),   intent(in)  :: area_cc
     real(dp), dimension(cells+2),   intent(in)  :: dadx_cc
     real(dp), dimension(cells+2),   intent(in)  :: dxdxsi_cc
     real(dp), dimension(3,cells+2), intent(out) :: residual
@@ -478,7 +476,7 @@ module solvers
     real(dp) :: vel_max, psi
 
 ! testing
-    real(dp) :: rho0, h0, s0, p, u, temp, a2, ao2
+!    real(dp) :: rho0, h0, s0, p, u, temp, a2, ao2
 
     continue
 
@@ -495,11 +493,11 @@ module solvers
     cc_in(3) = po/psi**gxgm1
 
 ! to test another version...
-    ao2 = gamma*r*to
-    a2 = ao2 - gm1*half*cc_in(2)**2
-    temp = ao2/a2
+!    ao2 = gamma*r*to
+!    a2 = ao2 - gm1*half*cc_in(2)**2
+!    temp = ao2/a2
 
-    rho0 = po/(r*to)
+!    rho0 = po/(r*to)
 !    cc_in(1) = rho0*temp**gm1
 !    cc_in(3) = po*temp**(gm1/gamma)
 
