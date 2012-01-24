@@ -84,10 +84,8 @@ contains
     real(dp), dimension(neq,dof),     intent(inout) :: RHS
     real(dp), dimension(neq,dof),     intent(out)   :: soln
 
-    integer :: i
-
-    real(dp), dimension(neq,dof) :: y
-    real(dp), dimension(neq,neq) :: A, AT, AT_inv, temp
+    integer                      :: i
+    real(dp), dimension(neq,neq) :: temp
 
     continue
 
