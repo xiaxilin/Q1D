@@ -3,7 +3,7 @@
 ! form the DE error norms, and calculate the TE.
 
 ! FIXME: needs to be fixed to work with subsonic outflow
-! FIXME: change subsonic/supersonic flag so that it is calculated from the 
+! FIXME: change subsonic/supersonic flag so that it is calculated from the
 !        computed solution as well as mach_init
 ! FIXME: search area_f and area_cc for throat area
 
