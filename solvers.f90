@@ -229,6 +229,8 @@ module solvers
 
 ! calculate Jacobians for inflow face
 
+!      call fill_lhs( cells, dxsi, dxdxsi_cc, cons_cc, L, D, U, RHS )
+
       call jac_vanleer_1D( cons_cc(:,1), cons_cc(:,2), right_jac_L, left_jac_C)
 
       do cell = 2, cells+1
