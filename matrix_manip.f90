@@ -115,7 +115,7 @@ contains
       DD(:,:,i)  = matmul(temp,DD(:,:,i))
       UD(:,:,i)  = matmul(temp,UD(:,:,i))
       UD2(:,:,i) = matmul(temp,UD2(:,:,i))
-      RHS(:,i)   = matmul(temp,RHS(:,i))      
+      RHS(:,i)   = matmul(temp,RHS(:,i))
     end do
 
 ! Normalize the first row...
@@ -128,7 +128,7 @@ contains
     RHS(:,1)   = matmul(temp,RHS(:,1))
 
 ! At this point, the lower diagonal is all identity matrices,
-! and the first diagonal matrix is an identity matrix, 
+! and the first diagonal matrix is an identity matrix,
 ! so just subtract row 1 from row 2, normalize and repeat
 
 ! Loop to eliminate lower subdiagonal and then normalize the row
