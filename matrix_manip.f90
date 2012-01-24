@@ -91,6 +91,33 @@ contains
 
     continue
 
+! Normalize the second row to make elimination easier
+!    call matrix_inv(neq, LD(:,:,2), temp)
+    call mat_inv_3x3(LD(:,:,2), temp)
+
+    LD(:,:,2)  = matmul(temp,LD(:,:,2))
+    DD(:,:,2)  = matmul(temp,DD(:,:,2))
+    UD(:,:,2)  = matmul(temp,UD(:,:,2))
+    UD2(:,:,2) = matmul(temp,UD2(:,:,2))
+    RHS(:,2)   = matmul(temp,RHS(:,2))
+
+! Eliminate the LD2 diagonal and normalize
+    do i = 3, dof
+      LD(:,:,i) = LD(:,:,i) - matmul(LD2(:,:,i), DD(:,:,i-1))
+      DD(:,:,i) = DD(:,:,i) - matmul(LD2(:,:,i), UD(:,:,i-1))
+      UD(:,:,i) = UD(:,:,i) - matmul(LD2(:,:,i), UD2(:,:,i-1))
+      RHS(:,i)  = RHS(:,i)  - matmul(LD2(:,:,i), RHS(:,i-1))
+
+!      call matrix_inv(neq, LD(:,:,2), temp)
+      call mat_inv_3x3(LD(:,:,i), temp)
+
+      LD(:,:,i)  = matmul(temp,LD(:,:,i))
+      DD(:,:,i)  = matmul(temp,DD(:,:,i))
+      UD(:,:,i)  = matmul(temp,UD(:,:,i))
+      UD2(:,:,i) = matmul(temp,UD2(:,:,i))
+      RHS(:,i)   = matmul(temp,RHS(:,i))      
+    end do
+
 ! Normalize the first row...
 !    call matrix_inv(neq, DD(:,:,1), temp)
     call mat_inv_3x3(DD(:,:,1), temp)
@@ -100,20 +127,16 @@ contains
     UD2(:,:,1) = matmul(temp,UD2(:,:,1))
     RHS(:,1)   = matmul(temp,RHS(:,1))
 
-! Eliminate the L2 diagonal
-    do i = 3, dof
-      LD(:,:,i) = LD(:,:,i) - matmul(LD2(:,:,i), DD(:,:,i-1))
-      DD(:,:,i) = DD(:,:,i) - matmul(LD2(:,:,i), UD(:,:,i-1))
-      UD(:,:,i) = UD(:,:,i) - matmul(LD2(:,:,i), UD2(:,:,i-1))
-      RHS(:,i)  = RHS(:,i)  - matmul(LD2(:,:,i), RHS(:,i-1))
-    end do
+! At this point, the lower diagonal is all identity matrices,
+! and the first diagonal matrix is an identity matrix, 
+! so just subtract row 1 from row 2, normalize and repeat
 
 ! Loop to eliminate lower subdiagonal and then normalize the row
     do i = 2, dof
 
-      DD(:,:,i) = DD(:,:,i) - matmul(LD(:,:,i), UD(:,:,i-1))
-      UD(:,:,i) = UD(:,:,i) - matmul(LD(:,:,i), UD2(:,:,i-1))
-      RHS(:,i)  = RHS(:,i)  - matmul(LD(:,:,i), RHS(:,i-1))
+      DD(:,:,i) = DD(:,:,i) - UD(:,:,i-1)
+      UD(:,:,i) = UD(:,:,i) - UD2(:,:,i-1)
+      RHS(:,i)  = RHS(:,i)  - RHS(:,i-1)
 
 !      call matrix_inv(neq, DD(:,:,i), temp)
       call mat_inv_3x3(DD(:,:,i), temp)
