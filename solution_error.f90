@@ -37,7 +37,6 @@ contains
     integer               :: i, i_throat, unit
     integer, dimension(1) :: i_min      ! needed for minloc function
 
-    real(dp) :: asnd      ! Define type for speed of sound function
     real(dp) :: psi       ! ( = T_0/T )
     real(dp) :: temp      ! (Temperature, T)
     real(dp) :: mach_init ! Initial Mach number
