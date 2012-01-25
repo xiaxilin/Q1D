@@ -2,7 +2,6 @@
 ! This module will hold the routines necessary to calculate the exact soln,
 ! form the DE error norms, and calculate the TE.
 
-! FIXME: needs to be fixed to work with subsonic outflow
 ! FIXME: change subsonic/supersonic flag so that it is calculated from the
 !        computed solution as well as mach_init
 ! FIXME: search area_f and area_cc for throat area
@@ -53,7 +52,7 @@ contains
     continue
 
     i_min = minloc(area_cc(2:cells+1))
-    i_throat = i_min(1)
+    i_throat = i_min(1) + 1
 
 ! calculate exact mach/area solution
     mach_init = 0.1_dp
@@ -83,15 +82,12 @@ contains
 
       M_1 = pre_shock_mach(ratio)
 
-! Use po_e/po  to find M1... Mach in front of the shock
-
-! Search backwards until mach_exact < M1 is found
-      do i = cells+1,i_throat+1,-1
+      shock_location : do i = cells+1,i_throat+1,-1
         if (mach_exact(i) <= M_1) then
-          i_shock = i+1
+          i_shock = i+1 ! Go upstream one cell to be post shock
           exit
         end if
-      end do
+      end do shock_location
 
       mach_init = (one + half*gm1*M_1**2)/(gamma*M_1**2-half*gm1)
 
@@ -115,24 +111,24 @@ contains
       soln_exact(1,i) = soln_exact(3,i)/( r*temp )
       soln_exact(2,i) = mach_exact(i) &
                       * speed_of_sound(soln_exact(3,i), soln_exact(1,i))
+
     end do
 
     unit = find_available_unit()
 
 ! set up output file for exact solution
     open(unit,file='q1d_exact_soln.dat',status='replace')
-    write(unit,*) 'TITLE = "Quasi-1D Nozzle: Exact Isentropic Solution"'
+    write(unit,*) 'TITLE = "Quasi-1D Nozzle: Exact Solution"'
     write(unit,*) 'variables="x(m)""Area(m^2)""rho(kg/m^3)""u(m/s)"&
-                  & "Press(N/m^2)""U1""U2""U3""U1_e""U2_e""U3_e""DE1""DE2""DE3"'
+                  & "Press(N/m^2)""U1""U2""U3""DE1""DE2""DE3"'
     write(unit,*) 'ZONE T="Exact Isentropic Nozzle Solution"'
-    write(unit,*) 'DT=(DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE&
+    write(unit,*) 'DT=(DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE &
                   & DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE)'
 
     do i = 2, cells+1
       cons_exact = primitive_to_conserved_1D(soln_exact(:,i))
       write(unit,*) x_cc(i), area_cc(i),                                       &
                     soln_exact(1,i), soln_exact(2,i), soln_exact(3,i),         &
-                    cons_cc(1,i), cons_cc(2,i), cons_cc(3,i),    &
                     cons_exact(1), cons_exact(2), cons_exact(3),               &
                     cons_cc(1,i)-cons_exact(1), cons_cc(2,i)-cons_exact(2),    &
                     cons_cc(3,i)-cons_exact(3)
