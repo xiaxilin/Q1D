@@ -27,7 +27,7 @@ contains
 
     use set_precision,   only : dp
     use set_constants,   only : zero, half, one, two
-    use fluid_constants, only : gm1, xgm1, gxgm1, r
+    use fluid_constants, only : gamma, gm1, xgm1, xgp1, gxgm1, gp1xgm1, r
     use initialize_soln, only : to, po, pback
 
     implicit none
@@ -39,12 +39,13 @@ contains
     real(dp),                       intent(in) :: a_e
     real(dp), dimension(3,cells+2), intent(in) :: cons_cc
 
-    integer               :: i, i_throat, unit
+    integer               :: i, i_throat, i_shock, unit
     integer, dimension(1) :: i_min      ! needed for minloc function
 
     real(dp) :: psi       ! ( = T_0/T )
     real(dp) :: temp      ! (Temperature, T)
     real(dp) :: mach_init ! Initial Mach number
+    real(dp) :: ratio, M_e, M_1, po_e, a_star_new
     real(dp), dimension(3)         :: cons_exact
     real(dp), dimension(cells+2)   :: mach_exact
     real(dp), dimension(3,cells+2) :: soln_exact
@@ -70,27 +71,34 @@ contains
 
 ! once the isentropic solution has been found, check for shocked case
     nonisentropic : if (pback > zero) then
-!      ratio = pback*a_e/(po*a_star)
-! Need root of...
-!      one/M_e * (two*xgp1)**(half*gp1xgm1) / (one + half*gm1*M_e**2) - ratio
-!      po_e = pback*(one + half*gm1*M_e**2)**(gxgm1)
+      ratio = pback*a_e/(po*a_star)
+
+      M_e = subsonic_mach_at_exit(ratio)
+
+      po_e = pback*(one + half*gm1*M_e**2)**(gxgm1)
+
+      a_star_new = a_e*M_e*(two*xgp1*(one+half*gm1*M_e**2))**(-half*gp1xgm1)
+
+      ratio = po_e/po
+
+      M_1 = pre_shock_mach(ratio)
 
 ! Use po_e/po  to find M1... Mach in front of the shock
 
 ! Search backwards until mach_exact < M1 is found
-!      do i = cells+1,i_throat+1,-1
-!        if (mach_exact(i) <= M1) then
-!          i_shock = i+1
-!          exit
-!        end if
-!      end do
+      do i = cells+1,i_throat+1,-1
+        if (mach_exact(i) <= M_1) then
+          i_shock = i+1
+          exit
+        end if
+      end do
 
-!      mach_init = (one + half*gm1*M1**2)/(gamma*M1**2-half*gm1)
+      mach_init = (one + half*gm1*M_1**2)/(gamma*M_1**2-half*gm1)
 
-!      do i = i_shock, cells+1
-!        mach_exact(i) = mach_from_area(area_cc(i)/a_star_new, mach_init, 0)
-!        mach_init = mach_exact(i)
-!      end do
+      do i = i_shock, cells+1
+        mach_exact(i) = mach_from_area(area_cc(i)/a_star_new, mach_init, 0)
+        mach_init = mach_exact(i)
+      end do
 
     end if nonisentropic
 
@@ -193,6 +201,78 @@ contains
 
   end function mach_from_area
 
+  pure function subsonic_mach_at_exit(ratio) result(mach)
+
+    use set_precision,   only : dp
+    use set_constants,   only : half, one, two
+    use fluid_constants, only : xgp1, gp1xgm1, gm1
+
+    implicit none
+
+    real(dp), intent(in) :: ratio
+    real(dp)             :: mach
+
+    integer  :: i
+    real(dp) :: mach_new, func, df_dM
+    
+    mach = half
+
+    do i = 1,1000
+      func = one/sqrt(mach**2+half*gm1*mach**4) &
+           - ratio/(two*xgp1)**(half*gp1xgm1)
+      df_dM = -half/((mach**2+half*gm1*mach**4)*sqrt(mach**2+half*gm1*mach**4))&
+            * two*mach+two*gm1*mach**3
+
+      mach_new = mach - func/df_dM
+      if (abs(mach_new - mach) < 1.0e-10) then
+        mach = mach_new
+        exit
+      end if
+
+      mach = mach_new
+    end do
+
+  end function subsonic_mach_at_exit
+
+  pure function pre_shock_mach(ratio) result(mach)
+
+    use set_precision,   only : dp
+    use set_constants,   only : half, one, two, four
+    use fluid_constants, only : gamma, xgp1, xgm1, gxgm1, gp1xgm1, gm1, gp1
+
+    implicit none
+
+    real(dp), intent(in) :: ratio
+    real(dp)             :: mach
+
+    integer  :: i
+    real(dp) :: mach_new, func, df_dM
+    
+    mach = 1.5_dp
+
+    do i = 1,1000
+      func = (gp1*mach**2/(gm1*mach**2+two))**gxgm1 &
+           * ((two*gamma*mach**2-gm1)/gp1)**(-xgm1) - ratio
+
+      df_dm = gxgm1*(two*gp1*mach/(gm1*mach**2+two) &
+            - two*gp1*gm1*mach**3/(gm1*mach**2+two)**2)**xgm1 &
+            * ((two*gamma*mach**2-gm1)/gp1)**(-xgm1) &
+            - xgm1*(gp1*mach**2/(gm1*mach**2+two))**(gxgm1) &
+            * ((two*gamma*mach**2-gm1)/gp1)**(-xgm1-one) &
+            * (four*gamma*mach*xgp1)
+
+      mach_new = mach - func/df_dM
+
+      if (abs(mach_new - mach) < 1.0e-10_dp) then
+        mach = mach_new
+        exit
+      end if
+
+      mach = mach_new
+
+    end do
+
+  end function pre_shock_mach
   include 'speed_of_sound.f90'
   include 'primitive_to_conserved_1D.f90'
   include 'find_available_unit.f90'
