@@ -107,6 +107,11 @@ contains
       psi = one + half*gm1*mach_exact(i)**2
       temp = to / psi
       soln_exact(3,i) = po / ( psi**gxgm1 )
+      if (pback > zero) then
+        if (i >= i_shock) then
+          soln_exact(3,i) = po_e / ( psi**gxgm1 )
+        end if
+      end if
       soln_exact(1,i) = soln_exact(3,i)/( r*temp )
       soln_exact(2,i) = mach_exact(i) &
                       * speed_of_sound(soln_exact(3,i), soln_exact(1,i))
@@ -118,15 +123,16 @@ contains
     open(unit,file='q1d_exact_soln.dat',status='replace')
     write(unit,*) 'TITLE = "Quasi-1D Nozzle: Exact Isentropic Solution"'
     write(unit,*) 'variables="x(m)""Area(m^2)""rho(kg/m^3)""u(m/s)"&
-                  & "Press(N/m^2)""U1""U2""U3""DE1""DE2""DE3"'
+                  & "Press(N/m^2)""U1""U2""U3""U1_e""U2_e""U3_e""DE1""DE2""DE3"'
     write(unit,*) 'ZONE T="Exact Isentropic Nozzle Solution"'
-    write(unit,*) 'DT=(DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE&
+    write(unit,*) 'DT=(DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE&
                   & DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE)'
 
     do i = 2, cells+1
       cons_exact = primitive_to_conserved_1D(soln_exact(:,i))
       write(unit,*) x_cc(i), area_cc(i),                                       &
                     soln_exact(1,i), soln_exact(2,i), soln_exact(3,i),         &
+                    cons_cc(1,i), cons_cc(2,i), cons_cc(3,i),    &
                     cons_exact(1), cons_exact(2), cons_exact(3),               &
                     cons_cc(1,i)-cons_exact(1), cons_cc(2,i)-cons_exact(2),    &
                     cons_cc(3,i)-cons_exact(3)
