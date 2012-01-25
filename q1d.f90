@@ -19,7 +19,7 @@ program q1d_primal
   continue
 
   print *,'*****************************************************'
-  print *,'         Quasi-1D Nozzle : RELEASE 4.0, 2011         '
+  print *,'         Quasi-1D Nozzle : RELEASE 5.0, 2012         '
   print *,'*****************************************************'
 
 ! set up some files
@@ -60,11 +60,17 @@ program q1d_primal
   call write_entropy(cells, x_cc, prim_cc, cons_cc)
 
 ! get exact solution and plot it
+
+  print *, 'Calculating Exact Solution'
   call calculate_exact_soln(cells, x_cc, area_cc, 0.2_dp,                      &
                             area_f(cells+1), cons_cc)
 
 ! free memory
+
+  print *, 'Deallocating Memory'
   call deallocate_grid
   call deallocate_soln
+
+  print *, 'Finished'
 
 end program q1d_primal
