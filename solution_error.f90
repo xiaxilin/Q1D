@@ -214,7 +214,7 @@ contains
 
     integer  :: i
     real(dp) :: mach_new, func, df_dM
-    
+
     mach = half
 
     do i = 1,1000
@@ -247,7 +247,7 @@ contains
 
     integer  :: i
     real(dp) :: mach_new, func, df_dM
-    
+
     mach = 1.5_dp
 
     do i = 1,1000
