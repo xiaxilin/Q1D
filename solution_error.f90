@@ -69,14 +69,30 @@ contains
     end do
 
 ! once the isentropic solution has been found, check for shocked case
-! algorithm...
-! the isentropic solution is known,
-! loop backwards (!) over mach exact to find post shock conditions,
-! find po2/po1 and from that calculate pb/po2
-! check to make sure the area ratio is close
+    nonisentropic : if (pback > zero) then
+!      ratio = pback*a_e/(po*a_star)
+! Need root of...
+!      one/M_e * (two*xgp1)**(half*gp1xgm1) / (one + half*gm1*M_e**2) - ratio
+!      po_e = pback*(one + half*gm1*M_e**2)**(gxgm1)
 
-    if (pback > zero) then
-    end if
+! Use po_e/po  to find M1... Mach in front of the shock
+
+! Search backwards until mach_exact < M1 is found
+!      do i = cells+1,i_throat+1,-1
+!        if (mach_exact(i) <= M1) then
+!          i_shock = i+1
+!          exit
+!        end if
+!      end do
+
+!      mach_init = (one + half*gm1*M1**2)/(gamma*M1**2-half*gm1)
+
+!      do i = i_shock, cells+1
+!        mach_exact(i) = mach_from_area(area_cc(i)/a_star_new, mach_init, 0)
+!        mach_init = mach_exact(i)
+!      end do
+
+    end if nonisentropic
 
 ! once the mach/area solution has been found, calculate the primitive variables
     do i = 2, cells+1
