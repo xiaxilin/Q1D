@@ -102,8 +102,7 @@ module solvers
         do cell = 2,cells+1
           do eq = 1,3
             cons_cc(eq,cell) = cons_cc_0(eq,cell) - dt(cell)*residual(eq,cell) &
-                             / (real(1+rkorder-rk,dp)                          &
-                             * dxsi*dxdxsi_cc(cell)*area_cc(cell) )
+                             / ( real(1+rkorder-rk,dp)*area_cc(cell) )
           end do
           prim_cc(:,cell) = conserved_to_primitive_1D(cons_cc(:,cell))
           prim_cc(:,cell) = floor_primitive_vars(prim_cc(:,cell))
@@ -169,7 +168,7 @@ module solvers
     use fluid_constants, only : gm1
     use bc,              only : subsonic_inflow, set_outflow
     use jacobians,       only : jac_source_1D, jac_vanleer_1D
-    use matrix_manip,    only : triblocksolve, mat_inv_3x3, matrix_inv
+    use matrix_manip,    only : triblocksolve
     use write_soln,      only : write_soln_line
 
     implicit none
@@ -191,8 +190,9 @@ module solvers
 
     continue
 
-    do n = 0, iterations
+    main_loop : do n = 0, iterations
 
+! Time step calculations
       if (n <= cfl_ramp) then
         cfl = cfl + cfl_end/real(cfl_ramp,dp)
       end if
@@ -202,22 +202,21 @@ module solvers
 ! Form RHS
       call create_residual( cells, faces, n, dxsi, prim_cc, cons_cc,           &
                             area_f, dadx_cc, dxdxsi_cc, RHS)
+! Account for sign since the residual is moved to the RHS
+      RHS = -RHS
 
+! Check residuals for convergence before they are destroyed by the direct solver
       if (mod(n,itercheck) == 0) then
         call check_convergence(cells, n, RHS, convergence_flag)
-
         if ( convergence_flag ) then
           write(*,*) 'Solution has converged!'
           exit
         end if
       end if
 
-! Account for sign since the residual is moved to the RHS
-      RHS = -RHS
-
 ! Form LHS
       call fill_lhs( cells, dxsi, dxdxsi_cc, area_cc, area_f, dadx_cc, dt,     &
-                     cons_cc, L, D, U, RHS )
+                     cons_cc, L, D, U )
 ! Take care of BC's
 ! Inflow, modify according to bc
       call subsonic_inflow( cons_cc(:,1), cons_cc(:,2), cons_cc(:,3),          &
@@ -229,25 +228,7 @@ module solvers
                        RHS(:,cells+2) )
 
 ! Modify matrix to maintain block tridiagonal structure
-! Needs to be made a subroutine...
-
-! Inflow
-!      call matrix_inv(3, U(:,:,2), inv)
-!      call mat_inv_3x3(U(:,:,2), inv)
-!      inv = matmul(L(:,:,1), inv)
-
-!      D(:,:,1) = D(:,:,1) - matmul(inv, L(:,:,2))
-!      U(:,:,1) = U(:,:,1) - matmul(inv, D(:,:,2))
-!      RHS(:,1) = RHS(:,1) - matmul(inv, RHS(:,2))
-
-! Outflow
-!      call matrix_inv(3, L(:,:,cells+1), inv)
-!      call mat_inv_3x3(L(:,:,cells+1), inv)
-!      inv = matmul(U(:,:,cells+2), inv)
-
-!      L(:,:,cells+2) = L(:,:,cells+2) - matmul(inv, D(:,:,cells+1))
-!      D(:,:,cells+2) = D(:,:,cells+2) - matmul(inv, U(:,:,cells+1))
-!      RHS(:,cells+2) = RHS(:,cells+2) - matmul(inv, RHS(:,cells+1))
+!      call modify_lhs_for_bc(3, cells+2, L,D,U,RHS)
 
 ! solve the system of equations
       call triblocksolve(3, cells+2, L, D, U, RHS, delta_cons_cc)
@@ -256,7 +237,6 @@ module solvers
       cons_cc = cons_cc+delta_cons_cc
 
 ! Floor variables for stability
-
       do cell = 1, cells+2
         prim_cc(:,cell) = conserved_to_primitive_1D(cons_cc(:,cell))
         prim_cc(1,cell) = max(prim_cc(1,cell), 0.01_dp)
@@ -273,7 +253,7 @@ module solvers
 !        call write_restart(cells, prim_cc)
 !      end if
 
-    end do
+    end do main_loop
 
     if (.not. convergence_flag ) then
       write(*,*) 'Solution failed to converge...'
@@ -286,7 +266,7 @@ module solvers
 
 !=============================================================================80
 !
-! FIXME: Need to check dxsi... might need to be cell volume instead
+!
 !
 !=============================================================================80
 
@@ -359,9 +339,10 @@ module solvers
 
     do cell = 2, cells+1
       do eq = 1,3
-        residual(eq,cell) = area_f(cell)   * F(eq,cell)                        &
+        residual(eq,cell) = (area_f(cell)  * F(eq,cell)                        &
                           - area_f(cell-1) * F(eq,cell-1)                      &
-                          - S(eq,cell)*dxsi*dxdxsi_cc(cell)
+                          - S(eq,cell)*dxsi*dxdxsi_cc(cell))                   &
+                          / (dxsi*dxdxsi_cc(cell))
       end do
     end do
 
@@ -374,7 +355,7 @@ module solvers
 !=============================================================================80
 
   subroutine fill_lhs( cells, dxsi, dxdxsi_cc, area_cc, area_f, dadx_cc, dt, &
-                       cons_cc, L, D, U, RHS )
+                       cons_cc, L, D, U )
 
     use set_precision, only : dp
     use set_constants, only : zero, one
@@ -388,7 +369,6 @@ module solvers
     real(dp), dimension(cells+2),     intent(in)    :: dxdxsi_cc, dt
     real(dp), dimension(3,cells+2),   intent(in)    :: cons_cc
     real(dp), dimension(3,3,cells+2), intent(out)   :: L, D, U
-    real(dp), dimension(3, cells+2),  intent(inout) :: RHS
 
     integer                  :: cell
     real(dp)                 :: cell_jac
@@ -418,8 +398,6 @@ module solvers
                   -  source_jac )/cell_jac
       U(:,:,cell) =  left_jac_R*area_f(cell)/cell_jac
 
-      RHS(:,cell) = RHS(:,cell)/cell_jac
-
 ! shift Jacobians to avoid recalculation
       right_jac_L = right_jac_C
       left_jac_C  = left_jac_R
@@ -427,6 +405,47 @@ module solvers
     end do
 
   end subroutine fill_lhs
+
+!=============================================================================80
+!
+!
+!
+!=============================================================================80
+
+  subroutine modify_lhs_for_bc(neq, dof, lower, diag, upper, rhs)
+
+    use set_precision, only : dp
+    use matrix_manip,  only : mat_inv_3x3, matrix_inv
+
+    implicit none
+
+    integer,                             intent(in) :: neq, dof
+    real(dp), dimension(neq,neq,dof), intent(inout) :: lower, diag, upper
+    real(dp), dimension(neq,dof),     intent(inout) :: rhs
+
+    real(dp), dimension(neq,neq) :: inv
+
+    continue
+
+! Inflow
+!    call matrix_inv(3,upper(:,:,2),inv)
+    call mat_inv_3x3(upper(:,:,2),inv)
+    inv = matmul(lower(:,:,1), inv)
+
+    diag(:,:,1)  = diag(:,:,1)  - matmul(inv, lower(:,:,2))
+    upper(:,:,1) = upper(:,:,1) - matmul(inv, diag(:,:,2))
+    rhs(:,1)     = rhs(:,1)     - matmul(inv, rhs(:,2))
+
+! Outflow
+!    call matrix_inv(3,lower(:,:,dof-1),inv)
+    call mat_inv_3x3(lower(:,:,dof-1),inv)
+    inv = matmul(upper(:,:,dof), inv)
+
+    lower(:,:,dof) = lower(:,:,dof) - matmul(inv, diag(:,:,dof-1))
+    diag(:,:,dof)  = diag(:,:,dof)  - matmul(inv, upper(:,:,dof-1))
+    rhs(:,dof)     = rhs(:,dof)     - matmul(inv, rhs(:,dof-1))
+
+  end subroutine modify_lhs_for_bc
 
 !=============================================================================80
 !
