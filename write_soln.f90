@@ -59,6 +59,7 @@ contains
 
     continue
 
+    line_unit = find_available_unit()
     open(line_unit, file='q1d_lines.dat', status='replace')
     close(line_unit)
 
