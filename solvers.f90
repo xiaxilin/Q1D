@@ -98,12 +98,12 @@ module solvers
 
       rk_loop : do rk = 1, rkorder
         call create_residual( cells, faces, n, dxsi, prim_cc, cons_cc,         &
-                              area_f, area_cc, dadx_cc, dxdxsi_cc, residual )
+                              area_f, dadx_cc, dxdxsi_cc, residual )
 
 ! perform explicit iterations on interior cells
 
         do cell = 2,cells+1
-          cell_volume = dxsi*dxdxsi_cc(cell)
+          cell_volume = dxsi*dxdxsi_cc(cell)*area_cc(cell)
           do eq = 1,3
             cons_cc(eq,cell) = cons_cc_0(eq,cell) - dt(cell)*residual(eq,cell) &
                              / ( real(1+rkorder-rk,dp)*cell_volume )
@@ -205,7 +205,7 @@ module solvers
 
 ! Form RHS
       call create_residual( cells, faces, n, dxsi, prim_cc, cons_cc,           &
-                            area_f, area_cc, dadx_cc, dxdxsi_cc, RHS)
+                            area_f, dadx_cc, dxdxsi_cc, RHS)
 ! Account for sign since the residual is moved to the RHS
       RHS = -RHS
 
@@ -314,7 +314,7 @@ module solvers
 !=============================================================================80
 
   subroutine create_residual( cells, faces, iteration, dxsi, prim_cc, cons_cc, &
-                              area_f, area_cc, dadx_cc, dxdxsi_cc, residual )
+                              area_f, dadx_cc, dxdxsi_cc, residual )
 
     use set_precision, only : dp
     use set_constants, only : zero
@@ -326,7 +326,6 @@ module solvers
     real(dp), dimension(3,cells+2), intent(in)  :: prim_cc
     real(dp), dimension(3,cells+2), intent(in)  :: cons_cc
     real(dp), dimension(faces),     intent(in)  :: area_f
-    real(dp), dimension(cells+2),   intent(in)  :: area_cc
     real(dp), dimension(cells+2),   intent(in)  :: dadx_cc
     real(dp), dimension(cells+2),   intent(in)  :: dxdxsi_cc
     real(dp), dimension(3,cells+2), intent(out) :: residual
@@ -344,10 +343,9 @@ module solvers
 
     do cell = 2, cells+1
       do eq = 1,3
-        residual(eq,cell) = (area_f(cell)  * F(eq,cell)                        &
+        residual(eq,cell) = area_f(cell)   * F(eq,cell)                        &
                           - area_f(cell-1) * F(eq,cell-1)                      &
-                          - S(eq,cell)*dxsi*dxdxsi_cc(cell))                   &
-                          / area_cc(cell)
+                          - S(eq,cell)*dxsi*dxdxsi_cc(cell)
       end do
     end do
 
@@ -389,7 +387,7 @@ module solvers
 
     do cell = 2, cells+1
 
-      cell_volume = dxdxsi_cc(cell)*dxsi
+      cell_volume = dxdxsi_cc(cell)*dxsi*area_cc(cell)
 
       call jac_vanleer_1D( cons_cc(:,cell), cons_cc(:,cell+1),                 &
                            right_jac_C, left_jac_R )
@@ -397,11 +395,11 @@ module solvers
       call jac_source_1D( cons_cc(2,cell)/cons_cc(1,cell), dadx_cc(cell),      &
                           cell_volume, source_jac )
 
-      L(:,:,cell) = -right_jac_L*area_f(cell-1)/area_cc(cell)
+      L(:,:,cell) = -right_jac_L*area_f(cell-1)
       D(:,:,cell) = ident3x3*cell_volume/dt(cell)                              &
                   + ( right_jac_C*area_f(cell)-left_jac_C*area_f(cell-1)       &
-                  -  source_jac )/area_cc(cell)
-      U(:,:,cell) =  left_jac_R*area_f(cell)/area_cc(cell)
+                  -  source_jac )
+      U(:,:,cell) =  left_jac_R*area_f(cell)
 
 ! shift Jacobians to avoid recalculation
       right_jac_L = right_jac_C
