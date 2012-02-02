@@ -24,7 +24,7 @@ module solvers
   public :: cfl_ramp   ! Number of iterations to ramp CFL over
   public :: muscl      ! MUSCL extrapolation, .true. or .false.
   public :: kappa      ! form of MUSCL
-  public :: limiter    ! type of variable limiting 
+  public :: limiter    ! type of variable limiting
   public :: toler      ! convergence tolerance
 
   public :: flux_type  ! 'central', 'jst', 'sw', 'vanleer', 'roe', 'ausm'
@@ -92,7 +92,7 @@ module solvers
 ! set both local and global time step
       dt = set_time_step( cells, dxsi, dxdxsi_cc, prim_cc )
 
-! make copy of solution for RK schemes... 
+! make copy of solution for RK schemes...
 ! wouldn't be necessary for pure Euler explicit
       cons_cc_0 = cons_cc
 
@@ -278,7 +278,7 @@ module solvers
 
     use set_precision, only : dp
     use set_constants, only : large
-    
+
     implicit none
 
     integer,                         intent(in)  :: cells
@@ -309,7 +309,7 @@ module solvers
 
 !=============================================================================80
 !
-! 
+!
 !
 !=============================================================================80
 
@@ -614,7 +614,7 @@ module solvers
 
 !=============================================================================80
 !
-! 
+!
 !
 !=============================================================================80
 
@@ -716,7 +716,7 @@ module solvers
 
 !=============================================================================80
 !
-! 
+!
 !
 !=============================================================================80
 
@@ -724,7 +724,7 @@ module solvers
 
     use set_precision, only : dp
     use set_constants, only : zero
-  
+
     implicit none
 
     integer,                         intent(in)  :: cells
@@ -871,12 +871,12 @@ module solvers
       case('minmod')
         do i = 1, faces
           psi_L(:,i) = limiter_sweby(3, r_L(:,i), 1.0_dp)
-          psi_R(:,i) = limiter_sweby(3, r_R(:,i), 1.0_dp)        
+          psi_R(:,i) = limiter_sweby(3, r_R(:,i), 1.0_dp)
         end do
       case('superbee')
         do i = 1, faces
           psi_L(:,i) = limiter_sweby(3, r_L(:,i), 2.0_dp)
-          psi_R(:,i) = limiter_sweby(3, r_R(:,i), 2.0_dp)  
+          psi_R(:,i) = limiter_sweby(3, r_R(:,i), 2.0_dp)
         end do
       case('sweby')
         do i = 1, faces
@@ -925,7 +925,7 @@ module solvers
     end if
 
   end subroutine muscl_extrapolation
- 
+
 ! begin include statements
 
   include 'conserved_to_primitive_1D.f90'

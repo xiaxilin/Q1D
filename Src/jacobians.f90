@@ -52,7 +52,7 @@ contains
     du_dq(1) = -u*rhoinv
     du_dq(2) = rhoinv
     du_dq(3) = zero
-        
+
     dp_dq(1) = half*gm1*u**2
     dp_dq(2) = -gm1*u
     dp_dq(3) = gm1
@@ -72,7 +72,7 @@ contains
     fa =  fourth*rho*a*(m+one)**2
 
     dfa_dq(:) =  fourth*( drho_dq(:)*a*(m+one)**2                              &
-              + rho*da_dq(:)*(m+one)**2 + rho*a*two*(m+one)*dm_dq(:) ) 
+              + rho*da_dq(:)*(m+one)**2 + rho*a*two*(m+one)*dm_dq(:) )
 
 ! linearization of FVS energy term
     fb = a*(gm1*m + two)
@@ -113,11 +113,11 @@ contains
     drho_dq(1) = one
     drho_dq(2) = zero
     drho_dq(3) = zero
-       
+
     du_dq(1) = -u*rhoinv
     du_dq(2) = rhoinv
     du_dq(2) = zero
-        
+
     dp_dq(1) =  half*gm1*u**2
     dp_dq(2) = -gm1*u
     dp_dq(3) =  gm1

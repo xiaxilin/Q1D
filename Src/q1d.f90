@@ -50,7 +50,7 @@ program q1d_primal
   case('implicit')
     print*, 'Beginning Implicit Solve'
     call implicit_solve(cells, faces, dxsi, prim_cc, cons_cc,                  &
-                        area_f, area_cc, dxdxsi_cc, dadx_cc, x_cc) 
+                        area_f, area_cc, dxdxsi_cc, dadx_cc, x_cc)
   end select
 
 ! do solution output

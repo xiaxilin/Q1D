@@ -136,7 +136,7 @@ contains
 ! Extrapolate velocity from interior
     DD(1,1) = one
     DD(2,1) = -u_out/cc_out(1)
-    DD(3,1) = half*gm1*u_out**2 
+    DD(3,1) = half*gm1*u_out**2
     DD(1,2) = zero
     DD(2,2) = one/cc_out(1)
     DD(3,2) = -gm1*u_out
