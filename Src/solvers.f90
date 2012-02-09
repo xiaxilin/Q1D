@@ -76,7 +76,7 @@ module solvers
     real(dp), dimension(faces),     intent(in)    :: area_f
     real(dp), dimension(cells+2),   intent(in)    :: dx, dadx_cc, x_cc
 
-    integer  :: n, rk, cell, eq
+    integer  :: n, rk, cell
 
     real(dp), dimension(cells+2)   :: dt
     real(dp), dimension(3,cells+2) :: cons_cc_0, residual
@@ -100,10 +100,8 @@ module solvers
 ! perform explicit iterations on interior cells
 
         do cell = 2,cells+1
-          do eq = 1,3
-            cons_cc(eq,cell) = cons_cc_0(eq,cell) - dt(cell)*residual(eq,cell) &
-                             / ( real(1+rkorder-rk,dp)*cell_vol(cell) )
-          end do
+          cons_cc(:,cell) = cons_cc_0(:,cell) - dt(cell)*residual(:,cell)      &
+                          / ( real(1+rkorder-rk,dp)*cell_vol(cell) )
           prim_cc(:,cell) = conserved_to_primitive_1D(cons_cc(:,cell))
           prim_cc(:,cell) = floor_primitive_vars(prim_cc(:,cell))
         end do
@@ -322,7 +320,7 @@ module solvers
     real(dp), dimension(cells+2),   intent(in)  :: dx
     real(dp), dimension(3,cells+2), intent(out) :: residual
 
-    integer :: cell, eq
+    integer :: cell
     real(dp), dimension(3,faces)   :: F
     real(dp), dimension(3,cells+2) :: S
 
@@ -334,11 +332,8 @@ module solvers
     residual = zero
 
     do cell = 2, cells+1
-      do eq = 1,3
-        residual(eq,cell) = area_f(cell)   * F(eq,cell)                        &
-                          - area_f(cell-1) * F(eq,cell-1)                      &
-                          - S(eq,cell)*dx(cell)
-      end do
+      residual(:,cell) = area_f(cell)*F(:,cell) - area_f(cell-1)*F(:,cell-1)   &
+                       - S(:,cell)*dx(cell)
     end do
 
   end subroutine create_residual
@@ -618,14 +613,10 @@ module solvers
     real(dp), dimension(3), intent(in)  :: cc_1, cc_2
     real(dp), dimension(3), intent(out) :: cc_out
 
-    integer :: eq
-
     continue
 
 ! extrapolate all variables
-    do eq = 1, 3
-      cc_out(eq) = two*cc_1(eq) - cc_2(eq)
-    end do
+    cc_out(:) = two*cc_1(:) - cc_2(:)
 
 ! set back pressure if appropriate
     if ( pback >= 0.0_dp ) cc_out(3) = pback
