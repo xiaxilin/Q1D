@@ -62,8 +62,8 @@ module solvers
 !
 !=============================================================================80
 
-  subroutine explicit_solve( cells, faces, prim_cc, cons_cc,                   &
-                             area_f, area_cc, dx, dadx_cc, x_cc )
+  subroutine explicit_solve( cells, faces, prim_cc, cons_cc, cell_vol,         &
+                             area_f, dx, dadx_cc, x_cc )
 
     use set_precision, only : dp
     use write_soln,    only : write_soln_line
@@ -72,16 +72,14 @@ module solvers
 
     integer,                        intent(in)    :: cells, faces
     real(dp), dimension(3,cells+2), intent(inout) :: prim_cc, cons_cc
+    real(dp), dimension(cells+2),   intent(in)    :: cell_vol
     real(dp), dimension(faces),     intent(in)    :: area_f
-    real(dp), dimension(cells+2),   intent(in)    :: area_cc, dx, dadx_cc
-    real(dp), dimension(cells+2),   intent(in)    :: x_cc
+    real(dp), dimension(cells+2),   intent(in)    :: dx, dadx_cc, x_cc
 
     integer  :: n, rk, cell, eq
 
-    real(dp)                       :: cell_volume
     real(dp), dimension(cells+2)   :: dt
     real(dp), dimension(3,cells+2) :: cons_cc_0, residual
-
 
     logical :: convergence_flag = .false.
 
@@ -102,10 +100,9 @@ module solvers
 ! perform explicit iterations on interior cells
 
         do cell = 2,cells+1
-          cell_volume = dx(cell)*area_cc(cell)
           do eq = 1,3
             cons_cc(eq,cell) = cons_cc_0(eq,cell) - dt(cell)*residual(eq,cell) &
-                             / ( real(1+rkorder-rk,dp)*cell_volume )
+                             / ( real(1+rkorder-rk,dp)*cell_vol(cell) )
           end do
           prim_cc(:,cell) = conserved_to_primitive_1D(cons_cc(:,cell))
           prim_cc(:,cell) = floor_primitive_vars(prim_cc(:,cell))
@@ -163,8 +160,8 @@ module solvers
 !
 !=============================================================================80
 
-  subroutine implicit_solve( cells, faces, prim_cc, cons_cc,                   &
-                             area_f, area_cc, dx, dadx_cc, x_cc )
+  subroutine implicit_solve( cells, faces, prim_cc, cons_cc, cell_vol,         &
+                             area_f, dx, dadx_cc, x_cc )
 
     use set_precision,   only : dp
     use set_constants,   only : zero, half, one, two
@@ -178,9 +175,9 @@ module solvers
 
     integer,                        intent(in)    :: cells, faces
     real(dp), dimension(3,cells+2), intent(inout) :: prim_cc, cons_cc
+    real(dp), dimension(cells+2),   intent(in)    :: cell_vol
     real(dp), dimension(faces),     intent(in)    :: area_f
-    real(dp), dimension(cells+2),   intent(in)    :: area_cc, dx, dadx_cc
-    real(dp), dimension(cells+2),   intent(in)    :: x_cc
+    real(dp), dimension(cells+2),   intent(in)    :: dx, dadx_cc, x_cc
 
     integer  :: n, cell
 
@@ -217,7 +214,7 @@ module solvers
       end if
 
 ! Form LHS
-      call fill_lhs( cells, dx, area_cc, area_f, dadx_cc, dt, cons_cc, L, D, U )
+      call fill_lhs( cells, cell_vol, area_f, dadx_cc, dt, cons_cc, L, D, U )
 ! Take care of BC's
 ! Inflow, modify according to bc
       call subsonic_inflow( cons_cc(:,1), cons_cc(:,2), cons_cc(:,3),          &
@@ -352,7 +349,7 @@ module solvers
 !
 !=============================================================================80
 
-  subroutine fill_lhs( cells, dx, area_cc, area_f, dadx_cc, dt, &
+  subroutine fill_lhs( cells, cell_vol, area_f, dadx_cc, dt, &
                        cons_cc, L, D, U )
 
     use set_precision, only : dp
@@ -362,8 +359,8 @@ module solvers
     implicit none
 
     integer,                          intent(in)    :: cells
-    real(dp), dimension(cells+2),     intent(in)    :: area_cc, area_f, dadx_cc
-    real(dp), dimension(cells+2),     intent(in)    :: dx, dt
+    real(dp), dimension(cells+2),     intent(in)    :: cell_vol, area_f
+    real(dp), dimension(cells+2),     intent(in)    :: dadx_cc, dt
     real(dp), dimension(3,cells+2),   intent(in)    :: cons_cc
     real(dp), dimension(3,3,cells+2), intent(out)   :: L, D, U
 
@@ -381,16 +378,14 @@ module solvers
 
     do cell = 2, cells+1
 
-      cell_volume = dx(cell)*area_cc(cell)
-
       call jac_vanleer_1D( cons_cc(:,cell), cons_cc(:,cell+1),                 &
                            right_jac_C, left_jac_R )
 
       call jac_source_1D( cons_cc(2,cell)/cons_cc(1,cell), dadx_cc(cell),      &
-                          cell_volume, source_jac )
+                          cell_vol(cell), source_jac )
 
       L(:,:,cell) = -right_jac_L*area_f(cell-1)
-      D(:,:,cell) = ident3x3*cell_volume/dt(cell)                              &
+      D(:,:,cell) = ident3x3*cell_vol(cell)/dt(cell)                           &
                   + ( right_jac_C*area_f(cell)-left_jac_C*area_f(cell-1)       &
                   -  source_jac )
       U(:,:,cell) =  left_jac_R*area_f(cell)

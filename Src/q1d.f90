@@ -6,7 +6,7 @@ program q1d_primal
   use set_precision,   only : dp
   use namelist,        only : read_nml
   use fluid_constants, only : set_gamma_constants
-  use initialize_grid, only : read_grid, cells, faces, dx, x_cc,               &
+  use initialize_grid, only : read_grid, cells, faces, dx, x_cc, cell_vol,     &
                               area_f, area_cc, dadx_cc, deallocate_grid
   use initialize_soln, only : allocate_soln, initial_soln, prim_cc, cons_cc,   &
                               deallocate_soln
@@ -45,12 +45,12 @@ program q1d_primal
   select case( solver )
   case('explicit')
     print*, 'Beginning Explicit Solve'
-    call explicit_solve(cells, faces, prim_cc, cons_cc,                        &
-                        area_f, area_cc, dx, dadx_cc, x_cc)
+    call explicit_solve(cells, faces, prim_cc, cons_cc, cell_vol,              &
+                        area_f, dx, dadx_cc, x_cc)
   case('implicit')
     print*, 'Beginning Implicit Solve'
-    call implicit_solve(cells, faces, prim_cc, cons_cc,                        &
-                        area_f, area_cc, dx, dadx_cc, x_cc)
+    call implicit_solve(cells, faces, prim_cc, cons_cc, cell_vol,              &
+                        area_f, dx, dadx_cc, x_cc)
   end select
 
 ! do solution output

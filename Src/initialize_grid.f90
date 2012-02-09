@@ -18,6 +18,7 @@ module initialize_grid
   public :: dx
   public :: dadx_cc
   public :: dxdxsi_cc
+  public :: cell_vol
 
   public :: read_grid
   public :: deallocate_grid
@@ -73,11 +74,14 @@ contains
       dx(cell)        = x_f(cell) - x_f(cell-1)
       x_cc(cell)      = x_f(cell-1) + half*dx(cell)
       dxdxsi_cc(cell) = dx(cell)/dxsi
+      cell_vol(cell)  = dx(cell)*area_cc(cell)
     end do
     dxdxsi_cc(1)       = dxdxsi_cc(2)
     dxdxsi_cc(faces+1) = dxdxsi_cc(faces)
     dx(1)       = dx(2)
     dx(cells+2) = dx(cells+1)
+    cell_vol(1)       = cell_vol(2)
+    cell_vol(cells+1) = cell_vol(cells+1)
 
   end subroutine read_grid
 
@@ -95,6 +99,7 @@ contains
 
     allocate( area_f(faces), x_f(faces), area_cc(cells+2), x_cc(cells+2) )
     allocate( dadx_cc(cells+2), dx(cells+2), dxdxsi_cc(cells+2))
+    allocate( cell_vol(cells+2) )
 
     area_f  = zero
     x_f     = zero
@@ -103,6 +108,7 @@ contains
     dadx_cc = zero
     dx      = zero
     dxdxsi_cc = zero
+    cell_vol = zero
 
   end subroutine allocate_grid
 
@@ -116,7 +122,7 @@ contains
 
     continue
 
-    deallocate( area_f, x_f, area_cc, x_cc, dadx_cc, dx, dxdxsi_cc)
+    deallocate( area_f, x_f, area_cc, x_cc, dadx_cc, dx, dxdxsi_cc, cell_vol)
 
   end subroutine deallocate_grid
 
