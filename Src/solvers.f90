@@ -276,10 +276,10 @@ module solvers
     integer,                         intent(in)  :: cells
     real(dp), dimension(cells+2),    intent(in)  :: dx
     real(dp), dimension(3, cells+2), intent(in)  :: prim_cc
+    real(dp), dimension(cells+2)                 :: dt
 
     integer  :: cell
     real(dp) :: a, dt_global
-    real(dp), dimension(cells+2) :: dt
 
     continue
 
