@@ -62,8 +62,8 @@ module solvers
 !
 !=============================================================================80
 
-  subroutine explicit_solve( cells, faces, dxsi, prim_cc, cons_cc,             &
-                             area_f, area_cc, dxdxsi_cc, dadx_cc, x_cc )
+  subroutine explicit_solve( cells, faces, prim_cc, cons_cc,                   &
+                             area_f, area_cc, dx, dadx_cc, x_cc )
 
     use set_precision, only : dp
     use write_soln,    only : write_soln_line
@@ -71,10 +71,9 @@ module solvers
     implicit none
 
     integer,                        intent(in)    :: cells, faces
-    real(dp),                       intent(in)    :: dxsi
     real(dp), dimension(3,cells+2), intent(inout) :: prim_cc, cons_cc
     real(dp), dimension(faces),     intent(in)    :: area_f
-    real(dp), dimension(cells+2),   intent(in)    :: area_cc, dxdxsi_cc, dadx_cc
+    real(dp), dimension(cells+2),   intent(in)    :: area_cc, dx, dadx_cc
     real(dp), dimension(cells+2),   intent(in)    :: x_cc
 
     integer  :: n, rk, cell, eq
@@ -90,20 +89,20 @@ module solvers
 
     iteration_loop : do n = 0, iterations
 ! set both local and global time step
-      dt = set_time_step( cells, dxsi, dxdxsi_cc, prim_cc )
+      dt = set_time_step( cells, dx, prim_cc )
 
 ! make copy of solution for RK schemes...
 ! wouldn't be necessary for pure Euler explicit
       cons_cc_0 = cons_cc
 
       rk_loop : do rk = 1, rkorder
-        call create_residual( cells, faces, n, dxsi, prim_cc, cons_cc,         &
-                              area_f, dadx_cc, dxdxsi_cc, residual )
+        call create_residual( cells, faces, n, prim_cc, cons_cc,               &
+                              area_f, dadx_cc, dx, residual )
 
 ! perform explicit iterations on interior cells
 
         do cell = 2,cells+1
-          cell_volume = dxsi*dxdxsi_cc(cell)*area_cc(cell)
+          cell_volume = dx(cell)*area_cc(cell)
           do eq = 1,3
             cons_cc(eq,cell) = cons_cc_0(eq,cell) - dt(cell)*residual(eq,cell) &
                              / ( real(1+rkorder-rk,dp)*cell_volume )
@@ -164,8 +163,8 @@ module solvers
 !
 !=============================================================================80
 
-  subroutine implicit_solve( cells, faces, dxsi, prim_cc, cons_cc,             &
-                             area_f, area_cc, dxdxsi_cc, dadx_cc, x_cc )
+  subroutine implicit_solve( cells, faces, prim_cc, cons_cc,                   &
+                             area_f, area_cc, dx, dadx_cc, x_cc )
 
     use set_precision,   only : dp
     use set_constants,   only : zero, half, one, two
@@ -178,10 +177,9 @@ module solvers
     implicit none
 
     integer,                        intent(in)    :: cells, faces
-    real(dp),                       intent(in)    :: dxsi
     real(dp), dimension(3,cells+2), intent(inout) :: prim_cc, cons_cc
     real(dp), dimension(faces),     intent(in)    :: area_f
-    real(dp), dimension(cells+2),   intent(in)    :: area_cc, dxdxsi_cc, dadx_cc
+    real(dp), dimension(cells+2),   intent(in)    :: area_cc, dx, dadx_cc
     real(dp), dimension(cells+2),   intent(in)    :: x_cc
 
     integer  :: n, cell
@@ -201,11 +199,11 @@ module solvers
         cfl = cfl + cfl_end/real(cfl_ramp,dp)
       end if
 
-      dt = set_time_step( cells, dxsi, dxdxsi_cc, prim_cc )
+      dt = set_time_step( cells, dx, prim_cc )
 
 ! Form RHS
-      call create_residual( cells, faces, n, dxsi, prim_cc, cons_cc,           &
-                            area_f, dadx_cc, dxdxsi_cc, RHS)
+      call create_residual( cells, faces, n, prim_cc, cons_cc,                &
+                            area_f, dadx_cc, dx, RHS)
 ! Account for sign since the residual is moved to the RHS
       RHS = -RHS
 
@@ -219,8 +217,7 @@ module solvers
       end if
 
 ! Form LHS
-      call fill_lhs( cells, dxsi, dxdxsi_cc, area_cc, area_f, dadx_cc, dt,     &
-                     cons_cc, L, D, U )
+      call fill_lhs( cells, dx, area_cc, area_f, dadx_cc, dt, cons_cc, L, D, U )
 ! Take care of BC's
 ! Inflow, modify according to bc
       call subsonic_inflow( cons_cc(:,1), cons_cc(:,2), cons_cc(:,3),          &
@@ -274,7 +271,7 @@ module solvers
 !
 !=============================================================================80
 
-  pure function set_time_step( cells, dxsi, dxdxsi_cc, prim_cc ) result(dt)
+  pure function set_time_step( cells, dx, prim_cc ) result(dt)
 
     use set_precision, only : dp
     use set_constants, only : large
@@ -282,8 +279,7 @@ module solvers
     implicit none
 
     integer,                         intent(in)  :: cells
-    real(dp),                        intent(in)  :: dxsi
-    real(dp), dimension(cells+2),    intent(in)  :: dxdxsi_cc
+    real(dp), dimension(cells+2),    intent(in)  :: dx
     real(dp), dimension(3, cells+2), intent(in)  :: prim_cc
 
     integer  :: cell
@@ -296,7 +292,7 @@ module solvers
 
     do cell = 1, cells+2
       a = speed_of_sound( prim_cc(3,cell), prim_cc(1,cell) )
-      dt(cell) = cfl*dxsi*dxdxsi_cc(cell) / ( abs(prim_cc(2,cell)) + a )
+      dt(cell) = cfl*dx(cell) / ( abs(prim_cc(2,cell)) + a )
       dt_global = min(dt_global, dt(cell))
     end do
 
@@ -313,8 +309,8 @@ module solvers
 !
 !=============================================================================80
 
-  subroutine create_residual( cells, faces, iteration, dxsi, prim_cc, cons_cc, &
-                              area_f, dadx_cc, dxdxsi_cc, residual )
+  subroutine create_residual( cells, faces, iteration, prim_cc, cons_cc,       &
+                              area_f, dadx_cc, dx, residual )
 
     use set_precision, only : dp
     use set_constants, only : zero
@@ -322,12 +318,11 @@ module solvers
     implicit none
 
     integer,                        intent(in)  :: cells, faces, iteration
-    real(dp),                       intent(in)  :: dxsi
     real(dp), dimension(3,cells+2), intent(in)  :: prim_cc
     real(dp), dimension(3,cells+2), intent(in)  :: cons_cc
     real(dp), dimension(faces),     intent(in)  :: area_f
     real(dp), dimension(cells+2),   intent(in)  :: dadx_cc
-    real(dp), dimension(cells+2),   intent(in)  :: dxdxsi_cc
+    real(dp), dimension(cells+2),   intent(in)  :: dx
     real(dp), dimension(3,cells+2), intent(out) :: residual
 
     integer :: cell, eq
@@ -345,7 +340,7 @@ module solvers
       do eq = 1,3
         residual(eq,cell) = area_f(cell)   * F(eq,cell)                        &
                           - area_f(cell-1) * F(eq,cell-1)                      &
-                          - S(eq,cell)*dxsi*dxdxsi_cc(cell)
+                          - S(eq,cell)*dx(cell)
       end do
     end do
 
@@ -357,7 +352,7 @@ module solvers
 !
 !=============================================================================80
 
-  subroutine fill_lhs( cells, dxsi, dxdxsi_cc, area_cc, area_f, dadx_cc, dt, &
+  subroutine fill_lhs( cells, dx, area_cc, area_f, dadx_cc, dt, &
                        cons_cc, L, D, U )
 
     use set_precision, only : dp
@@ -367,9 +362,8 @@ module solvers
     implicit none
 
     integer,                          intent(in)    :: cells
-    real(dp),                         intent(in)    :: dxsi
     real(dp), dimension(cells+2),     intent(in)    :: area_cc, area_f, dadx_cc
-    real(dp), dimension(cells+2),     intent(in)    :: dxdxsi_cc, dt
+    real(dp), dimension(cells+2),     intent(in)    :: dx, dt
     real(dp), dimension(3,cells+2),   intent(in)    :: cons_cc
     real(dp), dimension(3,3,cells+2), intent(out)   :: L, D, U
 
@@ -387,7 +381,7 @@ module solvers
 
     do cell = 2, cells+1
 
-      cell_volume = dxdxsi_cc(cell)*dxsi*area_cc(cell)
+      cell_volume = dx(cell)*area_cc(cell)
 
       call jac_vanleer_1D( cons_cc(:,cell), cons_cc(:,cell+1),                 &
                            right_jac_C, left_jac_R )
@@ -516,7 +510,7 @@ module solvers
 
     use set_precision,   only : dp
     use set_constants,   only : one, half, two
-    use fluid_constants, only : r, gamma, gm1, xgm1, gxgm1,gm1xgp1, gp1
+    use fluid_constants, only : r, gamma, gm1, xgm1, gxgm1, gm1xgp1, gp1
     use initialize_soln, only : po, to
 
     implicit none
@@ -578,7 +572,7 @@ module solvers
 
     use set_precision,   only : dp
     use set_constants,   only : one, half, two
-    use fluid_constants, only : r, gamma, gm1, xgm1, gxgm1,gm1xgp1, gp1
+    use fluid_constants, only : r, gamma, gm1, xgm1, gxgm1, gm1xgp1, gp1
     use initialize_soln, only : po, to
 
     implicit none
