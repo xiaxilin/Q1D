@@ -62,14 +62,12 @@ pure function flux_roe(qL, qR) result(F)
   end do
 
   dw(1) = (rhoR-rhoL) - (pR-pL)/RoeAvga**2
-  dw(2) = (uR-uL) + (pR-pL)/(RoeAvgrho*RoeAvga)
-  dw(3) = (uR-uL) - (pR-pL)/(RoeAvgrho*RoeAvga)
+  dw(2) = half*( (pR-pL) + RoeAvgrho*RoeAvga*(uR-uL) ) / (RoeAvga*RoeAvga)
+  dw(3) = half*( (pR-pL) - RoeAvgrho*RoeAvga*(uR-uL) ) / (RoeAvga*RoeAvga)
 
   r1RoeAvg = (/one, RoeAvgu, half*RoeAvgu**2/)
-  r2RoeAvg = (half*RoeAvgrho/RoeAvga) *                                        &
-                (/one, RoeAvgu+RoeAvga, RoeAvght+RoeAvgu*RoeAvga/)
-  r3RoeAvg = (-half*RoeAvgrho/RoeAvga) *                                       &
-                (/one, RoeAvgu-RoeAvga, RoeAvght-RoeAvgu*RoeAvga/)
+  r2RoeAvg = (/one, RoeAvgu+RoeAvga, RoeAvght+RoeAvgu*RoeAvga/)
+  r3RoeAvg = (/one, RoeAvgu-RoeAvga, RoeAvght-RoeAvgu*RoeAvga/)
 
 !Calculate Interface Fluxes
   F = half*( (FL + FR)                                                         &
