@@ -12,7 +12,7 @@ contains
 !========================= van_leer_jacobian =================================80
 !
 ! This subroutine takes the left and right *conserved* variables at a face
-! and returns the left and right flux jacobians
+! and returns the left and right flux jacobians wrt conserved variables
 !
 !=============================================================================80
   subroutine jac_vanleer_1D( qL, qR, jac_l, jac_r )
@@ -44,7 +44,7 @@ contains
     a = speed_of_sound(p, rho)
     m = u/a
 
-! linearization of primitive variables
+! linearization of primitive variables wrt conserved
     drho_dq(1) = one
     drho_dq(2) = zero
     drho_dq(3) = zero
@@ -109,7 +109,7 @@ contains
     a = speed_of_sound(p,rho)
     m = u/a
 
-! linearization of right primitive variables
+! linearization of right primitive variables wrt conserved
     drho_dq(1) = one
     drho_dq(2) = zero
     drho_dq(3) = zero

@@ -46,11 +46,11 @@ module solvers
   real(dp) :: cfl_end
   real(dp) :: kappa
   real(dp) :: toler
-  character(len=10) :: limiter
+  character(10) :: limiter
 
-  character(len=8)  :: solver
+  character(8)  :: solver
 
-  character(len=10) :: flux_type
+  character(10) :: flux_type
   real(dp) :: k2
   real(dp) :: k4
 
@@ -66,6 +66,7 @@ module solvers
                              area_f, dx, dadx_cc, x_cc )
 
     use set_precision, only : dp
+    use set_constants, only : zero
     use write_soln,    only : write_soln_line
 
     implicit none
@@ -78,12 +79,18 @@ module solvers
 
     integer  :: n, rk, cell
 
+    real(dp), dimension(4)         :: rk_const
     real(dp), dimension(cells+2)   :: dt
     real(dp), dimension(3,cells+2) :: cons_cc_0, residual
 
     logical :: convergence_flag = .false.
 
     continue
+
+    rk_const = zero
+    do rk = 1, rkorder
+      rk_const(rk) = real(1+rkorder-rk,dp)
+    end do
 
     iteration_loop : do n = 0, iterations
 ! set both local and global time step
@@ -101,7 +108,7 @@ module solvers
 
         do cell = 2,cells+1
           cons_cc(:,cell) = cons_cc_0(:,cell) - dt(cell)*residual(:,cell)      &
-                          / ( real(1+rkorder-rk,dp)*cell_vol(cell) )
+                          / ( rk_const(rkorder)*cell_vol(cell) )
           prim_cc(:,cell) = conserved_to_primitive_1D(cons_cc(:,cell))
           prim_cc(:,cell) = floor_primitive_vars(prim_cc(:,cell))
         end do
@@ -326,10 +333,10 @@ module solvers
 
     continue
 
+    residual = zero
+
     call create_fluxes( cells, faces, iteration, prim_cc, cons_cc, F )
     call create_source( cells, prim_cc(3,:), dadx_cc, S )
-
-    residual = zero
 
     do cell = 2, cells+1
       residual(:,cell) = area_f(cell)*F(:,cell) - area_f(cell-1)*F(:,cell-1)   &
