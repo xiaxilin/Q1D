@@ -5,9 +5,11 @@ lib_LIBRARIES += libconstants.a
 
 libconstants_a_SOURCES = \
                     ../Libraries/set_precision.f90 \
+                    complex_functions.f90 \
                     ../Libraries/set_constants.f90 \
                     ../Libraries/fluid_constants.f90 \
                     ../Libraries/set_precision_c.f90 \
+                    complex_functions_c.f90 \
                     ../Libraries/set_constants_c.f90 \
                     ../Libraries/fluid_constants_c.f90
 

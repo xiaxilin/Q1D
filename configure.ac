@@ -95,6 +95,7 @@ AC_CONFIG_FILES([
   Makefile
   Libraries/Makefile
   Src/Makefile
+  Complex/Makefile
 ])
 AC_OUTPUT
 
