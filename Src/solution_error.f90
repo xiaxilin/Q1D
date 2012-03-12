@@ -197,8 +197,8 @@ contains
       end do
 
 ! Check to make sure appropriate root (subsonic or supersonic) has been chosen
-      if( ((mach_flag == 0).and.(mach > 1.0)) .or.                            &
-          ((mach_flag == 1).and.(mach < 1.0)) ) then
+      if( ((mach_flag == 0).and.(mach > 1.0_dp)) .or.                        &
+          ((mach_flag == 1).and.(mach < 1.0_dp)) ) then
         if( A_over_A_star < (1.2_dp) ) then
           mach = one - (mach - one)
         else
@@ -234,6 +234,7 @@ contains
 
     integer  :: i
     real(dp) :: mach_new, func, df_dM
+    real(dp),parameter :: tolerance = 1.e-10_dp ! Tolerance for Newton iteration
 
     mach = half
 
@@ -244,7 +245,7 @@ contains
             * two*mach+two*gm1*mach**3
 
       mach_new = mach - func/df_dM
-      if (abs(mach_new - mach) < 1.0e-10) then
+      if (abs(mach_new - mach) < tolerance) then
         mach = mach_new
         exit
       end if
