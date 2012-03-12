@@ -35,8 +35,8 @@ module set_constants
   real(dp), parameter :: third  = one/three
   real(dp), parameter :: half   = 0.5_dp
 
-  real(dp), parameter :: small  = tiny(one)
-  real(dp), parameter :: large  = huge(one)
+  real(dp), parameter :: small  = tiny(1.0_dp)
+  real(dp), parameter :: large  = huge(1.0_dp)
 
   real(dp) :: pi = 3.14159265358979_dp
 

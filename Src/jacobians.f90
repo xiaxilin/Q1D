@@ -85,12 +85,12 @@ contains
 
     mat = zero
 
-    if( abs(m)<1.0 ) then
+    if( abs(m)<1.0_dp ) then
       mat(1,:) = dfa_dq(:)
       mat(2,:) = (dfa_dq(:)*fb + dfb_dq(:)*fa)*xg
       mat(3,:) = half*xg2m1*(dfa_dq(:)*fb*fb + two*fa*fb*dfb_dq(:))
 
-    elseif( m>=1.0 ) then
+    elseif( m>=1.0_dp ) then
       mat(1,:) = drho_dq(:)*u + rho*du_dq(:)
       mat(2,:) = drho_dq(:)*u*u + two*rho*u*du_dq(:) + dp_dq(:)
       mat(3,:) = ( dq3_dq(:) + dp_dq(:) )*u + (ql(3) + p)*du_dq(:)
@@ -148,12 +148,12 @@ contains
 
     mat = zero
 
-    if( abs(m)<1.0 ) then
+    if( abs(m)<1.0_dp ) then
       mat(1,:) = dfa_dq(:)
       mat(2,:) = (dfa_dq(:)*fb + dfb_dq(:)*fa)*xg
       mat(3,:) = half*xg2m1*(dfa_dq(:)*fb*fb + two*fa*fb*dfb_dq(:))
 
-    elseif( m<=-1.0 ) then
+    elseif( m<=-1.0_dp ) then
       mat(1,:) = drho_dq(:)*u   + rho*du_dq(:)
       mat(2,:) = drho_dq(:)*u*u + two*rho*u*du_dq(:) + dp_dq(:)
       mat(3,:) = ( dq3_dq(:) + dp_dq(:) )*u + (qR(3) + p)*du_dq(:)
