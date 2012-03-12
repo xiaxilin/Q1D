@@ -128,7 +128,7 @@ contains
 
     derho   = zero
     derhou  = zero
-    edrhoet = zero
+    derhoet = zero
 
     do i = 2, cells+1
       cons_exact = primitive_to_conserved_1D(soln_exact(:,i))
