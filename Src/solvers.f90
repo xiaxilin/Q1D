@@ -1,5 +1,3 @@
-! FIXME: need to fix cell_jacobian/dx term
-
 module solvers
 
   use set_precision, only : dp
