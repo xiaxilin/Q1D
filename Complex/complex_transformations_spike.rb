@@ -12,23 +12,6 @@ $:.push File.dirname(__FILE__)
 require 'complex_transformations'
 
 LIMITED_TRANSFORMS = %w[
-  allocations.f90
-  complex_flow_input_bridge.f90
-  complex_functions.f90
-  comprow.f90
-  exact_airfoil.f90
-  file_utils.f90
-  invert_lapack.f90
-  knife_interface.F90
-  kinddefs.f90
-  lmpi.F90
-  lmpi_app.F90
-  load_balance.f90
-  refine_grid_adapter.F90
-  refine_interface.f90
-  solution_io_helpers.f90
-  system_extensions.F90
-  unravel_interface.F90
 ]
 
 class Array
