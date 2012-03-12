@@ -45,6 +45,7 @@ contains
     real(dp) :: temp      ! (Temperature, T)
     real(dp) :: mach_init ! Initial Mach number
     real(dp) :: ratio, M_e, M_1, po_e, a_star_new
+    real(dp) :: derho, derhou, derhoet
     real(dp), dimension(3)         :: cons_exact
     real(dp), dimension(cells+2)   :: mach_exact
     real(dp), dimension(3,cells+2) :: soln_exact
@@ -125,8 +126,17 @@ contains
     write(unit,*) 'DT=(DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE &
                   & DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE)'
 
+    derho   = zero
+    derhou  = zero
+    edrhoet = zero
+
     do i = 2, cells+1
       cons_exact = primitive_to_conserved_1D(soln_exact(:,i))
+
+      derho   = derho   + abs(cons_cc(1,i)-cons_exact(1))
+      derhou  = derhou  + abs(cons_cc(2,i)-cons_exact(2))
+      derhoet = derhoet + abs(cons_cc(3,i)-cons_exact(3))
+
       write(unit,*) x_cc(i), area_cc(i),                                       &
                     soln_exact(1,i), soln_exact(2,i), soln_exact(3,i),         &
                     cons_exact(1), cons_exact(2), cons_exact(3),               &
@@ -136,6 +146,10 @@ contains
 
     close(unit)
 
+    write(*,*) 'L1 DE of rho, rho*u rho*et'
+    write(*,*) derho/real(cells,dp), derhou/real(cells,dp), &
+      derhoet/real(cells,dp)
+
   end subroutine calculate_exact_soln
 
 !=============================== mach_from_area ==============================80
@@ -144,7 +158,6 @@ contains
 ! FIXME: Consider passing mach to speed convergence
 !
 !=============================================================================80
-
   function mach_from_area(a_over_a_star, mach_init, mach_flag)
 
     use set_precision,   only : dp
@@ -203,6 +216,11 @@ contains
 
   end function mach_from_area
 
+!=============================================================================80
+!
+!
+!
+!=============================================================================80
   pure function subsonic_mach_at_exit(ratio) result(mach)
 
     use set_precision,   only : dp
@@ -236,6 +254,11 @@ contains
 
   end function subsonic_mach_at_exit
 
+!=============================================================================80
+!
+!
+!
+!=============================================================================80
   pure function pre_shock_mach(ratio) result(mach)
 
     use set_precision,   only : dp
