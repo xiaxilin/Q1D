@@ -12,6 +12,8 @@ $:.push File.dirname(__FILE__)
 require 'complex_transformations'
 
 LIMITED_TRANSFORMS = %w[
+  complex_functions.f90
+  set_precision.f90
 ]
 
 class Array
