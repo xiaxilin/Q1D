@@ -4,7 +4,7 @@
 !
 !=============================================================================80
 
- function flux_ausm(prim_L, prim_R) result(F)
+ function flux_ausm(prim_L, prim_R)
 
   use set_precision,   only : dp
   use set_constants,   only : fourth, half, one
@@ -12,7 +12,7 @@
   implicit none
 
   real(dp), dimension(3), intent(in)  :: prim_L, prim_R
-  real(dp), dimension(3)              :: F, cons_L, cons_R
+  real(dp), dimension(3)              :: flux_ausm, f, cons_L, cons_R
 
   real(dp) :: PL, PR, HTL, HTR, al, ar, Ml, Mr, Mlold, Mrold
 
@@ -61,5 +61,7 @@
                cons_L(2)*ar*((Ml+Mr) + abs(Ml+Mr))) + (PL+PR)
   F(3) = half*(cons_R(1)*HTR*ar*((Ml+Mr) - abs(Ml+Mr)) +                       &
                cons_L(1)*HTL*ar*((Ml+Mr) + abs(Ml+Mr)))
+
+  flux_ausm = f
 
 end function flux_ausm

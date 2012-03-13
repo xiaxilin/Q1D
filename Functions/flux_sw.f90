@@ -4,7 +4,7 @@
 !
 !=============================================================================80
 
-pure function flux_sw(qL, qR) result(F)
+pure function flux_sw(qL, qR)
 
   use set_precision,   only : dp
   use set_constants,   only : half, one, two, three
@@ -14,7 +14,7 @@ pure function flux_sw(qL, qR) result(F)
 
   real(dp), dimension(3), intent(in)  :: qL, qR
 
-  real(dp), dimension(3)  :: F
+  real(dp), dimension(3)  :: flux_sw, F
 
   real(dp) :: a
   real(dp), dimension(3) :: lambda, lambdafloor, FL, FR
@@ -56,5 +56,7 @@ pure function flux_sw(qL, qR) result(F)
 
 !Calculate Interface Flux
   F = FL + FR
+
+  flux_sw = f
 
 end function flux_sw

@@ -3,7 +3,7 @@
 ! Takes left and right primitive variables.  Returns flux
 !
 !=============================================================================80
-pure function flux_vanleer(qL, qR) result(F)
+pure function flux_vanleer(qL, qR)
 
   use set_precision,   only : dp
   use set_constants,   only : zero, fourth, half, one, two
@@ -13,7 +13,7 @@ pure function flux_vanleer(qL, qR) result(F)
 
   real(dp), dimension(3), intent(in)    :: qL, qR
 
-  real(dp), dimension(3)  :: F
+  real(dp), dimension(3)  :: flux_vanleer,F
 
   real(dp) :: a, M, Mfloor, fa, fb, switch
   real(dp), dimension(3) :: Fisub, Fiss
@@ -65,5 +65,7 @@ pure function flux_vanleer(qL, qR) result(F)
 !Combine sub and supersonic fluxes, finish final flux vector
   switch = max(zero, one-real(int(abs(M)),dp))
   F = F + (one-switch)*Fiss + switch*Fisub
+
+  flux_vanleer = F
 
 end function flux_vanleer

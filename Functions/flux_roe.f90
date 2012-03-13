@@ -4,7 +4,7 @@
 !
 !=============================================================================80
 
-pure function flux_roe(qL, qR) result(F)
+pure function flux_roe(qL, qR)
 
   use set_precision,   only : dp
   use set_constants,   only : half, one, two, four
@@ -13,7 +13,7 @@ pure function flux_roe(qL, qR) result(F)
   implicit none
 
   real(dp), dimension(3), intent(in) :: qL, qR
-  real(dp), dimension(3)             :: F
+  real(dp), dimension(3)             :: flux_roe, F
 
   integer  :: i
   real(dp) :: rhoL, uL, pL, rhoR, uR, pR, lambdaeps
@@ -74,5 +74,7 @@ pure function flux_roe(qL, qR) result(F)
     - (abs(lambdaRoe(1))*dw(1)*r1RoeAvg                                        &
     +  abs(lambdaRoe(2))*dw(2)*r2RoeAvg                                        &
     +  abs(lambdaRoe(3))*dw(3)*r3RoeAvg) )
+
+  flux_roe = f
 
 end function flux_roe
