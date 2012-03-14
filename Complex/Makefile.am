@@ -8,10 +8,12 @@ libconstants_a_SOURCES = \
                     complex_functions.f90 \
                     ../Libraries/set_constants.f90 \
                     ../Libraries/fluid_constants.f90 \
+                    ../Libraries/ddt.f90 \
                     ../Libraries/set_precision_c.f90 \
                     complex_functions_c.f90 \
                     ../Libraries/set_constants_c.f90 \
-                    ../Libraries/fluid_constants_c.f90
+                    ../Libraries/fluid_constants_c.f90 \
+                    ../Libraries/ddt_c.f90
 
 bin_PROGRAMS =
 
@@ -27,7 +29,6 @@ q1d_SOURCES = \
 	 ../Src/bc.f90 \
          ../Src/solvers.f90 \
          ../Src/namelist.f90 \
-         ../Src/q1d.f90 \
          ../Src/initialize_grid_c.f90 \
          ../Src/initialize_soln_c.f90 \
          ../Src/solution_error_c.f90 \
@@ -43,7 +44,7 @@ q1d_LDADD = libconstants.a
 
 q1d_FCFLAGS = $(FC_MODINC)$(top_srcdir)/Functions
 
-q1d_grid_SOURCES = q1d_grid_c.f90
+q1d_grid_SOURCES = ../Src/q1d_grid_c.f90
 
 q1d_grid_LDADD = libconstants.a
 

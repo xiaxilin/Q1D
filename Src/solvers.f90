@@ -813,7 +813,7 @@ module solvers
                                   vars_left, vars_right )
 
     use set_precision, only : dp
-    use set_constants, only : zero, fourth, one, small
+    use set_constants, only : zero, fourth, one, onep5, two, small
 
     implicit none
 
@@ -855,18 +855,18 @@ module solvers
       select case(trim(limiter))
       case('minmod')
         do i = 1, faces
-          psi_L(:,i) = limiter_sweby(3, r_L(:,i), 1.0_dp)
-          psi_R(:,i) = limiter_sweby(3, r_R(:,i), 1.0_dp)
+          psi_L(:,i) = limiter_sweby(3, r_L(:,i), one)
+          psi_R(:,i) = limiter_sweby(3, r_R(:,i), one)
         end do
       case('superbee')
         do i = 1, faces
-          psi_L(:,i) = limiter_sweby(3, r_L(:,i), 2.0_dp)
-          psi_R(:,i) = limiter_sweby(3, r_R(:,i), 2.0_dp)
+          psi_L(:,i) = limiter_sweby(3, r_L(:,i), two)
+          psi_R(:,i) = limiter_sweby(3, r_R(:,i), two)
         end do
       case('sweby')
         do i = 1, faces
-          psi_L(:,i) = limiter_sweby(3, r_L(:,i), 1.5_dp)
-          psi_R(:,i) = limiter_sweby(3, r_R(:,i), 1.5_dp)
+          psi_L(:,i) = limiter_sweby(3, r_L(:,i), onep5)
+          psi_R(:,i) = limiter_sweby(3, r_R(:,i), onep5)
         end do
       case('ospre')
         do i = 1, faces
