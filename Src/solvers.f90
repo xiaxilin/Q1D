@@ -365,7 +365,6 @@ module solvers
     real(dp), dimension(3,3,cells+2), intent(out)   :: L, D, U
 
     integer                  :: cell
-    real(dp)                 :: cell_volume
     real(dp), dimension(3,3) :: ident3x3, source_jac
     real(dp), dimension(3,3) :: right_jac_L, left_jac_C, right_jac_C, left_jac_R
 
