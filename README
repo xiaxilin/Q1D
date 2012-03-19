@@ -67,6 +67,11 @@ prompt% ./bootstrap
 prompt% ./configure FC=gfortran FCFLAGS="-O2"
 prompt% make
 
+If you have run complex_transformation_spike.rb from the main directory,
+complexified versions of each source file will exist alongside the standard
+versions.
+This is done to provide a complex differentiation for the adjoint code.
+
 Once you've set up a grid by running ./q1d_grid,
 set up the q1d.nml input file, and execute ./q1d
 
