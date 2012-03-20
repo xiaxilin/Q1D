@@ -171,7 +171,7 @@ module solvers
     use fluid_constants, only : gm1
     use bc,              only : subsonic_inflow, set_outflow
     use jacobians,       only : jac_source_1D, jac_vanleer_1D
-    use matrix_manip,    only : triblocksolve
+    use matrix_manip,    only : triblocksolve, pentablocksolve
     use write_soln,      only : write_soln_line
 
     implicit none
@@ -186,7 +186,7 @@ module solvers
 
     real(dp), dimension(cells+2)     :: dt
     real(dp), dimension(3,cells+2)   :: RHS, delta_cons_cc
-    real(dp), dimension(3,3,cells+2) :: L, D, U
+    real(dp), dimension(3,3,cells+2) :: L2, L, D, U, U2
 
     logical :: convergence_flag = .false.
 
@@ -218,22 +218,26 @@ module solvers
 
 ! Form LHS
       call fill_lhs( cells, cell_vol, area_f, dadx_cc, dt, cons_cc, L, D, U )
+!      call fill_full_lhs( cells, cell_vol, area_f, dadx_cc, &
+!                           dt, cons_cc, L2, L, D, U, U2 )
+
 ! Take care of BC's
 ! Inflow, modify according to bc
       call subsonic_inflow( cons_cc(:,1), cons_cc(:,2), cons_cc(:,3),          &
-                            D(:,:,1), U(:,:,1), L(:,:,1), RHS(:,1) )
+                            D(:,:,1), U(:,:,1), U2(:,:,1), RHS(:,1) )
 
 ! Outflow
       call set_outflow(cons_cc(:,cells+2),cons_cc(:,cells+1),cons_cc(:,cells), &
-                       D(:,:,cells+2), L(:,:,cells+2), U(:,:,cells+2),         &
+                       D(:,:,cells+2), L(:,:,cells+2), L2(:,:,cells+2),        &
                        RHS(:,cells+2) )
 
 ! Modify matrix to maintain block tridiagonal structure
-!      call modify_lhs_for_bc(3, cells+2, L,D,U,RHS)
+!      call modify_lhs_for_bc(3, cells+2, L, D, U, RHS)
 
 ! solve the system of equations
       call triblocksolve(3, cells+2, L, D, U, RHS, delta_cons_cc)
 
+!      call pentablocksolve(3, cells+2, L2, L, D, U, U2, RHS, delta_cons_cc)
 ! Update the conserved variables
       cons_cc = cons_cc+delta_cons_cc
 
