@@ -86,73 +86,60 @@ contains
     real(dp), dimension(neq,dof),     intent(out)   :: soln
 
     integer                      :: i
-    real(dp), dimension(neq,neq) :: temp
+    real(dp), dimension(neq,neq) :: temp, temp2
 
     continue
 
-! Normalize the second row to make elimination easier
-!    call matrix_inv(neq, LD(:,:,2), temp)
-    call mat_inv_3x3(LD(:,:,2), temp)
+! Eliminate the LD2 diagonal
+    do i = 3, dof-1
+      call mat_inv_3x3(LD(:,:,i-1), temp)
+      temp2 = matmul(LD2(:,:,i), temp)
 
-    LD(:,:,2)  = matmul(temp,LD(:,:,2))
-    DD(:,:,2)  = matmul(temp,DD(:,:,2))
-    UD(:,:,2)  = matmul(temp,UD(:,:,2))
-    UD2(:,:,2) = matmul(temp,UD2(:,:,2))
-    RHS(:,2)   = matmul(temp,RHS(:,2))
-
-! Eliminate the LD2 diagonal and normalize
-    do i = 3, dof
-      LD(:,:,i) = LD(:,:,i) - matmul(LD2(:,:,i), DD(:,:,i-1))
-      DD(:,:,i) = DD(:,:,i) - matmul(LD2(:,:,i), UD(:,:,i-1))
-      UD(:,:,i) = UD(:,:,i) - matmul(LD2(:,:,i), UD2(:,:,i-1))
-      RHS(:,i)  = RHS(:,i)  - matmul(LD2(:,:,i), RHS(:,i-1))
-
-!      call matrix_inv(neq, LD(:,:,2), temp)
-      call mat_inv_3x3(LD(:,:,i), temp)
-
-      LD(:,:,i)  = matmul(temp,LD(:,:,i))
-      DD(:,:,i)  = matmul(temp,DD(:,:,i))
-      UD(:,:,i)  = matmul(temp,UD(:,:,i))
-      UD2(:,:,i) = matmul(temp,UD2(:,:,i))
-      RHS(:,i)   = matmul(temp,RHS(:,i))
+      LD(:,:,i) = LD(:,:,i) - matmul(temp2, DD(:,:,i-1))
+      DD(:,:,i) = DD(:,:,i) - matmul(temp2, UD(:,:,i-1))
+      UD(:,:,i) = UD(:,:,i) - matmul(temp2, UD2(:,:,i-1))
+      RHS(:,i)  = RHS(:,i)  - matmul(temp2, RHS(:,i-1))
     end do
 
-! Normalize the first row...
-!    call matrix_inv(neq, DD(:,:,1), temp)
-    call mat_inv_3x3(DD(:,:,1), temp)
+    i = dof
+    call mat_inv_3x3(LD(:,:,i-1), temp)
+    temp2 = matmul(LD2(:,:,i), temp)
 
-    DD(:,:,1)  = matmul(temp,DD(:,:,1))
-    UD(:,:,1)  = matmul(temp,UD(:,:,1))
-    UD2(:,:,1) = matmul(temp,UD2(:,:,1))
-    RHS(:,1)   = matmul(temp,RHS(:,1))
+    LD(:,:,i) = LD(:,:,i) - matmul(temp2, DD(:,:,i-1))
+    DD(:,:,i) = DD(:,:,i) - matmul(temp2, UD(:,:,i-1))
+    RHS(:,i)  = RHS(:,i)  - matmul(temp2, RHS(:,i-1))
 
-! At this point, the lower diagonal is all identity matrices,
-! and the first diagonal matrix is an identity matrix,
-! so just subtract row 1 from row 2, normalize and repeat
+! Eliminate the LD diagonal
+    do i = 2, dof-1
+      call mat_inv_3x3(DD(:,:,i-1), temp)
+      temp2 = matmul(LD(:,:,i), temp )
 
-! Loop to eliminate lower subdiagonal and then normalize the row
-    do i = 2, dof
+      DD(:,:,i) = DD(:,:,i) - matmul(temp2, UD(:,:,i-1))
+      UD(:,:,i) = UD(:,:,i) - matmul(temp2, UD2(:,:,i-1))
+      RHS(:,i)  = RHS(:,i)  - matmul(temp2, RHS(:,i-1))
 
-      DD(:,:,i) = DD(:,:,i) - UD(:,:,i-1)
-      UD(:,:,i) = UD(:,:,i) - UD2(:,:,i-1)
-      RHS(:,i)  = RHS(:,i)  - RHS(:,i-1)
-
-!      call matrix_inv(neq, DD(:,:,i), temp)
-      call mat_inv_3x3(DD(:,:,i), temp)
-
-      DD(:,:,i)  = matmul(temp,DD(:,:,i))
-      UD(:,:,i)  = matmul(temp,UD(:,:,i))
-      UD2(:,:,i) = matmul(temp,UD2(:,:,i))
-      RHS(:,i)   = matmul(temp,RHS(:,i))
     end do
 
-! Back solve... since the diagonal is an identity matrix this is easy
-    soln(:,dof)   = RHS(:,dof)
-    soln(:,dof-1) = RHS(:,dof-1) - matmul(UD(:,:,dof-1), soln(:,dof))
+    i = dof
+    call mat_inv_3x3(DD(:,:,i-1), temp)
+    temp2 = matmul(LD(:,:,i), temp )
+
+    DD(:,:,i) = DD(:,:,i) - matmul(temp2, UD(:,:,i-1))
+    RHS(:,i)  = RHS(:,i)  - matmul(temp2, RHS(:,i-1))
+
+! Back solve
+    call mat_inv_3x3(DD(:,:,dof), temp)
+    soln(:,dof)   = matmul(temp, RHS(:,dof))
+
+    call mat_inv_3x3(DD(:,:,dof-1), temp)
+
+    soln(:,dof-1) = matmul(temp, &
+      RHS(:,dof-1) - matmul(UD(:,:,dof-1), soln(:,dof)))
 
     do i = dof-2,1,-1
-      soln(:,i) = RHS(:,i)                                                     &
-        - matmul(UD(:,:,i), soln(:,i+1)) - matmul(UD2(:,:,i), soln(:,i+2))
+      call mat_inv_3x3(DD(:,:,i), temp)     
+      soln(:,i) = matmul(temp, RHS(:,i)                                        &
+        - matmul(UD(:,:,i), soln(:,i+1)) - matmul(UD2(:,:,i), soln(:,i+2)))
     end do
 
   end subroutine pentablocksolve
@@ -315,11 +302,14 @@ contains
   subroutine mat_inv_3x3(mat, inv)
 
     use set_precision, only : dp
+    use set_constants, only : zero, one
 
     implicit none
 
     real(dp), dimension(3,3), intent(in)  :: mat
     real(dp), dimension(3,3), intent(out) :: inv
+
+    real(dp) :: det
 
     continue
 
@@ -335,7 +325,11 @@ contains
     inv(2,3) = mat(1,3)*mat(2,1)-mat(1,1)*mat(2,3)
     inv(3,3) = mat(1,1)*mat(2,2)-mat(1,2)*mat(2,1)
 
-    inv = inv/det_3x3(mat)
+    det = det_3x3(mat)
+
+    if (det == zero) det = one
+
+    inv = inv/det
 
   end subroutine mat_inv_3x3
 
