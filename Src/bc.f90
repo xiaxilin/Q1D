@@ -51,13 +51,13 @@ contains
     DU1(1,1) = -cc_1(2)/cc_1(1)**2
     DU1(1,2) = one/cc_1(1)
 
-!    DU1 = -two*DU1
+    DU1 = two*DU1
 !    DU1 = -DU1
 
     DU2(1,1) = -cc_2(2)/cc_2(1)**2
     DU2(1,2) = one/cc_2(1)
 
-!    DU2 = -DU2
+    DU2 = -DU2
 
 ! Now need to account for delta Po = delta To = 0 at inflow... DD matrix
 
@@ -156,7 +156,7 @@ contains
     DL1(2,3) = zero
     DL1(3,3) = gm1
 
-    DL1 = -DL1
+    DL1 = -two*DL1
 
     DL2(1,1) = one
     DL2(2,1) = -u_2/cc_2(1)
@@ -167,6 +167,8 @@ contains
     DL2(1,3) = zero
     DL2(2,3) = zero
     DL2(3,3) = gm1
+
+!    DL2 = -DL2
 
     RHS(1) = -cc_out(1) + two*cc_1(1) - cc_2(1)
     RHS(2) = -u_out     + two*u_1     - u_2

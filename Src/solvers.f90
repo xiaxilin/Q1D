@@ -202,7 +202,7 @@ module solvers
       dt = set_time_step( cells, dx, prim_cc )
 
 ! Form RHS
-      call create_residual( cells, faces, n, prim_cc, cons_cc,                &
+      call create_residual( cells, faces, firstorder+1, prim_cc, cons_cc,      &
                             area_f, dadx_cc, dx, RHS)
 ! Account for sign since the residual is moved to the RHS
       RHS = -RHS
@@ -217,9 +217,12 @@ module solvers
       end if
 
 ! Form LHS
-      call fill_lhs( cells, cell_vol, area_f, dadx_cc, dt, cons_cc, L, D, U )
-!      call fill_full_lhs( cells, cell_vol, area_f, dadx_cc, &
-!                           dt, cons_cc, L2, L, D, U, U2 )
+
+!      L2 = zero
+!      U2 = zero
+!      call fill_lhs( cells, cell_vol, area_f, dadx_cc, dt, cons_cc, L, D, U )
+      call fill_full_lhs( cells, cell_vol, area_f, dadx_cc, &
+                          dt, cons_cc, L2, L, D, U, U2 )
 
 ! Take care of BC's
 ! Inflow, modify according to bc
@@ -235,11 +238,11 @@ module solvers
 !      call modify_lhs_for_bc(3, cells+2, L, D, U, RHS)
 
 ! solve the system of equations
-      call triblocksolve(3, cells+2, L, D, U, RHS, delta_cons_cc)
+!      call triblocksolve(3, cells+2, L, D, U, RHS, delta_cons_cc)
 
-!      call pentablocksolve(3, cells+2, L2, L, D, U, U2, RHS, delta_cons_cc)
+      call pentablocksolve(3, cells+2, L2, L, D, U, U2, RHS, delta_cons_cc)
 ! Update the conserved variables
-      cons_cc = cons_cc+delta_cons_cc
+      cons_cc = cons_cc + delta_cons_cc
 
 ! Floor variables for stability
       do cell = 1, cells+2
@@ -1031,6 +1034,15 @@ module solvers
       i = faces
       vars_right(:,i) = vars_cc(:,i+1) - fourth                                &
                 * ((one+kappa)*(vars_cc(:,i+1) - vars_cc(:,i)))
+
+      do i = 1, faces
+        if (vars_left(1,i) < zero .or. vars_left(3,i) < zero) then
+          vars_left(:,i) = vars_cc(:,i)
+        end if
+        if (vars_right(1,i) < zero .or. vars_right(3,i) < zero) then
+          vars_right(:,i) = vars_cc(:,i+1)
+        end if
+      end do
 
     end if second_order
 
