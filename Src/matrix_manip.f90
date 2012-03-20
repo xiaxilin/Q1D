@@ -5,6 +5,7 @@ module matrix_manip
   private
 
   public :: triblocksolve
+  public :: pentablocksolve
   public :: ludcmp
   public :: lubkslv
   public :: matrix_inv
