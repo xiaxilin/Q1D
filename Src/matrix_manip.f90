@@ -137,7 +137,7 @@ contains
       RHS(:,dof-1) - matmul(UD(:,:,dof-1), soln(:,dof)))
 
     do i = dof-2,1,-1
-      call mat_inv_3x3(DD(:,:,i), temp)     
+      call mat_inv_3x3(DD(:,:,i), temp)
       soln(:,i) = matmul(temp, RHS(:,i)                                        &
         - matmul(UD(:,:,i), soln(:,i+1)) - matmul(UD2(:,:,i), soln(:,i+2)))
     end do
