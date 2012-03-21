@@ -11,10 +11,6 @@ module matrix_manip
   public :: matrix_inv
   public :: mat_inv_3x3
 
-!  public :: det_3x3
-!  public :: det_4x4
-!  public :: det_5x5
-
 contains
 
 !============================== triblocksolve ================================80
