@@ -17,6 +17,143 @@ contains
 
 !=============================================================================80
 !
+! Uses primitive variables
+!
+!=============================================================================80
+
+  subroutine subsonic_inflow_explicit( cc_in, cc_1, cc_2 )
+
+    use set_precision,   only : dp
+    use set_constants,   only : one, half, two
+    use fluid_constants, only : r, gamma, gm1, xgm1, gxgm1, gm1xgp1, gp1
+    use initialize_soln, only : po, to
+
+    implicit none
+
+    real(dp), dimension(3), intent(in)  :: cc_1, cc_2
+    real(dp), dimension(3), intent(out) :: cc_in
+
+    real(dp) :: vel_max, psi
+
+! testing
+!    real(dp) :: rho0, h0, s0, p, u, temp, a2, ao2
+
+    continue
+
+! set max, physically possible velocity
+    vel_max = sqrt(two*gamma*r*to*xgm1)-one
+
+! extrapolate velocity and limit
+    cc_in(2) = max(-vel_max, min(two*cc_1(2)-cc_2(2), vel_max))
+
+! now calculate inflow
+    psi = to/(to-(gm1*cc_in(2)**2/(two*gamma*r)))
+
+    cc_in(1) = po/(r*to*psi**xgm1)
+    cc_in(3) = po/psi**gxgm1
+
+! to test another version...
+!    ao2 = gamma*r*to
+!    a2 = ao2 - gm1*half*cc_in(2)**2
+!    temp = ao2/a2
+
+!    rho0 = po/(r*to)
+!    cc_in(1) = rho0*temp**gm1
+!    cc_in(3) = po*temp**(gm1/gamma)
+
+!    rho0 = po/(r*to)
+!    h0 = gxgm1*po/rho0
+!    s0 = r*xgm1*log(po/rho0**gamma)
+
+!    cc_in(2) = min(max(two*cc_1(1) - cc_2(1),0.0001_dp),rho0)
+
+!    p = exp(s0*gm1/r)*cc_in(1)**gamma
+!    u = sqrt(two*(h0 - gxgm1*p/cc_in(1)))
+
+!    cc_in(2) = u
+!    cc_in(3) = p
+
+! floor variables
+    cc_in = floor_primitive_vars(cc_in)
+
+  end subroutine subsonic_inflow_explicit
+
+!=============================================================================80
+!
+! Uses primitive variables
+!
+!=============================================================================80
+
+  subroutine subsonic_inflow_r_explicit( cc_in, cc_1 )
+
+    use set_precision,   only : dp
+    use set_constants,   only : one, half, two
+    use fluid_constants, only : r, gamma, gm1, xgm1, gxgm1, gm1xgp1, gp1
+    use initialize_soln, only : po, to
+
+    implicit none
+
+    real(dp), dimension(3), intent(in)  :: cc_1
+    real(dp), dimension(3), intent(out) :: cc_in
+
+    real(dp) :: a_1, a_in, a_bound, r_minus, t_in
+
+    continue
+
+    a_1 = speed_of_sound(cc_1(3), cc_1(1))
+
+    a_in = sqrt(half*gm1*cc_1(2)**2+a_1**2)
+
+    r_minus = -cc_1(2)-two*xgm1*a_1
+
+    a_bound = -r_minus*gm1xgp1                                                 &
+            * (one-sqrt((gp1*a_in**2)/(gm1*r_minus**2)-half*gm1))
+
+    t_in = to*(a_bound**2/a_in**2)
+
+    cc_in(3) = po*(t_in/to)**gxgm1
+
+    cc_in(1) = cc_in(3)/(r*t_in)
+
+    cc_in(2) = sqrt(2012.0_dp*(to-t_in))
+
+! floor variables
+    cc_in = floor_primitive_vars(cc_in)
+
+  end subroutine subsonic_inflow_r_explicit
+
+!=============================================================================80
+!
+! Uses primitive variables
+!
+!=============================================================================80
+
+  subroutine outflow_explicit( cc_out, cc_1, cc_2 )
+
+    use set_precision,   only : dp
+    use set_constants,   only : two
+    use initialize_soln, only : pback
+
+    implicit none
+
+    real(dp), dimension(3), intent(in)  :: cc_1, cc_2
+    real(dp), dimension(3), intent(out) :: cc_out
+
+    continue
+
+! extrapolate all variables
+    cc_out(:) = two*cc_1(:) - cc_2(:)
+
+! set back pressure if appropriate
+    if ( pback >= 0.0_dp ) cc_out(3) = pback
+
+! floor variables
+    cc_out = floor_primitive_vars(cc_out)
+
+  end subroutine outflow_explicit
+
+!=============================================================================80
+!
 ! Uses conserved variables with Po and To specified to calculate subsonic inflow
 !
 !=============================================================================80
@@ -183,5 +320,6 @@ contains
   end subroutine set_outflow
 
   include 'speed_of_sound.f90'
+  include 'floor_primitive_vars.f90'
 
 end module bc
