@@ -5,7 +5,6 @@ module lhs
 !
 !
 !=============================================================================80
-
   subroutine fill_lhs( cells, cell_vol, area_f, dadx_cc, dt, &
                        cons_cc, L, D, U )
 
@@ -59,7 +58,6 @@ module lhs
 !
 !
 !=============================================================================80
-
   subroutine fill_full_lhs( cells, cell_vol, area_f, dadx_cc, dt, &
                             cons_cc, L2, L, D, U, U2 )
 
@@ -179,7 +177,6 @@ module lhs
 !
 !
 !=============================================================================80
-
   subroutine modify_lhs_for_bc(neq, dof, lower, diag, upper, rhs)
 
     use set_precision, only : dp

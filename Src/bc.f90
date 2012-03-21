@@ -20,7 +20,6 @@ contains
 ! Uses primitive variables
 !
 !=============================================================================80
-
   subroutine subsonic_inflow_explicit( cc_in, cc_1, cc_2 )
 
     use set_precision,   only : dp
@@ -83,7 +82,6 @@ contains
 ! Uses primitive variables
 !
 !=============================================================================80
-
   subroutine subsonic_inflow_r_explicit( cc_in, cc_1 )
 
     use set_precision,   only : dp
@@ -127,7 +125,6 @@ contains
 ! Uses primitive variables
 !
 !=============================================================================80
-
   subroutine outflow_explicit( cc_out, cc_1, cc_2 )
 
     use set_precision,   only : dp
