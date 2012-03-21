@@ -20,6 +20,7 @@ module solvers
   public :: cfl        ! CFL limit at start
   public :: cfl_end    ! CFL limit at end if ramping
   public :: cfl_ramp   ! Number of iterations to ramp CFL over
+  public :: lhs        ! Force the LHS to be 1st or 2nd order
   public :: muscl      ! MUSCL extrapolation, .true. or .false.
   public :: kappa      ! form of MUSCL
   public :: limiter    ! type of variable limiting
@@ -39,6 +40,7 @@ module solvers
   integer  :: iter_out
   integer  :: rkorder
   integer  :: cfl_ramp
+  integer  :: lhs = 1
   logical  :: muscl
   real(dp) :: cfl
   real(dp) :: cfl_end
@@ -217,12 +219,12 @@ module solvers
       end if
 
 ! Form LHS
-
-!      L2 = zero
-!      U2 = zero
-!      call fill_lhs( cells, cell_vol, area_f, dadx_cc, dt, cons_cc, L, D, U )
-      call fill_full_lhs( cells, cell_vol, area_f, dadx_cc, &
-                          dt, cons_cc, L2, L, D, U, U2 )
+      if ( n <= firstorder .or. lhs == 1 ) then
+        call fill_lhs( cells, cell_vol, area_f, dadx_cc, dt, cons_cc, L, D, U )
+      else
+        call fill_full_lhs( cells, cell_vol, area_f, dadx_cc, &
+                            dt, cons_cc, L2, L, D, U, U2 )
+      end if
 
 ! Take care of BC's
 ! Inflow, modify according to bc
@@ -234,13 +236,13 @@ module solvers
                        D(:,:,cells+2), L(:,:,cells+2), L2(:,:,cells+2),        &
                        RHS(:,cells+2) )
 
-! Modify matrix to maintain block tridiagonal structure
-!      call modify_lhs_for_bc(3, cells+2, L, D, U, RHS)
-
 ! solve the system of equations
-!      call triblocksolve(3, cells+2, L, D, U, RHS, delta_cons_cc)
+      if ( n <= firstorder .or. lhs == 1 ) then
+        call triblocksolve(3, cells+2, L, D, U, RHS, delta_cons_cc)
+      else
+        call pentablocksolve(3, cells+2, L2, L, D, U, U2, RHS, delta_cons_cc)
+      end if
 
-      call pentablocksolve(3, cells+2, L2, L, D, U, U2, RHS, delta_cons_cc)
 ! Update the conserved variables
       cons_cc = cons_cc + delta_cons_cc
 
