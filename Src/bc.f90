@@ -156,16 +156,18 @@ contains
 ! Uses conserved variables with Po and To specified to calculate subsonic inflow
 !
 !=============================================================================80
-  subroutine subsonic_inflow(cc_in, cc_1, cc_2, DD, DU1, DU2, RHS)
+  subroutine subsonic_inflow(iter, cc_in, cc_1, cc_2, DD, DU1, DU2, RHS)
 
     use set_precision,   only : dp
     use set_constants,   only : zero, half, one, two
     use fluid_constants, only : gamma, gm1, gxgm1, xgm1, R, cv
     use initialize_soln, only : po, to
+    use residual,        only : firstorder
     use lhs,             only : lhs_order
 
     implicit none
 
+    integer,                  intent(in)  :: iter
     real(dp), dimension(3),   intent(in)  :: cc_in, cc_1, cc_2
     real(dp), dimension(3,3), intent(out) :: DD, DU1, DU2
     real(dp), dimension(3),   intent(out) :: RHS
@@ -188,7 +190,9 @@ contains
     DU1(1,1) = -cc_1(2)/cc_1(1)**2
     DU1(1,2) = one/cc_1(1)
 
-    if ( lhs_order /= 1 ) DU1 = two*DU1
+    DU1 = -DU1
+
+    if ( iter > firstorder .and. lhs_order /= 1 )  DU1 = -two*DU1
 
     DU2(1,1) = -cc_2(2)/cc_2(1)**2
     DU2(1,2) = one/cc_2(1)
@@ -242,16 +246,18 @@ contains
 ! Creates matrices for variable extrapolation
 !
 !=============================================================================80
-  subroutine set_outflow(cc_out, cc_1, cc_2, DD, DL1, DL2, RHS)
+  subroutine set_outflow(iter, cc_out, cc_1, cc_2, DD, DL1, DL2, RHS)
 
     use set_precision,   only : dp
     use set_constants,   only : zero, half, one, two
     use fluid_constants, only : gm1
     use initialize_soln, only : pback
+    use residual,        only : firstorder
     use lhs,             only : lhs_order
 
     implicit none
 
+    integer,                  intent(in)  :: iter
     real(dp), dimension(3),   intent(in)  :: cc_out, cc_1, cc_2
     real(dp), dimension(3,3), intent(out) :: DD, DL1, DL2
     real(dp), dimension(3),   intent(out) :: RHS
@@ -290,7 +296,7 @@ contains
     DL1(2,3) = zero
     DL1(3,3) = gm1
 
-    if ( lhs_order /= 1 ) DL1 = -two*DL1
+    if ( iter > firstorder .and. lhs_order /= 1 ) DL1 = -two*DL1
 
     DL2(1,1) = one
     DL2(2,1) = -u_2/cc_2(1)

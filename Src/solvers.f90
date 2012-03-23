@@ -26,7 +26,6 @@ module solvers
 ! set initial values
 
   integer  :: iterations
-  integer  :: firstorder
   integer  :: itercheck
   integer  :: iter_out
   integer  :: rkorder
@@ -157,7 +156,7 @@ module solvers
     use set_precision,   only : dp
     use set_constants,   only : zero, half, one, two
     use fluid_constants, only : gm1
-    use residual,        only : create_residual
+    use residual,        only : create_residual, firstorder
     use lhs,             only : fill_lhs, fill_full_lhs, lhs_order
     use bc,              only : subsonic_inflow, set_outflow
     use matrix_manip,    only : triblocksolve, pentablocksolve
@@ -191,7 +190,7 @@ module solvers
       dt = set_time_step( cells, dx, prim_cc )
 
 ! Form RHS
-      call create_residual( cells, faces, firstorder+1, prim_cc, cons_cc,      &
+      call create_residual( cells, faces, n, prim_cc, cons_cc,                 &
                             area_f, dadx_cc, dx, RHS)
 ! Account for sign since the residual is moved to the RHS
       RHS = -RHS
@@ -215,13 +214,14 @@ module solvers
 
 ! Take care of BC's
 ! Inflow, modify according to bc
-      call subsonic_inflow( cons_cc(:,1), cons_cc(:,2), cons_cc(:,3),          &
+      call subsonic_inflow( n, cons_cc(:,1), cons_cc(:,2), cons_cc(:,3),       &
                             D(:,:,1), U(:,:,1), U2(:,:,1), RHS(:,1) )
 
 ! Outflow
-      call set_outflow(cons_cc(:,cells+2),cons_cc(:,cells+1),cons_cc(:,cells), &
-                       D(:,:,cells+2), L(:,:,cells+2), L2(:,:,cells+2),        &
-                       RHS(:,cells+2) )
+      call set_outflow( n, cons_cc(:,cells+2), cons_cc(:,cells+1),             &
+                        cons_cc(:,cells),                                      &
+                        D(:,:,cells+2), L(:,:,cells+2), L2(:,:,cells+2),       &
+                        RHS(:,cells+2) )
 
 ! solve the system of equations
       if ( n <= firstorder .or. lhs_order == 1 ) then
