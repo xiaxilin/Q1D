@@ -235,7 +235,6 @@ contains
     RHS(2) = T*factor - to
     RHS(3) = p*factor**gxgm1 - po
 
-
   end subroutine subsonic_inflow
 
 !=============================================================================80
