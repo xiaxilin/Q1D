@@ -192,8 +192,6 @@ contains
 
     DU1 = -DU1
 
-    if ( iter > firstorder .and. lhs_order /= 1 )  DU1 = -two*DU1
-
     DU2(1,1) = -cc_2(2)/cc_2(1)**2
     DU2(1,2) = one/cc_2(1)
 
@@ -234,6 +232,8 @@ contains
     DD(3,3) = factor**gxgm1*dPdrhoet + half*gamma*factor**xgm1*P*dM2drhoet
 
     DD = -DD
+
+    if ( iter > firstorder .and. lhs_order /= 1 ) DU1 = -two*DU1
 
     RHS(1) = cc_in(2)/cc_in(1) - two*cc_1(2)/cc_1(1) + cc_2(2)/cc_2(1)
     RHS(2) = T*factor - to
@@ -296,8 +296,6 @@ contains
     DL1(2,3) = zero
     DL1(3,3) = gm1
 
-    if ( iter > firstorder .and. lhs_order /= 1 ) DL1 = -two*DL1
-
     DL2(1,1) = one
     DL2(2,1) = -u_2/cc_2(1)
     DL2(3,1) = half*gm1*u_2**2
@@ -307,6 +305,8 @@ contains
     DL2(1,3) = zero
     DL2(2,3) = zero
     DL2(3,3) = gm1
+
+    if ( iter > firstorder .and. lhs_order /= 1 ) DL1 = -two*DL1
 
     RHS(1) = -cc_out(1) + two*cc_1(1) - cc_2(1)
     RHS(2) = -u_out     + two*u_1     - u_2
