@@ -9,7 +9,9 @@ q1d_SOURCES = \
          solution_error.f90 \
          write_soln.f90 \
 	 matrix_manip.f90 \
+         residual.f90 \
 	 jacobians.f90 \
+         lhs.f90 \
 	 bc.f90 \
          solvers.f90 \
          namelist.f90 \

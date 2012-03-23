@@ -1,8 +1,9 @@
 module namelist
 
-  use solvers,         only : iterations, firstorder, itercheck, iter_out,     &
-                              rkorder, cfl, limiter, lhs, muscl, kappa, toler, &
-                              flux_type, k2, k4, solver, cfl_end, cfl_ramp
+  use residual,        only : muscl, kappa, limiter, firstorder,               &
+                              flux_type, k2, k4
+  use solvers,         only : iterations, itercheck, iter_out, solver,         &
+                              rkorder, cfl, lhs_order, toler, cfl_end, cfl_ramp
   use initialize_soln, only : restart, mref, to, po, pback
   use fluid_constants, only : gamma, r
 
@@ -14,7 +15,7 @@ module namelist
 
 ! Define namelist inputs
 
-  namelist /code_control/ solver, lhs, iterations, firstorder, itercheck,      &
+  namelist /code_control/ solver, lhs_order, iterations, firstorder, itercheck,&
                           iter_out, rkorder, cfl, limiter, muscl, kappa, toler,&
                           cfl_end, cfl_ramp
 
@@ -50,7 +51,7 @@ contains
     solver = 'explicit'
     !sets solver type between explicit or implicit
 
-    lhs = 1
+    lhs_order = 1
     !sets first (1) or second (2) order lhs
 
     iterations = 100000

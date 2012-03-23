@@ -25,7 +25,9 @@ q1d_SOURCES = \
          ../Src/solution_error.f90 \
          ../Src/write_soln.f90 \
 	 ../Src/matrix_manip.f90 \
+	 ../Src/residual.f90 \
 	 ../Src/jacobians.f90 \
+         ../Src/lhs.f90 \
 	 ../Src/bc.f90 \
          ../Src/solvers.f90 \
          ../Src/namelist.f90 \
@@ -34,7 +36,9 @@ q1d_SOURCES = \
          ../Src/solution_error_c.f90 \
          ../Src/write_soln_c.f90 \
 	 ../Src/matrix_manip_c.f90 \
+	 ../Src/residual_c.f90 \
 	 ../Src/jacobians_c.f90 \
+         ../Src/lhs_c.f90 \
 	 ../Src/bc_c.f90 \
          ../Src/solvers_c.f90 \
          ../Src/namelist_c.f90 \

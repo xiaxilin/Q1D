@@ -1,5 +1,14 @@
 module lhs
 
+  implicit none
+
+  private
+
+  public :: fill_lhs
+  public :: fill_full_lhs
+
+contains
+
 !=============================================================================80
 !
 !
@@ -63,6 +72,7 @@ module lhs
 
     use set_precision, only : dp
     use set_constants, only : zero, fourth, half, one
+    use residual,      only : muscl_extrapolation, firstorder, kappa
     use jacobians,     only : jac_source_1D, jac_vanleer_1D
 
     implicit none
@@ -211,5 +221,9 @@ module lhs
     rhs(:,dof)     = rhs(:,dof)     - matmul(inv, rhs(:,dof-1))
 
   end subroutine modify_lhs_for_bc
+
+  include 'conserved_to_primitive_1D.f90'
+  include 'floor_primitive_vars.f90'
+  include 'primitive_to_conserved_1D.f90'
 
 end module lhs
