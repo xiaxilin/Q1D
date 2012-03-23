@@ -10,6 +10,8 @@ module bc
 
   private
 
+  public :: subsonic_inflow_explicit
+  public :: outflow_explicit
   public :: subsonic_inflow
   public :: set_outflow
 

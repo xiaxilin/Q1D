@@ -61,12 +61,12 @@ module solvers
 !
 !
 !=============================================================================80
-
   subroutine explicit_solve( cells, faces, prim_cc, cons_cc, cell_vol,         &
                              area_f, dx, dadx_cc, x_cc )
 
     use set_precision, only : dp
     use set_constants, only : zero
+    use bc,            only : subsonic_inflow_explicit, outflow_explicit
     use write_soln,    only : write_soln_line
 
     implicit none
@@ -115,15 +115,16 @@ module solvers
 
 !        select case(inflow)
 !        case('sub')
-          call set_sub_sonic_inflow(prim_cc(:,1), prim_cc(:,2), prim_cc(:,3))
+          call subsonic_inflow_explicit( prim_cc(:,1),                         &
+                                         prim_cc(:,2), prim_cc(:,3))
 !          call set_sub_sonic_inflow_r(prim_cc(:,1), prim_cc(:,2) )
 !        case('ss')
           ! don't need to do anything... they're already set
 !        end select
 
 ! This routine handles both sub and supersonic conditions
-          call set_outflow( prim_cc(:,cells+2),                                &
-                            prim_cc(:,cells+1), prim_cc(:,cells) )
+          call outflow_explicit( prim_cc(:,cells+2),                           &
+                                 prim_cc(:,cells+1), prim_cc(:,cells) )
 
         do cell = 1, cells+2
           cons_cc(:,cell) = primitive_to_conserved_1D(prim_cc(:,cell))
@@ -164,7 +165,6 @@ module solvers
 !
 !
 !=============================================================================80
-
   subroutine implicit_solve( cells, faces, prim_cc, cons_cc, cell_vol,         &
                              area_f, dx, dadx_cc, x_cc )
 
@@ -279,7 +279,6 @@ module solvers
 !
 !
 !=============================================================================80
-
   pure function set_time_step( cells, dx, prim_cc ) result(dt)
 
     use set_precision, only : dp
@@ -317,7 +316,6 @@ module solvers
 !
 !
 !=============================================================================80
-
   subroutine create_residual( cells, faces, iteration, prim_cc, cons_cc,       &
                               area_f, dadx_cc, dx, residual )
 
@@ -411,7 +409,6 @@ module solvers
 !
 !
 !=============================================================================80
-
   subroutine fill_full_lhs( cells, cell_vol, area_f, dadx_cc, dt, &
                             cons_cc, L2, L, D, U, U2 )
 
@@ -531,7 +528,6 @@ module solvers
 !
 !
 !=============================================================================80
-
   subroutine modify_lhs_for_bc(neq, dof, lower, diag, upper, rhs)
 
     use set_precision, only : dp
@@ -572,7 +568,6 @@ module solvers
 !
 !
 !=============================================================================80
-
   subroutine check_convergence(cells, iteration, residuals, convergence_flag)
 
     use set_precision,   only : dp
@@ -625,147 +620,9 @@ module solvers
 
 !=============================================================================80
 !
-! Uses primitive variables
-!
-!=============================================================================80
-
-  subroutine set_sub_sonic_inflow( cc_in, cc_1, cc_2 )
-
-    use set_precision,   only : dp
-    use set_constants,   only : one, half, two
-    use fluid_constants, only : r, gamma, gm1, xgm1, gxgm1, gm1xgp1, gp1
-    use initialize_soln, only : po, to
-
-    implicit none
-
-    real(dp), dimension(3), intent(in)  :: cc_1, cc_2
-    real(dp), dimension(3), intent(out) :: cc_in
-
-    real(dp) :: vel_max, psi
-
-! testing
-!    real(dp) :: rho0, h0, s0, p, u, temp, a2, ao2
-
-    continue
-
-! set max, physically possible velocity
-    vel_max = sqrt(two*gamma*r*to*xgm1)-one
-
-! extrapolate velocity and limit
-    cc_in(2) = max(-vel_max, min(two*cc_1(2)-cc_2(2), vel_max))
-
-! now calculate inflow
-    psi = to/(to-(gm1*cc_in(2)**2/(two*gamma*r)))
-
-    cc_in(1) = po/(r*to*psi**xgm1)
-    cc_in(3) = po/psi**gxgm1
-
-! to test another version...
-!    ao2 = gamma*r*to
-!    a2 = ao2 - gm1*half*cc_in(2)**2
-!    temp = ao2/a2
-
-!    rho0 = po/(r*to)
-!    cc_in(1) = rho0*temp**gm1
-!    cc_in(3) = po*temp**(gm1/gamma)
-
-!    rho0 = po/(r*to)
-!    h0 = gxgm1*po/rho0
-!    s0 = r*xgm1*log(po/rho0**gamma)
-
-!    cc_in(2) = min(max(two*cc_1(1) - cc_2(1),0.0001_dp),rho0)
-
-!    p = exp(s0*gm1/r)*cc_in(1)**gamma
-!    u = sqrt(two*(h0 - gxgm1*p/cc_in(1)))
-
-!    cc_in(2) = u
-!    cc_in(3) = p
-
-! floor variables
-    cc_in = floor_primitive_vars(cc_in)
-
-  end subroutine set_sub_sonic_inflow
-!=============================================================================80
-!
-! Uses primitive variables
-!
-!=============================================================================80
-
-  subroutine set_sub_sonic_inflow_r( cc_in, cc_1 )
-
-    use set_precision,   only : dp
-    use set_constants,   only : one, half, two
-    use fluid_constants, only : r, gamma, gm1, xgm1, gxgm1, gm1xgp1, gp1
-    use initialize_soln, only : po, to
-
-    implicit none
-
-    real(dp), dimension(3), intent(in)  :: cc_1
-    real(dp), dimension(3), intent(out) :: cc_in
-
-    real(dp) :: a_1, a_in, a_bound, r_minus, t_in
-
-    continue
-
-    a_1 = speed_of_sound(cc_1(3), cc_1(1))
-
-    a_in = sqrt(half*gm1*cc_1(2)**2+a_1**2)
-
-    r_minus = -cc_1(2)-two*xgm1*a_1
-
-    a_bound = -r_minus*gm1xgp1                                                 &
-            * (one-sqrt((gp1*a_in**2)/(gm1*r_minus**2)-half*gm1))
-
-    t_in = to*(a_bound**2/a_in**2)
-
-    cc_in(3) = po*(t_in/to)**gxgm1
-
-    cc_in(1) = cc_in(3)/(r*t_in)
-
-    cc_in(2) = sqrt(2012.0_dp*(to-t_in))
-
-! floor variables
-    cc_in = floor_primitive_vars(cc_in)
-
-  end subroutine set_sub_sonic_inflow_r
-
-!=============================================================================80
-!
 !
 !
 !=============================================================================80
-
-  subroutine set_outflow( cc_out, cc_1, cc_2 )
-
-    use set_precision,   only : dp
-    use set_constants,   only : two
-    use initialize_soln, only : pback
-
-    implicit none
-
-    real(dp), dimension(3), intent(in)  :: cc_1, cc_2
-    real(dp), dimension(3), intent(out) :: cc_out
-
-    continue
-
-! extrapolate all variables
-    cc_out(:) = two*cc_1(:) - cc_2(:)
-
-! set back pressure if appropriate
-    if ( pback >= 0.0_dp ) cc_out(3) = pback
-
-! floor variables
-    cc_out = floor_primitive_vars(cc_out)
-
-  end subroutine set_outflow
-
-
-!=============================================================================80
-!
-!
-!
-!=============================================================================80
-
   subroutine create_fluxes( cells, faces, iteration, prim_cc, cons_cc, flux )
 
     use set_precision, only : dp
@@ -832,7 +689,6 @@ module solvers
 !
 !
 !=============================================================================80
-
   subroutine create_source( cells, pressure, dadx_cc, source )
 
     use set_precision, only : dp
@@ -861,7 +717,6 @@ module solvers
 !
 !
 !=============================================================================80
-
   subroutine add_jst_damping( cells, faces, prim_cc, cons_cc, central_flux )
 
     use set_precision, only : dp
@@ -936,7 +791,6 @@ module solvers
 !
 !
 !=============================================================================80
-
   subroutine muscl_extrapolation( cells, faces, iteration, vars_cc,           &
                                   vars_left, vars_right )
 
@@ -1016,7 +870,7 @@ module solvers
         psi_R(:,:) = one
       end select
 
-! perform MUSCL extrapolation
+! perform MUSCL extrapolation... note that there is no limiting at in/outflow
       i = 1
       vars_left(:,i) = vars_cc(:,i) + fourth                                   &
                 * ((one+kappa)*(vars_cc(:,i+1) - vars_cc(:,i)))
