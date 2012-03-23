@@ -162,6 +162,7 @@ contains
     use set_constants,   only : zero, half, one, two
     use fluid_constants, only : gamma, gm1, gxgm1, xgm1, R, cv
     use initialize_soln, only : po, to
+    use lhs,             only : lhs_order
 
     implicit none
 
@@ -187,8 +188,7 @@ contains
     DU1(1,1) = -cc_1(2)/cc_1(1)**2
     DU1(1,2) = one/cc_1(1)
 
-    DU1 = two*DU1
-!    DU1 = -DU1
+    if ( lhs_order /= 1 ) DU1 = two*DU1
 
     DU2(1,1) = -cc_2(2)/cc_2(1)**2
     DU2(1,2) = one/cc_2(1)
@@ -249,6 +249,7 @@ contains
     use set_constants,   only : zero, half, one, two
     use fluid_constants, only : gm1
     use initialize_soln, only : pback
+    use lhs,             only : lhs_order
 
     implicit none
 
@@ -280,8 +281,6 @@ contains
     DD(2,3) = zero
     DD(3,3) = gm1
 
-!    DD = -DD
-
     DL1(1,1) = one
     DL1(2,1) = -u_1/cc_1(1)
     DL1(3,1) = half*gm1*u_1**2
@@ -292,7 +291,7 @@ contains
     DL1(2,3) = zero
     DL1(3,3) = gm1
 
-    DL1 = -two*DL1
+    if ( lhs_order /= 1 ) DL1 = -two*DL1
 
     DL2(1,1) = one
     DL2(2,1) = -u_2/cc_2(1)
@@ -304,8 +303,6 @@ contains
     DL2(2,3) = zero
     DL2(3,3) = gm1
 
-!    DL2 = -DL2
-
     RHS(1) = -cc_out(1) + two*cc_1(1) - cc_2(1)
     RHS(2) = -u_out     + two*u_1     - u_2
     RHS(3) = -p_out     + two*p_1     - p_2
@@ -313,7 +310,7 @@ contains
     if (pback > zero) then
       DL1(3,:) = zero
       DL2(3,:) = zero
-      RHS(3) = pback - p_out
+      RHS(3)   = pback - p_out
     end if
 
   end subroutine set_outflow

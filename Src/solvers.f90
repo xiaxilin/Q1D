@@ -18,7 +18,6 @@ module solvers
   public :: cfl        ! CFL limit at start
   public :: cfl_end    ! CFL limit at end if ramping
   public :: cfl_ramp   ! Number of iterations to ramp CFL over
-  public :: lhs_order  ! Force the LHS to be 1st or 2nd order
 
   public :: toler      ! convergence tolerance
 
@@ -32,13 +31,12 @@ module solvers
   integer  :: iter_out
   integer  :: rkorder
   integer  :: cfl_ramp
-  integer  :: lhs_order
 
   real(dp) :: cfl
   real(dp) :: cfl_end
 
   real(dp) :: toler
-  
+
   character(8)  :: solver
 
   contains
@@ -160,7 +158,7 @@ module solvers
     use set_constants,   only : zero, half, one, two
     use fluid_constants, only : gm1
     use residual,        only : create_residual
-    use lhs,             only : fill_lhs, fill_full_lhs
+    use lhs,             only : fill_lhs, fill_full_lhs, lhs_order
     use bc,              only : subsonic_inflow, set_outflow
     use matrix_manip,    only : triblocksolve, pentablocksolve
     use write_soln,      only : write_soln_line

@@ -2,8 +2,9 @@ module namelist
 
   use residual,        only : muscl, kappa, limiter, firstorder,               &
                               flux_type, k2, k4
+  use lhs,             only : lhs_order
   use solvers,         only : iterations, itercheck, iter_out, solver,         &
-                              rkorder, cfl, lhs_order, toler, cfl_end, cfl_ramp
+                              rkorder, cfl, toler, cfl_end, cfl_ramp
   use initialize_soln, only : restart, mref, to, po, pback
   use fluid_constants, only : gamma, r
 

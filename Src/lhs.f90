@@ -6,6 +6,9 @@ module lhs
 
   public :: fill_lhs
   public :: fill_full_lhs
+  public :: lhs_order  ! Force the LHS to be 1st or 2nd order
+
+  integer :: lhs_order
 
 contains
 
