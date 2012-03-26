@@ -159,7 +159,7 @@ contains
   subroutine subsonic_inflow(iter, cc_in, cc_1, cc_2, DD, DU1, DU2, RHS)
 
     use set_precision,   only : dp
-    use set_constants,   only : zero, half, one, two
+    use set_constants,   only : zero, half, one, two, three, four
     use fluid_constants, only : gamma, gm1, gxgm1, xgm1, R, cv
     use initialize_soln, only : po, to
     use residual,        only : firstorder
@@ -195,8 +195,6 @@ contains
     DU2(1,1) = -cc_2(2)/cc_2(1)**2
     DU2(1,2) = one/cc_2(1)
 
-    DU2 = -DU2
-
 ! Now need to account for delta Po = delta To = 0 at inflow... DD matrix
 
     rho   = cc_in(1)
@@ -231,13 +229,18 @@ contains
     DD(3,2) = factor**gxgm1*dPdrhou  + half*gamma*factor**xgm1*P*dM2drhou
     DD(3,3) = factor**gxgm1*dPdrhoet + half*gamma*factor**xgm1*P*dM2drhoet
 
-    DD = -DD
+    RHS(1) = -cc_in(2)/cc_in(1) + two*cc_1(2)/cc_1(1) - cc_2(2)/cc_2(1)
+    RHS(2) = to - T*factor
+    RHS(3) = po - p*factor**gxgm1
 
-    if ( iter > firstorder .and. lhs_order /= 1 ) DU1 = -two*DU1
+    if ( iter >= firstorder .and. lhs_order /= 1 ) then
 
-    RHS(1) = cc_in(2)/cc_in(1) - two*cc_1(2)/cc_1(1) + cc_2(2)/cc_2(1)
-    RHS(2) = T*factor - to
-    RHS(3) = p*factor**gxgm1 - po
+      DD(1,:) = -three*DD(1,:)
+      DU1 = -four*DU1
+      DU2 = -DU2
+      
+      RHS(1) = three*cc_in(2)/cc_in(1) - four*cc_1(2)/cc_1(1) + cc_2(2)/cc_2(1)
+    end if
 
   end subroutine subsonic_inflow
 
@@ -296,6 +299,8 @@ contains
     DL1(2,3) = zero
     DL1(3,3) = gm1
 
+    DL1 = -DL1
+
     DL2(1,1) = one
     DL2(2,1) = -u_2/cc_2(1)
     DL2(3,1) = half*gm1*u_2**2
@@ -306,7 +311,7 @@ contains
     DL2(2,3) = zero
     DL2(3,3) = gm1
 
-    if ( iter > firstorder .and. lhs_order /= 1 ) DL1 = -two*DL1
+    if ( iter >= firstorder .and. lhs_order /= 1 ) DL1 = two*DL1
 
     RHS(1) = -cc_out(1) + two*cc_1(1) - cc_2(1)
     RHS(2) = -u_out     + two*u_1     - u_2
