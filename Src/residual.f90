@@ -342,10 +342,10 @@ contains
                 * ((one+kappa)*(vars_cc(:,i+1) - vars_cc(:,i)))
 
       do i = 1, faces
-        if (vars_left(1,i) < zero .or. vars_left(3,i) < zero) then
+        if (vars_left(1,i) <= zero .or. vars_left(3,i) <= zero) then
           vars_left(:,i) = vars_cc(:,i)
         end if
-        if (vars_right(1,i) < zero .or. vars_right(3,i) < zero) then
+        if (vars_right(1,i) <= zero .or. vars_right(3,i) <= zero) then
           vars_right(:,i) = vars_cc(:,i+1)
         end if
       end do
