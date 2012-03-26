@@ -234,12 +234,11 @@ contains
     RHS(3) = po - p*factor**gxgm1
 
     if ( iter >= firstorder .and. lhs_order /= 1 ) then
+      DD(1,:) = three*DD(1,:)
+      DU1 = four*DU1
+      DU2 = DU2
 
-      DD(1,:) = -three*DD(1,:)
-      DU1 = -four*DU1
-      DU2 = -DU2
-      
-      RHS(1) = three*cc_in(2)/cc_in(1) - four*cc_1(2)/cc_1(1) + cc_2(2)/cc_2(1)
+      RHS(1) = -three*cc_in(2)/cc_in(1) + four*cc_1(2)/cc_1(1) - cc_2(2)/cc_2(1)
     end if
 
   end subroutine subsonic_inflow
@@ -252,7 +251,7 @@ contains
   subroutine set_outflow(iter, cc_out, cc_1, cc_2, DD, DL1, DL2, RHS)
 
     use set_precision,   only : dp
-    use set_constants,   only : zero, half, one, two
+    use set_constants,   only : zero, half, one, two, three, four
     use fluid_constants, only : gm1
     use initialize_soln, only : pback
     use residual,        only : firstorder
@@ -311,11 +310,18 @@ contains
     DL2(2,3) = zero
     DL2(3,3) = gm1
 
-    if ( iter >= firstorder .and. lhs_order /= 1 ) DL1 = two*DL1
-
     RHS(1) = -cc_out(1) + two*cc_1(1) - cc_2(1)
     RHS(2) = -u_out     + two*u_1     - u_2
     RHS(3) = -p_out     + two*p_1     - p_2
+
+    if ( iter >= firstorder .and. lhs_order /= 1 ) then
+      DD  = three*DD
+      DL1 = four*DL1
+
+      RHS(1) = -three*cc_out(1) + four*cc_1(1) - cc_2(1)
+      RHS(2) = -three*u_out     + four*u_1     - u_2
+      RHS(3) = -three*p_out     + four*p_1     - p_2
+    end if
 
     if (pback > zero) then
       DL1(3,:) = zero
