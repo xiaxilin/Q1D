@@ -205,7 +205,7 @@ module solvers
       end if
 
 ! Form LHS
-      if ( n <= firstorder .or. lhs_order == 1 ) then
+      if ( n < firstorder .or. lhs_order == 1 ) then
         call fill_lhs( cells, cell_vol, area_f, dadx_cc, dt, cons_cc, L, D, U )
       else
         call fill_full_lhs( cells, cell_vol, area_f, dadx_cc, &
@@ -224,7 +224,7 @@ module solvers
                         RHS(:,cells+2) )
 
 ! solve the system of equations
-      if ( n <= firstorder .or. lhs_order == 1 ) then
+      if ( n < firstorder .or. lhs_order == 1 ) then
         call triblocksolve(3, cells+2, L, D, U, RHS, delta_cons_cc)
       else
         call pentablocksolve(3, cells+2, L2, L, D, U, U2, RHS, delta_cons_cc)
