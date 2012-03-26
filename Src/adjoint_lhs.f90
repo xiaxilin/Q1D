@@ -118,7 +118,7 @@ contains
       D(:,:,cell)  = D(:,:,cell)  + jac_R*area_f(cell)*fourth*(kappa+one)
       U(:,:,cell)  = U(:,:,cell)  + jac_R*area_f(cell)*(one-fourth*kappa)
 
-! Add time term and source Jacobian
+! Add source Jacobian
     do cell = 2, cells+1
       call jac_source_1D( cons_cc(2,cell)/cons_cc(1,cell), dadx_cc(cell),      &
                           cell_vol(cell), source_jac )

@@ -87,7 +87,7 @@ module adjoint_solvers
       call fill_rhs( cells, psi, rL2, rL, rD, rU, rU2, RHS )
 
 ! Check residuals for convergence before they are destroyed by the direct solver
-      if (mod(n,itercheck) == 0) then
+      if (n /=0 .and. mod(n,itercheck) == 0) then
         call check_convergence(cells, n, RHS, convergence_flag)
         if ( convergence_flag ) then
           write(*,*) 'Solution has converged!'
