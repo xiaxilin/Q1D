@@ -236,7 +236,6 @@ contains
     if ( iter >= firstorder .and. lhs_order /= 1 ) then
       DD(1,:) = three*DD(1,:)
       DU1 = four*DU1
-      DU2 = DU2
 
       RHS(1) = -three*cc_in(2)/cc_in(1) + four*cc_1(2)/cc_1(1) - cc_2(2)/cc_2(1)
     end if
@@ -324,6 +323,7 @@ contains
     end if
 
     if (pback > zero) then
+      if ( iter >= firstorder .and. lhs_order /= 1 ) DD(3,:)  = DD(3,:)/three
       DL1(3,:) = zero
       DL2(3,:) = zero
       RHS(3)   = pback - p_out
