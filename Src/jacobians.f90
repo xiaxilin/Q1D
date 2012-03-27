@@ -116,7 +116,7 @@ contains
 
     du_dq(1) = -u*rhoinv
     du_dq(2) = rhoinv
-    du_dq(2) = zero
+    du_dq(3) = zero
 
     dp_dq(1) =  half*gm1*u**2
     dp_dq(2) = -gm1*u
