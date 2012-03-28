@@ -245,7 +245,7 @@ contains
                                   vars_left, vars_right )
 
     use set_precision, only : dp
-    use set_constants, only : zero, fourth, one, onep5, two, small
+    use set_constants, only : zero, fourth, half, one, onep5, two, small
 
     implicit none
 
@@ -273,11 +273,11 @@ contains
         r_L(:,i)  = max( zero, (vars_cc(:,i+2) - vars_cc (:,i+1))              &
                              / (vars_cc(:,i+1) - vars_cc(:,i) + small_factor) )
       end do
-      r_L(:,faces) = one
+      r_L(:,faces) = zero
 
 ! calculate right side variations, r>=0
 
-      r_R(:,1)     = one
+      r_R(:,1)     = zero
       do i = 2, faces
         r_R(:,i) = max( zero, (vars_cc(:,i) - vars_cc(:,i-1))                  &
                             / (vars_cc(:,i+1) - vars_cc(:,i) + small_factor) )
@@ -321,9 +321,11 @@ contains
       end select
 
 ! perform MUSCL extrapolation... note that there is no limiting at in/outflow
+! the commented out portions of code are old versions
       i = 1
-      vars_left(:,i) = vars_cc(:,i) + fourth                                   &
-                * ((one+kappa)*(vars_cc(:,i+1) - vars_cc(:,i)))
+      vars_left(:,i) = vars_cc(:,i)
+!     vars_left(:,i) = vars_cc(:,i) + fourth                                   &
+!               * ((one+kappa)*(vars_cc(:,i+1) - vars_cc(:,i)))
 
       do i = 2, faces
         vars_left(:,i)  = vars_cc(:,i) + fourth                                &
@@ -338,8 +340,9 @@ contains
       end do
 
       i = faces
-      vars_right(:,i) = vars_cc(:,i+1) - fourth                                &
-                * ((one+kappa)*(vars_cc(:,i+1) - vars_cc(:,i)))
+      vars_right(:,i) = vars_cc(:,i+1)
+!     vars_right(:,i) = vars_cc(:,i+1) - fourth                                &
+!               * ((one+kappa)*(vars_cc(:,i+1) - vars_cc(:,i)))
 
       do i = 1, faces
         if (vars_left(1,i) <= zero .or. vars_left(3,i) <= zero) then
