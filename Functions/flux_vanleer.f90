@@ -11,12 +11,11 @@ pure function flux_vanleer(qL, qR)
 
   implicit none
 
-  real(dp), dimension(3), intent(in)    :: qL, qR
+  real(dp), dimension(3), intent(in) :: qL, qR
+  real(dp), dimension(3)             :: flux_vanleer
 
-  real(dp), dimension(3)  :: flux_vanleer,F
-
-  real(dp) :: a, M, Mfloor, fa, fb, switch
-  real(dp), dimension(3) :: Fisub, Fiss
+  real(dp) :: a, M, fa, fb
+  real(dp), dimension(3) :: FL, FR
 
   continue
 
@@ -24,48 +23,40 @@ pure function flux_vanleer(qL, qR)
   a = speed_of_sound(qL(3), qL(1))
   M = qL(2)/a
 
-!Left sub(sonic) flux
-  fa = fourth*qL(1)*a*(M+one)**2
-  fb = a*(gm1*M + two)
+  if ( abs(M) < one ) then !Left subsonic flux
+    fa = fourth*qL(1)*a*(M+one)**2
+    fb = a*(gm1*M + two)
 
-  Fisub(1) = fa
-  Fisub(2) = fa*fb*xg
-  Fisub(3) = half*fa*fb*fb*xg2m1
-
-!Floor the mach number for -supersonic flows
-  Mfloor = half*(M + abs(M))
-!Left supersonic flux
-  Fiss(1) = qL(1)*a*Mfloor
-  Fiss(2) = (Mfloor/M)*qL(1)*a**2*(Mfloor**2+xg)
-  Fiss(3) = qL(1)*a**3*Mfloor*(half*Mfloor**2+xgm1)
-
-!Combine sub and supersonic fluxes, store in final flux vector
-  switch = max(zero, one-real(int(abs(M)),dp))
-  F = (one-switch)*Fiss + switch*Fisub
+    FL(1) = fa
+    FL(2) = fa*fb*xg
+    FL(3) = half*fa*fb*fb*xg2m1
+  else if ( M >= one ) then !Left supersonic flux
+    FL(1) = qL(1)*a*M
+    FL(2) = qL(1)*a**2*(M**2+xg)
+    FL(3) = qL(1)*a**3*M*(half*M**2+xgm1)
+  else
+    FL = zero
+  end if
 
 !Calculate Right (-) Fluxes
   a = speed_of_sound(qR(3), qR(1))
   M = qR(2)/a
 
-!Right sub(sonic) flux
-  fa = -fourth*qR(1)*a*(M-one)**2
-  fb = a*(gm1*M - two)
+  if ( abs(M) < one ) then !Right subsonic flux
+    fa = -fourth*qR(1)*a*(M-one)**2
+    fb = a*(gm1*M - two)
 
-  Fisub(1) = fa
-  Fisub(2) = fa*fb*xg
-  Fisub(3) = half*fa*fb*fb*xg2m1
+    FR(1) = fa
+    FR(2) = fa*fb*xg
+    FR(3) = half*fa*fb*fb*xg2m1
+  else if ( M <= -one ) then !Right supersonic flux
+    FR(1) = qR(1)*a*M
+    FR(2) = qR(1)*a**2*(M**2+xg)
+    FR(3) = qR(1)*a**3*M*(half*M**2+xgm1)
+  else
+    FR = zero
+  end if
 
-!Floor the mach number for +supersonic flows
-  Mfloor = half*(M - abs(M))
-
-  Fiss(1) = qR(1)*a*Mfloor
-  Fiss(2) = (Mfloor/M)*qR(1)*a**2*(Mfloor**2+xg)
-  Fiss(3) = qR(1)*a**3*Mfloor*(half*Mfloor**2+xgm1)
-
-!Combine sub and supersonic fluxes, finish final flux vector
-  switch = max(zero, one-real(int(abs(M)),dp))
-  F = F + (one-switch)*Fiss + switch*Fisub
-
-  flux_vanleer = F
+  flux_vanleer = FL + FR
 
 end function flux_vanleer
