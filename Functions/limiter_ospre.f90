@@ -6,7 +6,7 @@
 pure function limiter_ospre(neq, r)
 
   use set_precision,   only : dp
-  use set_constants,   only : one, onep5
+  use set_constants,   only : zero, one, onep5
 
   implicit none
 
@@ -18,6 +18,7 @@ pure function limiter_ospre(neq, r)
 
   do eq = 1, neq
     limiter_ospre(eq) = onep5*(r(eq)*r(eq) + r(eq)) / (r(eq)*r(eq)+ r(eq) + one)
+    if (r(eq) < zero) limiter_ospre(eq) = zero
   end do
 
 end function limiter_ospre

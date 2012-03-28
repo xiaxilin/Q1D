@@ -18,6 +18,7 @@ pure function limiter_vanalbada(neq, r)
 
   do eq = 1, neq
     limiter_vanalbada(eq) = (r(eq)*r(eq) + r(eq)) / (r(eq)*r(eq) + one)
+    if (r(eq) < zero) limiter_vanalbada(eq) = zero
   end do
 
 end function limiter_vanalbada
