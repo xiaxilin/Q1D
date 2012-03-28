@@ -101,7 +101,7 @@ contains
     U  = zero
     U2 = zero
 
-    do cell = 1, cells+1
+    do cell = 1, cells+2
       prim_cc(:,cell) = conserved_to_primitive_1D(cons_cc(:,cell))
     end do
 
