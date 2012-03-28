@@ -6,7 +6,7 @@
 pure function limiter_vanalbada(neq, r)
 
   use set_precision,   only : dp
-  use set_constants,   only : one
+  use set_constants,   only : zero, one
 
   implicit none
 
