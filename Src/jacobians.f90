@@ -9,10 +9,11 @@ module jacobians
 
 contains
 
-!========================= van_leer_jacobian =================================80
+!============================ jac_vanleer_1D =================================80
 !
 ! This subroutine takes the left and right *conserved* variables at a face
 ! and returns the left and right flux jacobians wrt conserved variables
+! This Jacobian has been checked and found to be correct.
 !
 !=============================================================================80
   subroutine jac_vanleer_1D( qL, qR, jac_l, jac_r )
@@ -164,7 +165,12 @@ contains
 
   end subroutine jac_vanleer_1D
 
-  subroutine jac_source_1D(vel, dadx_cc, cell_jac, source_jac)
+!============================= jac_source_1D =================================80
+!
+! This subroutine returns the source Jacobian wrt conserved variables
+!
+!=============================================================================80
+subroutine jac_source_1D(vel, dadx_cc, cell_jac, source_jac)
 
     use set_precision,   only : dp
     use set_constants,   only : zero, half
