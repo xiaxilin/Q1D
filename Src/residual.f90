@@ -344,6 +344,9 @@ contains
 !     vars_right(:,i) = vars_cc(:,i+1) - fourth                                &
 !               * ((one+kappa)*(vars_cc(:,i+1) - vars_cc(:,i)))
 
+! If extrapolated density or pressure/energy is < 0 then
+! cancel the extrapolation and go first order
+
       do i = 1, faces
         if (vars_left(1,i) <= zero .or. vars_left(3,i) <= zero) then
           vars_left(:,i) = vars_cc(:,i)

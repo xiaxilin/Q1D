@@ -121,9 +121,9 @@ contains
 
 ! Subtract from cell to the right
 
-! First the Jacobian on the left side of the face...
-    L(:,:,cell+1)  = L(:,:,cell+1) - jac_L*area_f(cell)*(one-fourth*(kappa+one))
-    D(:,:,cell+1)  = D(:,:,cell+1) - jac_L*area_f(cell)*fourth*(kappa+one)
+! First the Jacobian on the left side of the face... 
+! no MUSCL extrapolation for the inflow ghost cell
+    L(:,:,cell+1)  = L(:,:,cell+1) - jac_L*area_f(cell)
 
 ! and now the right side.
     L(:,:,cell+1) = L(:,:,cell+1) - jac_R*area_f(cell)*fourth*(kappa+one)
@@ -170,9 +170,9 @@ contains
       L(:,:,cell) = L(:,:,cell) + jac_L*area_f(cell)*fourth*(kappa-one)
       D(:,:,cell) = D(:,:,cell) + jac_L*area_f(cell)*(one-half*kappa)
       U(:,:,cell) = U(:,:,cell) + jac_L*area_f(cell)*fourth*(kappa+one)
-! and now the right side.
-      D(:,:,cell)  = D(:,:,cell)  + jac_R*area_f(cell)*fourth*(kappa+one)
-      U(:,:,cell)  = U(:,:,cell)  + jac_R*area_f(cell)*(one-fourth*kappa)
+! and now the right side...
+! no MUSCL extrapolation for the outflow ghost cell
+      U(:,:,cell)  = U(:,:,cell)  + jac_R*area_f(cell)
 
 ! Add time term and source Jacobian
     do cell = 2, cells+1
