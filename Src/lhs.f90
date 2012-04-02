@@ -121,7 +121,7 @@ contains
 
 ! Subtract from cell to the right
 
-! First the Jacobian on the left side of the face... 
+! First the Jacobian on the left side of the face...
 ! no MUSCL extrapolation for the inflow ghost cell
     L(:,:,cell+1)  = L(:,:,cell+1) - jac_L*area_f(cell)
 
