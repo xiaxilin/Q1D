@@ -170,7 +170,7 @@ module solvers
     real(dp), dimension(faces),     intent(in)    :: area_f
     real(dp), dimension(cells+2),   intent(in)    :: dx, dadx_cc, x_cc
 
-    integer  :: n, cell
+    integer  :: n, eq, cell
 
     real(dp), dimension(cells+2)     :: dt
     real(dp), dimension(3,cells+2)   :: RHS, delta_cons_cc
@@ -231,7 +231,11 @@ module solvers
       end if
 
 ! Update the conserved variables
-      cons_cc = cons_cc + delta_cons_cc
+      do cell = 1, cells+2
+        do eq = 1,3
+          cons_cc(eq,cell) = cons_cc(eq,cell) + delta_cons_cc(eq,cell)
+        end do
+      end do
 
 ! Floor variables for stability
       do cell = 1, cells+2
@@ -292,9 +296,9 @@ module solvers
     end do
 
 !    if ( solver == 'explicit' .or. time_accurate) then
-    if ( solver == 'explicit' ) then
-      dt(:) = dt_global
-    end if
+!    if ( solver == 'explicit' ) then
+    dt(:) = dt_global
+!    end if
 
   end function set_time_step
 
