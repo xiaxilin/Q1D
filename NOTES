@@ -32,3 +32,11 @@ Need to test linear extrapolation LHS fix
 
 Still need to investigate what the cell metric term is for this formulation...
 should it include cell area or not?
+
+Update April 2nd, 2012
+Need to make vector of variable limiters and 
+introduce these to the LHS so the adjoint works.
+
+AND/OR
+Make Jacobians be wrt primitive variables and then convert to conserved...?
+Need to check math on this.

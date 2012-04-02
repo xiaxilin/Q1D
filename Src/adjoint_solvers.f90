@@ -39,7 +39,7 @@ module adjoint_solvers
 
     real(dp), dimension(3,3)         :: ident3x3
     real(dp), dimension(cells+2)     :: dt
-    real(dp), dimension(3,cells+2)   :: psi, RHS, delta_psi
+    real(dp), dimension(3,cells+2)   :: psi, dfdq, RHS, delta_psi
     real(dp), dimension(3,3,cells+2) :: rL2, rL, rD, rU, rU2, L2, L, D, U, U2
 
     logical :: convergence_flag = .false.
@@ -55,15 +55,17 @@ module adjoint_solvers
     rU  = zero
     rU2 = zero
 
+    call get_dfdq( cells, dadx_cc, cell_vol, prim_cc, dfdq )
+
     call fill_full_lhs( cells, cell_vol, area_f, dadx_cc, dt,                  &
                         cons_cc, rL2, rL, rD, rU, rU2 )
 
 ! Inflow, modify according to bc
-    call subsonic_inflow( n, cons_cc(:,1), cons_cc(:,2), cons_cc(:,3),         &
+    call subsonic_inflow( 100000000, cons_cc(:,1), cons_cc(:,2), cons_cc(:,3),         &
                           rD(:,:,1), rU(:,:,1), rU2(:,:,1), RHS(:,1) )
 
 ! Outflow
-    call set_outflow( n, cons_cc(:,cells+2), cons_cc(:,cells+1),               &
+    call set_outflow( 100000000, cons_cc(:,cells+2), cons_cc(:,cells+1),               &
                       cons_cc(:,cells),                                        &
                       rD(:,:,cells+2), rL(:,:,cells+2), rL2(:,:,cells+2),      &
                       RHS(:,cells+2) )
@@ -100,6 +102,8 @@ module adjoint_solvers
         D(:,:,cell) = D(:,:,cell) + ident3x3*cell_vol(cell)/dt(cell)
       end do
 
+      RHS = RHS - dfdq
+
 ! solve the system of equations
       call pentablocksolve(3, cells+2, L2, L, D, U, U2, RHS, delta_psi)
 
@@ -121,7 +125,7 @@ module adjoint_solvers
       write(*,*) 'Consider continuing from q1d.rst'
     end if
 
-    call write_soln_line(iterations, cells, x_cc, prim_cc, cons_cc)
+    call write_soln_line(iterations, cells, x_cc, psi, cons_cc)
 
   end subroutine implicit_solve
 
@@ -157,6 +161,43 @@ module adjoint_solvers
     end do
 
   end function set_time_step
+
+!=============================================================================80
+!
+!
+!
+!=============================================================================80
+  subroutine get_dfdq( cells, dadx_cc, cell_jac, prim_cc, dfdq )
+
+    use set_precision,   only : dp
+    use set_constants,   only : zero, half
+    use fluid_constants, only : gm1
+
+    implicit none
+
+    integer,                        intent(in)  :: cells
+    real(dp), dimension(cells+2),   intent(in)  :: dadx_cc, cell_jac
+    real(dp), dimension(3,cells+2), intent(in)  :: prim_cc
+    real(dp), dimension(3,cells+2), intent(out) :: dfdq
+
+    integer  :: cell
+    real(dp) :: sidewall_area
+
+    continue
+
+    dfdq = zero
+
+    do cell = 2,cells+1
+
+      sidewall_area = dadx_cc(cell)*cell_jac(cell)
+
+      dfdq(1,cell) = half*sidewall_area*gm1*prim_cc(2,cell)**2
+      dfdq(2,cell) = -gm1*prim_cc(2,cell)*sidewall_area
+      dfdq(3,cell) = gm1*sidewall_area
+
+    end do
+
+  end subroutine get_dfdq
 
 !=============================================================================80
 !

@@ -1,10 +1,10 @@
 Quasi-1D Nozzle Suite
 
-Executables: q1d, g1d_grid ! FIXME: q1d_dual don't exist yet !
+Executables: q1d, g1d_grid, q1da
 
-q1d_grid  : grid generator
-q1d       : primal solver
-q1d_dual  : dual solver
+q1d_grid : grid generator
+q1d      : primal solver
+q1da     : dual solver... not fully hooked up for shocked cases
 
 Written in Fortran 9X/0X by Joe Derlaga
 
