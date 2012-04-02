@@ -184,16 +184,16 @@ contains
     DU2 = zero
 
 ! Extrapolate velocity from interior
-    DD(1,1) = -cc_in(2)/cc_in(1)**2
-    DD(1,2) = one/cc_in(1)
+    DD(2,1) = -cc_in(2)/cc_in(1)**2
+    DD(2,2) = one/cc_in(1)
 
-    DU1(1,1) = -cc_1(2)/cc_1(1)**2
-    DU1(1,2) = one/cc_1(1)
+    DU1(2,1) = -cc_1(2)/cc_1(1)**2
+    DU1(2,2) = one/cc_1(1)
 
     DU1 = -DU1
 
-    DU2(1,1) = -cc_2(2)/cc_2(1)**2
-    DU2(1,2) = one/cc_2(1)
+    DU2(2,1) = -cc_2(2)/cc_2(1)**2
+    DU2(2,2) = one/cc_2(1)
 
 ! Now need to account for delta Po = delta To = 0 at inflow... DD matrix
 
@@ -216,9 +216,9 @@ contains
     dM2drhoet = -dTdrhoet*m**2/T
 
 ! add To equations...
-    DD(2,1) = factor*dTdrho   + half*gm1*T*dM2drho
-    DD(2,2) = factor*dTdrhou  + half*gm1*T*dM2drhou
-    DD(2,3) = factor*dTdrhoet + half*gm1*T*dM2drhoet
+    DD(1,1) = factor*dTdrho   + half*gm1*T*dM2drho
+    DD(1,2) = factor*dTdrhou  + half*gm1*T*dM2drhou
+    DD(1,3) = factor*dTdrhoet + half*gm1*T*dM2drhoet
 
     dPdrho   = half*gm1*u**2
     dPdrhou  = -gm1*u
@@ -229,15 +229,15 @@ contains
     DD(3,2) = factor**gxgm1*dPdrhou  + half*gamma*factor**xgm1*P*dM2drhou
     DD(3,3) = factor**gxgm1*dPdrhoet + half*gamma*factor**xgm1*P*dM2drhoet
 
-    RHS(1) = -cc_in(2)/cc_in(1) + two*cc_1(2)/cc_1(1) - cc_2(2)/cc_2(1)
-    RHS(2) = to - T*factor
+    RHS(1) = to - T*factor
+    RHS(2) = -cc_in(2)/cc_in(1) + cc_1(2)/cc_1(1)! - cc_2(2)/cc_2(1)
     RHS(3) = po - p*factor**gxgm1
 
     if ( iter >= firstorder .and. lhs_order /= 1 ) then
-      DD(1,:) = three*DD(1,:)
+      DD(2,:) = three*DD(2,:)
       DU1 = four*DU1
 
-      RHS(1) = -three*cc_in(2)/cc_in(1) + four*cc_1(2)/cc_1(1) - cc_2(2)/cc_2(1)
+      RHS(2) = -three*cc_in(2)/cc_in(1) + four*cc_1(2)/cc_1(1) - cc_2(2)/cc_2(1)
     end if
 
   end subroutine subsonic_inflow
@@ -309,9 +309,9 @@ contains
     DL2(2,3) = zero
     DL2(3,3) = gm1
 
-    RHS(1) = -cc_out(1) + two*cc_1(1) - cc_2(1)
-    RHS(2) = -u_out     + two*u_1     - u_2
-    RHS(3) = -p_out     + two*p_1     - p_2
+    RHS(1) = -cc_out(1) + cc_1(1)! - cc_2(1)
+    RHS(2) = -u_out     + u_1!     - u_2
+    RHS(3) = -p_out     + p_1!     - p_2
 
     if ( iter >= firstorder .and. lhs_order /= 1 ) then
       DD  = three*DD
