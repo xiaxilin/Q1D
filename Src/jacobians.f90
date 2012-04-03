@@ -165,12 +165,86 @@ contains
 
   end subroutine jac_vanleer_1D
 
+!============================= jac_central_1D ================================80
+!
+! This subroutine takes the left and right *conserved* variables at a face
+! and returns the left and right flux jacobians wrt conserved variables
+!
+!=============================================================================80
+  subroutine jac_central_1D(qL, qR, jac_l, jac_r)
+
+    use set_precision,   only : dp
+    use set_constants,   only : zero, half, one, two
+    use fluid_constants, only : gm1
+
+    implicit none
+
+    real(dp), dimension(3),   intent(in)  :: ql, qr
+    real(dp), dimension(3,3), intent(out) :: jac_l, jac_r
+
+    real(dp) :: rho, rhoinv, u, p
+
+    real(dp), dimension(3) :: drho_dq, du_dq, dp_dq, dq3_dq
+
+    continue
+
+! Common linearizations
+    drho_dq(1) = one
+    drho_dq(2) = zero
+    drho_dq(3) = zero
+
+    dq3_dq(1) = zero
+    dq3_dq(2) = zero
+    dq3_dq(3) = one
+
+! Do the left side...
+! calculate primitive vars from conserved
+    rho = qL(1)
+    rhoinv = one/rho
+    u = qL(2)*rhoinv
+    p = gm1*( qL(3) - half * rho * u**2 )
+
+! linearization of primitive variables wrt conserved
+    du_dq(1) = -u*rhoinv
+    du_dq(2) = rhoinv
+    du_dq(3) = zero
+
+    dp_dq(1) = half*gm1*u**2
+    dp_dq(2) = -gm1*u
+    dp_dq(3) = gm1
+
+    jac_L(1,:) = drho_dq(:)*u + rho*du_dq(:)
+    jac_L(2,:) = drho_dq(:)*u*u + two*rho*u*du_dq(:) + dp_dq(:)
+    jac_L(3,:) = ( dq3_dq(:) + dp_dq(:) )*u + (ql(3) + p)*du_dq(:)
+
+! Do the right side...
+! calculate primitive vars from conserved
+    rho = qR(1)
+    rhoinv = one/rho
+    u = qR(2)*rhoinv
+    p = gm1*( qR(3) - half * rho * u**2 )
+
+! linearization of right primitive variables wrt conserved
+    du_dq(1) = -u*rhoinv
+    du_dq(2) = rhoinv
+    du_dq(3) = zero
+
+    dp_dq(1) =  half*gm1*u**2
+    dp_dq(2) = -gm1*u
+    dp_dq(3) =  gm1
+
+    jac_R(1,:) = drho_dq(:)*u + rho*du_dq(:)
+    jac_R(2,:) = drho_dq(:)*u*u + two*rho*u*du_dq(:) + dp_dq(:)
+    jac_R(3,:) = ( dq3_dq(:) + dp_dq(:) )*u + (ql(3) + p)*du_dq(:)
+
+  end subroutine jac_central_1D
+
 !============================= jac_source_1D =================================80
 !
 ! This subroutine returns the source Jacobian wrt conserved variables
 !
 !=============================================================================80
-subroutine jac_source_1D(vel, dadx_cc, cell_jac, source_jac)
+  subroutine jac_source_1D(vel, dadx_cc, cell_jac, source_jac)
 
     use set_precision,   only : dp
     use set_constants,   only : zero, half
