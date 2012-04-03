@@ -89,6 +89,7 @@ contains
     integer                        :: cell
     real(dp), dimension(3,3)       :: ident3x3, jac_L, jac_R, source_jac
     real(dp), dimension(3,cells+2) :: prim_cc, prim_L, prim_R, cons_L, cons_R
+    real(dp), dimension(3,cells+2) :: limL, limR
 
     continue
 
@@ -116,7 +117,7 @@ contains
     end do
 
     call muscl_extrapolation( cells, cells+1, firstorder+1, &
-                              cons_cc, cons_L, cons_R )
+                              cons_cc, cons_L, cons_R, limL, limR )
 
 ! Inflow face
     cell = 1

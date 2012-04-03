@@ -242,7 +242,7 @@ contains
 !
 !=============================================================================80
   subroutine muscl_extrapolation( cells, faces, iteration, vars_cc,           &
-                                  vars_left, vars_right )
+                                  vars_left, vars_right, limL, limR )
 
     use set_precision, only : dp
     use set_constants, only : zero, fourth, half, one, onep5, two, small
@@ -252,6 +252,7 @@ contains
     integer,                        intent(in)  :: cells, faces, iteration
     real(dp), dimension(3,cells+2), intent(in)  :: vars_cc
     real(dp), dimension(3,faces),   intent(out) :: vars_left, vars_right
+    real(dp), optional, dimension(3,cells+2), intent(out) :: limL, limR
 
     integer                       :: i
     real(dp), dimension(3, faces) :: r_L, r_R, psi_L, psi_R
@@ -355,6 +356,11 @@ contains
           vars_right(:,i) = vars_cc(:,i+1)
         end if
       end do
+
+      if ( present(limL) .and. present(limR) ) then
+        limL = psi_L
+        limR = psi_R
+      end if
 
     end if second_order
 
