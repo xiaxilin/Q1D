@@ -217,6 +217,8 @@ contains
     jac_L(2,:) = drho_dq(:)*u*u + two*rho*u*du_dq(:) + dp_dq(:)
     jac_L(3,:) = ( dq3_dq(:) + dp_dq(:) )*u + (ql(3) + p)*du_dq(:)
 
+    jac_L = half*jac_L
+
 ! Do the right side...
 ! calculate primitive vars from conserved
     rho = qR(1)
@@ -236,6 +238,8 @@ contains
     jac_R(1,:) = drho_dq(:)*u + rho*du_dq(:)
     jac_R(2,:) = drho_dq(:)*u*u + two*rho*u*du_dq(:) + dp_dq(:)
     jac_R(3,:) = ( dq3_dq(:) + dp_dq(:) )*u + (ql(3) + p)*du_dq(:)
+
+    jac_R = half*jac_R
 
   end subroutine jac_central_1D
 
