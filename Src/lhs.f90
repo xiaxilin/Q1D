@@ -115,6 +115,9 @@ contains
       cons_R(:,cell) = primitive_to_conserved_1D(prim_R(:,cell))
     end do
 
+    call muscl_extrapolation( cells, cells+1, firstorder+1, &
+                              cons_cc, cons_L, cons_R )
+
 ! Inflow face
     cell = 1
     call jac_vanleer_1D( cons_L(:,cell), cons_R(:,cell), jac_L, jac_R )
@@ -123,7 +126,7 @@ contains
 
 ! First the Jacobian on the left side of the face...
 ! no MUSCL extrapolation for the inflow ghost cell
-    L(:,:,cell+1)  = L(:,:,cell+1) - jac_L*area_f(cell)
+    L(:,:,cell+1) = L(:,:,cell+1) - jac_L*area_f(cell)
 
 ! and now the right side.
     L(:,:,cell+1) = L(:,:,cell+1) - jac_R*area_f(cell)*fourth*(kappa+one)
@@ -172,11 +175,11 @@ contains
       U(:,:,cell) = U(:,:,cell) + jac_L*area_f(cell)*fourth*(kappa+one)
 ! and now the right side...
 ! no MUSCL extrapolation for the outflow ghost cell
-      U(:,:,cell)  = U(:,:,cell)  + jac_R*area_f(cell)
+      U(:,:,cell) = U(:,:,cell) + jac_R*area_f(cell)
 
 ! Add time term and source Jacobian
     do cell = 2, cells+1
-      call jac_source_1D( cons_cc(2,cell)/cons_cc(1,cell), dadx_cc(cell),      &
+      call jac_source_1D( prim_cc(2,cell), dadx_cc(cell),                      &
                           cell_vol(cell), source_jac )
 
       D(:,:,cell) = D(:,:,cell) + ident3x3*cell_vol(cell)/dt(cell) - source_jac
