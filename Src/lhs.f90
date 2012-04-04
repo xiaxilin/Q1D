@@ -112,14 +112,22 @@ contains
                               prim_cc, prim_L, prim_R )
 
     do cell = 1, cells+1
-      prim_L(:,cell) = floor_primitive_vars(prim_L(:,cell))
+!      if ( prim_L(1,cell) <= zero .or. prim_L(3,cell) <= zero ) then
+!        prim_L(1,cell) = 0.01_dp
+!        prim_L(2,cell) = 1.0_dp
+!        prim_L(3,cell) = 3000.0_dp
+!      end if
       cons_L(:,cell) = primitive_to_conserved_1D(prim_L(:,cell))
-      prim_R(:,cell) = floor_primitive_vars(prim_R(:,cell))
+!      if ( prim_R(1,cell) <= zero .or. prim_R(3,cell) <= zero ) then
+!        prim_R(1,cell) = 0.01_dp
+!        prim_R(2,cell) = 1.0_dp
+!        prim_R(3,cell) = 3000.0_dp
+!      end if
       cons_R(:,cell) = primitive_to_conserved_1D(prim_R(:,cell))
     end do
 
-    call muscl_extrapolation( cells, cells+1, firstorder+1, &
-                              cons_cc, cons_L, cons_R, limL, limR )
+!    call muscl_extrapolation( cells, cells+1, firstorder+1, &
+!                              cons_cc, cons_L, cons_R, limL, limR )
 
 ! Inflow face
     cell = 1
