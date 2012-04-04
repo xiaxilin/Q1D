@@ -33,34 +33,36 @@ contains
     real(dp), dimension(3,3,cells+2), intent(out)   :: L, D, U
 
     integer                  :: cell
-    real(dp), dimension(3,3) :: ident3x3, source_jac
-    real(dp), dimension(3,3) :: right_jac_L, left_jac_C, right_jac_C, left_jac_R
+    real(dp), dimension(3,3) :: ident3x3, jac_L, jac_R, source_jac
 
     continue
 
     ident3x3 = reshape( (/one, zero, zero, zero, one, zero, zero, zero, one/) ,&
                         (/3,3/) )
+    L = zero
+    D = zero
+    U = zero
 
-    call jac_vanleer_1D( cons_cc(:,1), cons_cc(:,2), right_jac_L, left_jac_C)
+    call jac_vanleer_1D( cons_cc(:,1), cons_cc(:,2), jac_L, jac_R )
 
     do cell = 2, cells+1
+! subtract contribution from left hand face
+      L(:,:,cell) = L(:,:,cell) - jac_L*area_f(cell-1)
+      D(:,:,cell) = D(:,:,cell) - jac_R*area_f(cell-1)
 
-      call jac_vanleer_1D( cons_cc(:,cell), cons_cc(:,cell+1),                 &
-                           right_jac_C, left_jac_R )
+! now add contribution from right side face
+      call jac_vanleer_1D( cons_cc(:,cell), cons_cc(:,cell+1), jac_L, jac_R )
 
+      D(:,:,cell) = D(:,:,cell) + jac_L*area_f(cell)
+      U(:,:,cell) = U(:,:,cell) + jac_R*area_f(cell)
+    end do
+
+! Add contributions from cell volume/area and the wall pressure/source jacobian
+    do cell = 2, cells+1
       call jac_source_1D( cons_cc(2,cell)/cons_cc(1,cell), dadx_cc(cell),      &
                           cell_vol(cell), source_jac )
 
-      L(:,:,cell) = -right_jac_L*area_f(cell-1)
-      D(:,:,cell) = ident3x3*cell_vol(cell)/dt(cell)                           &
-                  + ( right_jac_C*area_f(cell)-left_jac_C*area_f(cell-1)       &
-                  -  source_jac )
-      U(:,:,cell) =  left_jac_R*area_f(cell)
-
-! shift Jacobians to avoid recalculation
-      right_jac_L = right_jac_C
-      left_jac_C  = left_jac_R
-
+      D(:,:,cell) = D(:,:,cell) + ident3x3*cell_vol(cell)/dt(cell) - source_jac
     end do
 
   end subroutine fill_lhs
