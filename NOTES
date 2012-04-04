@@ -40,3 +40,9 @@ introduce these to the LHS so the adjoint works.
 AND/OR
 Make Jacobians be wrt primitive variables and then convert to conserved...?
 Need to check math on this.
+
+Update April 4th, 2012
+Supersonic outflow with totally subsonic inflow initial conditions will not
+converge with kappa = -1.0 or 0.333333333333!
+mref = 1.5 is a good starting constant initial condition for 1st order lhs with
+a 1st or 2nd order rhs
