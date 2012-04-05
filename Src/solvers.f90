@@ -172,6 +172,8 @@ module solvers
 
     integer  :: n, eq, cell
 
+!    real(dp)                         :: cfl0
+    real(dp), dimension(3)           :: l2out
     real(dp), dimension(cells+2)     :: dt
     real(dp), dimension(3,cells+2)   :: RHS, delta_cons_cc
     real(dp), dimension(3,3,cells+2) :: L2, L, D, U, U2
@@ -180,12 +182,16 @@ module solvers
 
     continue
 
+!    cfl0 = cfl
+!    l2out = one
+
     main_loop : do n = 0, iterations
 
 ! Time step calculations
       if (n <= cfl_ramp) then
         cfl = cfl + cfl_end/real(cfl_ramp,dp)
       end if
+!      cfl = cfl0 - log10(l2out(1))!/real(cfl_ramp,dp)
 
       dt = set_time_step( cells, dx, prim_cc )
 
@@ -197,7 +203,7 @@ module solvers
 
 ! Check residuals for convergence before they are destroyed by the direct solver
       if (mod(n,itercheck) == 0) then
-        call check_convergence(cells, n, RHS, convergence_flag)
+        call check_convergence(cells, n, RHS, convergence_flag, l2out)
         if ( convergence_flag ) then
           write(*,*) 'Solution has converged!'
           exit
@@ -309,7 +315,8 @@ module solvers
 !
 !
 !=============================================================================80
-  subroutine check_convergence(cells, iteration, residuals, convergence_flag)
+  subroutine check_convergence( cells, iteration, residuals, convergence_flag, &
+                                l2out)
 
     use set_precision,   only : dp
     use set_constants,   only : zero
@@ -317,9 +324,10 @@ module solvers
 
     implicit none
 
-    integer,                        intent(in)  :: cells, iteration
-    real(dp), dimension(3,cells+2), intent(in)  :: residuals
-    logical,                        intent(out) :: convergence_flag
+    integer,                          intent(in)  :: cells, iteration
+    real(dp), dimension(3,cells+2),   intent(in)  :: residuals
+    logical,                          intent(out) :: convergence_flag
+    real(dp), dimension(3), optional, intent(out) :: l2out
 
     integer :: cell
     real(dp), dimension(3) :: L1, L2, Linf
@@ -356,6 +364,8 @@ module solvers
     if (L2(1) <= toler .and. L2(2) <= toler .and. L2(3) <= toler ) then
       convergence_flag = .true.
     end if
+
+    if ( present(l2out) ) l2out = l2
 
   end subroutine check_convergence
 
