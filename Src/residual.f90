@@ -124,6 +124,10 @@ contains
       do i = 1, faces
         flux(:,i) = flux_ausm( prim_left(:,i), prim_right(:,i) )
       end do
+    case('ausmplus')
+      do i = 1, faces
+        flux(:,i) = flux_ausm_plus( prim_left(:,i), prim_right(:,i) )
+      end do
     case('roe')
       do i = 1, faces
         flux(:,i) = flux_roe( prim_left(:,i), prim_right(:,i) )
@@ -375,6 +379,7 @@ contains
   include 'flux_vanleer.f90'
   include 'flux_sw.f90'
   include 'flux_ausm.f90'
+  include 'flux_ausm_plus.f90'
   include 'flux_roe.f90'
 !  include 'flux_*.f90'
 
