@@ -7,16 +7,16 @@
  function flux_ausm_plus(prim_L, prim_R)
 
   use set_precision,   only : dp
-  use set_constants,   only : fourth, half, one
+  use set_constants,   only : fourth, half, one, two
 
   implicit none
 
   real(dp), dimension(3), intent(in)  :: prim_L, prim_R
   real(dp), dimension(3)              :: flux_ausm_plus, fL, fR, cons_L, cons_R
 
-  real(dp) :: aL, uL, PL, HTL, aR, uR, PR, HTR
+  real(dp) :: rhoL, aL, uL, PL, HTL, rhoR, aR, uR, PR, HTR
   real(dp) :: a_star, aL_tilde, aR_tilde, a_half, m_half, p_half
-  real(dp) :: ML, ML_script, PL_script, MR, MR_script, PR_script,
+  real(dp) :: ML, ML_script, PL_script, MR, MR_script, PR_script
 
   real(dp), parameter :: alpha = 1.0_dp/8.0_dp
   real(dp), parameter :: beta  = 3.0_dp/16.0_dp
