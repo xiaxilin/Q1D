@@ -88,7 +88,7 @@ contains
     integer, intent(in) :: cells
 
     integer  :: cell, restart_unit
-    real(dp) :: p, psi, t
+    real(dp) :: p, psi, t, m
 
     continue
 
@@ -126,8 +126,13 @@ contains
       p   = po/(psi**gxgm1)
 
       do cell = 1, cells+2
+        m = mref + (one-mref)*real(cell,dp)/real(cells/2+1,dp)
+        psi = one + half*gm1*m**2
+        t   = to/psi
+        p   = po/(psi**gxgm1)
+
         prim_cc(1,cell) = p/(r*t)
-        prim_cc(2,cell) = mref*sqrt(gamma*r*t)
+        prim_cc(2,cell) = m*sqrt(gamma*r*t)
         prim_cc(3,cell) = p
 
         cons_cc(:,cell) = primitive_to_conserved_1D( prim_cc(:,cell) )
