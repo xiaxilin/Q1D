@@ -1,3 +1,6 @@
+! Fix the Jacobian matrix so that it does the full transpose, ie,
+! map rL2 to rU2 and rL to rU and vice versa.
+
 module adjoint_solvers
 
   use set_precision, only : dp
@@ -23,6 +26,7 @@ module adjoint_solvers
     use fluid_constants, only : gm1
     use solvers,         only : iterations, itercheck, iter_out, cfl, cfl_end
     use adjoint_lhs,     only : fill_full_lhs, transpose_lhs
+    use residual,        only : firstorder
     use bc,              only : subsonic_inflow, set_outflow
     use matrix_manip,    only : pentablocksolve
     use write_soln,      only : write_soln_line
@@ -61,12 +65,13 @@ module adjoint_solvers
                         cons_cc, rL2, rL, rD, rU, rU2 )
 
 ! Inflow, modify according to bc
-    call subsonic_inflow( 100000000, cons_cc(:,1), cons_cc(:,2), cons_cc(:,3),         &
+    call subsonic_inflow( firstorder+1,                                        &
+                          cons_cc(:,1), cons_cc(:,2), cons_cc(:,3),            &
                           rD(:,:,1), rU(:,:,1), rU2(:,:,1), RHS(:,1) )
 
 ! Outflow
-    call set_outflow( 100000000, cons_cc(:,cells+2), cons_cc(:,cells+1),               &
-                      cons_cc(:,cells),                                        &
+    call set_outflow( firstorder+1,                                            &
+                      cons_cc(:,cells+2), cons_cc(:,cells+1), cons_cc(:,cells),&
                       rD(:,:,cells+2), rL(:,:,cells+2), rL2(:,:,cells+2),      &
                       RHS(:,cells+2) )
 
