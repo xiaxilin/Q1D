@@ -121,9 +121,9 @@ contains
     open(unit,file='q1d_exact_soln.dat',status='replace')
     write(unit,*) 'TITLE = "Quasi-1D Nozzle: Exact Solution"'
     write(unit,*) 'variables="x(m)""Area(m^2)""rho(kg/m^3)""u(m/s)"&
-                  & "Press(N/m^2)""U1""U2""U3""DE1""DE2""DE3"'
+                  &"P(N/m^2)""U1""U2""U3""DE1""DE2""DE3"'
     write(unit,*) 'ZONE T="Exact Isentropic Nozzle Solution"'
-    write(unit,*) 'DT=(DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE &
+    write(unit,*) 'DT=(DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE&
                   & DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE)'
 
     derho   = zero
