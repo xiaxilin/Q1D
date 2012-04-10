@@ -181,7 +181,7 @@ contains
     end do
 
     temp = L
-    L(:,:,1) = zero 
+    L(:,:,1) = zero
     do cell = 1, cells+1
       L(:,:,cell+1) = U(:,:,cell)
     end do
