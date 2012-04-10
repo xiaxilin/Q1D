@@ -137,6 +137,7 @@ contains
   subroutine transpose_lhs(cells, L2, L, D, U, U2)
 
     use set_precision, only : dp
+    use set_constants, only : zero
 
     implicit none
 
@@ -144,6 +145,7 @@ contains
     real(dp), dimension(3,3,cells+2), intent(inout) :: L2, L, D, U, U2
 
     integer :: cell
+    real(dp), dimension(3,3,cells+2) :: temp
 
     continue
 
@@ -165,6 +167,26 @@ contains
 
     do cell = 1, cells+2
       U2(:,:,cell) = transpose(U2(:,:,cell))
+    end do
+
+! Now that they are transposed in place, transpose across the diagonal
+    temp = L2
+    L2(:,:,1) = zero
+    L2(:,:,2) = zero
+    do cell = 1, cells
+      L2(:,:,cell+2) = U2(:,:,cell)
+    end do
+    do cell = 1, cells
+      U2(:,:,cell) = temp(:,:,cell+2)
+    end do
+
+    temp = L
+    L(:,:,1) = zero 
+    do cell = 1, cells+1
+      L(:,:,cell+1) = U(:,:,cell)
+    end do
+    do cell = 1,cells+1
+      U(:,:,cell) = temp(:,:,cell+1)
     end do
 
   end subroutine transpose_lhs

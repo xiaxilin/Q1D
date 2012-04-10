@@ -93,6 +93,8 @@ module adjoint_solvers
 ! Form RHS
       call fill_rhs( cells, psi, rL2, rL, rD, rU, rU2, RHS )
 
+      RHS = RHS - dfdq
+
 ! Check residuals for convergence before they are destroyed by the direct solver
       if (n /=0 .and. mod(n,itercheck) == 0) then
         call check_convergence(cells, n, RHS, convergence_flag)
@@ -106,8 +108,6 @@ module adjoint_solvers
       do cell = 2, cells+2
         D(:,:,cell) = D(:,:,cell) + ident3x3*cell_vol(cell)/dt(cell)
       end do
-
-      RHS = RHS - dfdq
 
 ! solve the system of equations
       call pentablocksolve(3, cells+2, L2, L, D, U, U2, RHS, delta_psi)
@@ -194,7 +194,7 @@ module adjoint_solvers
 
     do cell = 2,cells+1
 
-      sidewall_area = dadx_cc(cell)*cell_jac(cell)
+      sidewall_area = 2.0_dp/real(cells,dp)!abs(dadx_cc(cell))*cell_jac(cell)
 
       dfdq(1,cell) = half*sidewall_area*gm1*prim_cc(2,cell)**2
       dfdq(2,cell) = -gm1*prim_cc(2,cell)*sidewall_area
