@@ -52,23 +52,25 @@
   MR = uR/a_half
 
 !Get other interface properties
+!Note the 'fourth' in front of the subsonic ML/MR_script terms...
+!There appears to be an error in eq. 19B of Liou, JCP 129, 1996
 
 !Left side
   if (abs(ML)<1.0_dp) then
-    ML_script = half*(ML+one)**2 + beta*(ML**2-one)**2
     PL_script = fourth*(two-ML)*(ML+one)**2 + alpha*ML*(ML**2-one)**2
+    ML_script = fourth*(ML+one)**2 + beta*(ML**2-one)**2
   else
-    ML_script = half*(ML+abs(ML))
     PL_script = half*(one+sign(one,ML))
+    ML_script = half*(ML+abs(ML))
   end if
 
 !Right side
   if (abs(MR)<1.0_dp) then
-    MR_script = -half*(MR-one)**2 - beta*(MR**2-one)**2
     PR_script = fourth*(two+MR)*(MR-one)**2 - alpha*MR*(MR**2-one)**2
+    MR_script = -fourth*(MR-one)**2 - beta*(MR**2-one)**2
   else
-    MR_script = half*(MR-abs(MR))
     PR_script = half*(one-sign(one,MR))
+    MR_script = half*(MR-abs(MR))
   end if
 
   m_half = ML_script + MR_script
