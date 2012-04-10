@@ -28,8 +28,8 @@
   ML   = uL/aL
   HTL  = xgm1*aL**2 + half*uL**2
 
-  if (abs(ML)<1.0_dp) then
-    PL = PL*half*(one+ML)
+  if (abs(ML)<=1.0_dp) then
+    PL = half*PL*(one+ML)
     ML = fourth*(ML+one)**2
   else
     PL = half*PL*(one+sign(ML,one))
@@ -44,11 +44,11 @@
   MR   = uR/aR
   HTR  = xgm1*aR**2 + half*uR**2
 
-  if (abs(Mr)<1.0_dp) then
-    PR = PR*half*(one-MR)
+  if (abs(Mr)<=1.0_dp) then
+    PR = half*PR*(one-MR)
     MR = -fourth*(MR-one)**2
   else
-    PR = half*PL*(one-sign(MR,one))
+    PR = half*PR*(one-sign(MR,one))
     MR = half*(MR-abs(MR))
   end if
 
