@@ -8,12 +8,12 @@
 
   use set_precision,   only : dp
   use set_constants,   only : fourth, half, one, two
-  use fluid_constants, only : gm1, xgp1
+  use fluid_constants, only : gm1, xgm1, xgp1
 
   implicit none
 
   real(dp), dimension(3), intent(in)  :: prim_L, prim_R
-  real(dp), dimension(3)              :: flux_ausm_plus, fL, fR, cons_L, cons_R
+  real(dp), dimension(3)              :: flux_ausm_plus, FL, FR
 
   real(dp) :: aL, aR, rhoL, uL, PL, HTL, rhoR, uR, PR, HTR
   real(dp) :: a_star, aL_tilde, aR_tilde, a_half, m_half, p_half
@@ -29,20 +29,14 @@
   uL   = prim_L(2)
   PL   = prim_L(3)
   aL   = speed_of_sound(pL,rhoL)
-
-  cons_L = primitive_to_conserved_1D(prim_L)
-
-  HTL = (cons_L(3)+PL)/rhoL
+  HTL  = xgm1*aL**2 + half*uL**2
 
 !Calculate right (-) state
   rhoR = prim_R(1)
   uR   = prim_R(2)
   PR   = prim_R(3)
   aR   = speed_of_sound(pR,rhoR)
-
-  cons_R = primitive_to_conserved_1D(prim_R)
-
-  HTR = (cons_R(3)+PR)/rhoR
+  HTR  = xgm1*aR**2 + half*uR**2
 
 !Interface speed of sound and mach numbers
   a_star = sqrt(aL*aR)

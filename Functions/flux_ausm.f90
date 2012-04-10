@@ -8,60 +8,54 @@
 
   use set_precision,   only : dp
   use set_constants,   only : fourth, half, one
+  use fluid_constants, only : xgm1
 
   implicit none
 
   real(dp), dimension(3), intent(in)  :: prim_L, prim_R
-  real(dp), dimension(3)              :: flux_ausm, f, cons_L, cons_R
+  real(dp), dimension(3)              :: flux_ausm
 
-  real(dp) :: PL, PR, HTL, HTR, al, ar, Ml, Mr, Mlold, Mrold
+  real(dp) :: rhoL, uL, PL, aL, ML, HTL, rhoR, uR, PR, aR, MR, HTR
+  real(dp), dimension(3) :: FL, FR
 
   continue
 
 !Calculate left (+) state
-  al = speed_of_sound(prim_L(3), prim_L(1))
-  Ml = prim_L(2)/al
-  PL = prim_L(3)
+  rhoL = prim_L(1)
+  uL   = prim_L(2)
+  PL   = prim_L(3)
+  aL   = speed_of_sound(PL, rhoL)
+  ML   = uL/aL
+  HTL  = xgm1*aL**2 + half*uL**2
 
-  cons_L = primitive_to_conserved_1D(prim_L)
-
-  HTL = (cons_L(3)+PL)/cons_L(1)
-    
-  if (abs(Ml)<1.0_dp) then
-    PL = PL*half*(one+Ml)
-    Ml = fourth*(Ml+one)**2
+  if (abs(ML)<1.0_dp) then
+    PL = PL*half*(one+ML)
+    ML = fourth*(ML+one)**2
   else
-    Mlold = Ml
-    Ml = half*(Ml+abs(Ml))
-    PL = PL*Ml/Mlold
+    PL = half*PL*(one+sign(ML,one))
+    ML = half*(ML+abs(ML))
   end if
 
 !Calculate right (-) state
-  ar = speed_of_sound(prim_R(3), prim_R(1))
-  Mr = prim_R(2)/ar
-  PR = prim_R(3)
-
-  cons_R = primitive_to_conserved_1D(prim_R)
-
-  HTR = (cons_R(3)+PR)/cons_R(1)
+  rhoR = prim_R(1)
+  uR   = prim_R(2)
+  PR   = prim_R(3)
+  aR   = speed_of_sound(PR, rhoR)
+  MR   = uR/aR
+  HTR  = xgm1*aR**2 + half*uR**2
 
   if (abs(Mr)<1.0_dp) then
-    PR = PR*half*(one-Mr)
-    Mr = -fourth*(Mr-one)**2
+    PR = PR*half*(one-MR)
+    MR = -fourth*(MR-one)**2
   else
-    Mrold = Mr
-    Mr = half*(Mr-abs(Mr))
-    PR = PR*Mr/Mrold
+    PR = half*PL*(one-sign(MR,one))
+    MR = half*(MR-abs(MR))
   end if
 
-!Combine FIXME: should some ar's be al's?
-  F(1) = half*(cons_R(1)*ar*((Ml+Mr) - abs(Ml+Mr)) +                           &
-               cons_L(1)*ar*((Ml+Mr) + abs(Ml+Mr)))
-  F(2) = half*(cons_R(2)*ar*((Ml+Mr) - abs(Ml+Mr)) +                           &
-               cons_L(2)*ar*((Ml+Mr) + abs(Ml+Mr))) + (PL+PR)
-  F(3) = half*(cons_R(1)*HTR*ar*((Ml+Mr) - abs(Ml+Mr)) +                       &
-               cons_L(1)*HTL*ar*((Ml+Mr) + abs(Ml+Mr)))
+  FL = (/rhoL*aL, rhoL*aL*uL, rhoL*aL*HTL/)
+  FR = (/rhoR*aR, rhoR*aR*uR, rhoR*aR*HTR/)
 
-  flux_ausm = f
+  flux_ausm = half*( (ML+MR)*(FL+FR) - abs(ML+MR)*(FR-FL) )
+  flux_ausm(2) = flux_ausm(2) + PL + PR
 
 end function flux_ausm
