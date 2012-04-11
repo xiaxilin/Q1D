@@ -1,3 +1,5 @@
+!FIXME: make adding the time and source term its own subroutine?
+
 module lhs
 
   implicit none
@@ -12,9 +14,9 @@ module lhs
 
 contains
 
-!=============================================================================80
+!================================== fill_lhs =================================80
 !
-!
+! Fills the 1st order lhs
 !
 !=============================================================================80
   subroutine fill_lhs( cells, cell_vol, area_f, dadx_cc, dt, &
@@ -26,11 +28,11 @@ contains
 
     implicit none
 
-    integer,                          intent(in)    :: cells
-    real(dp), dimension(cells+2),     intent(in)    :: cell_vol, area_f
-    real(dp), dimension(cells+2),     intent(in)    :: dadx_cc, dt
-    real(dp), dimension(3,cells+2),   intent(in)    :: cons_cc
-    real(dp), dimension(3,3,cells+2), intent(out)   :: L, D, U
+    integer,                          intent(in)  :: cells
+    real(dp), dimension(cells+2),     intent(in)  :: cell_vol, area_f
+    real(dp), dimension(cells+2),     intent(in)  :: dadx_cc, dt
+    real(dp), dimension(3,cells+2),   intent(in)  :: cons_cc
+    real(dp), dimension(3,3,cells+2), intent(out) :: L, D, U
 
     integer                  :: cell
     real(dp), dimension(3,3) :: ident3x3, jac_L, jac_R, source_jac
@@ -67,9 +69,9 @@ contains
 
   end subroutine fill_lhs
 
-!=============================================================================80
+!=============================== fill_full_lhs ===============================80
 !
-!
+! Fills the full, 2nd order LHS
 !
 !=============================================================================80
   subroutine fill_full_lhs( cells, cell_vol, area_f, dadx_cc, dt, &
@@ -82,11 +84,11 @@ contains
 
     implicit none
 
-    integer,                          intent(in)    :: cells
-    real(dp), dimension(cells+2),     intent(in)    :: cell_vol, area_f
-    real(dp), dimension(cells+2),     intent(in)    :: dadx_cc, dt
-    real(dp), dimension(3,cells+2),   intent(in)    :: cons_cc
-    real(dp), dimension(3,3,cells+2), intent(out)   :: L2, L, D, U, U2
+    integer,                          intent(in)  :: cells
+    real(dp), dimension(cells+2),     intent(in)  :: cell_vol, area_f
+    real(dp), dimension(cells+2),     intent(in)  :: dadx_cc, dt
+    real(dp), dimension(3,cells+2),   intent(in)  :: cons_cc
+    real(dp), dimension(3,3,cells+2), intent(out) :: L2, L, D, U, U2
 
     integer                        :: cell
     real(dp), dimension(3,3)       :: ident3x3, jac_L, jac_R, source_jac
@@ -199,9 +201,9 @@ contains
 
   end subroutine fill_full_lhs
 
-!=============================================================================80
+!============================= modify_lhs_for_bc =============================80
 !
-!
+! For 1st order LHS, changes three point BC's to two point BC's
 !
 !=============================================================================80
   subroutine modify_lhs_for_bc(neq, dof, lower, diag, upper, rhs)
