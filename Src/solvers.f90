@@ -40,9 +40,10 @@ module solvers
 
   contains
 
-!=============================================================================80
+!=============================== explicit_solve ==============================80
 !
-!
+! Routine to handle explicit solve
+! FIXME: revist and clean up a bit
 !
 !=============================================================================80
   subroutine explicit_solve( cells, faces, prim_cc, cons_cc, cell_vol,         &
@@ -145,9 +146,10 @@ module solvers
 
   end subroutine explicit_solve
 
-!=============================================================================80
+!=============================== implicit_solve ==============================80
 !
-!
+! Routine to handle implicit solve
+! FIXME: revist and clean up a bit
 !
 !=============================================================================80
   subroutine implicit_solve( cells, faces, prim_cc, cons_cc, cell_vol,         &
@@ -273,9 +275,9 @@ module solvers
 
   end subroutine implicit_solve
 
-!=============================================================================80
+!=============================== set_time_step ===============================80
 !
-!
+! Sets time step to be either local or global
 !
 !=============================================================================80
   pure function set_time_step( cells, dx, prim_cc ) result(dt)
@@ -303,6 +305,7 @@ module solvers
       dt_global = min(dt_global, dt(cell))
     end do
 
+! FIXME: fix this mess!
 !    if ( solver == 'explicit' .or. time_accurate) then
 !    if ( solver == 'explicit' ) then
     dt(:) = dt_global
@@ -310,9 +313,9 @@ module solvers
 
   end function set_time_step
 
-!=============================================================================80
+!============================= check_convergence =============================80
 !
-!
+! Checks for convergence based on residuals normalized at the first iteration
 !
 !=============================================================================80
   subroutine check_convergence( cells, iteration, residuals, convergence_flag, &
