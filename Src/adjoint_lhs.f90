@@ -9,9 +9,10 @@ module adjoint_lhs
 
 contains
 
-!=============================================================================80
+!=============================== fill_full_lhs ===============================80
 !
-!
+! Fills the lhs (full 2nd order linearized residual)
+! FIXME: diff with version in lhs.f90 to check consistency
 !
 !=============================================================================80
   subroutine fill_full_lhs( cells, cell_vol, area_f, dadx_cc, dt, &
@@ -127,9 +128,9 @@ contains
 
   end subroutine fill_full_lhs
 
-!=============================================================================80
+!=============================== transpose_lhs ===============================80
 !
-!
+! Transposes the lhs (full 2nd order linearized residual)
 !
 !=============================================================================80
   subroutine transpose_lhs(cells, L2, L, D, U, U2)
