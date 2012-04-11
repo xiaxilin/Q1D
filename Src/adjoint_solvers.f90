@@ -1,6 +1,3 @@
-! Fix the Jacobian matrix so that it does the full transpose, ie,
-! map rL2 to rU2 and rL to rU and vice versa.
-
 module adjoint_solvers
 
   use set_precision, only : dp
@@ -13,9 +10,9 @@ module adjoint_solvers
   public :: check_convergence
 
   contains
-!=============================================================================80
+!=============================== implicit_solve ==============================80
 !
-!
+! Performs the dual consistent discrete adjoint solve
 !
 !=============================================================================80
   subroutine implicit_solve( cells, faces, prim_cc, cons_cc, cell_vol,         &
@@ -134,9 +131,10 @@ module adjoint_solvers
 
   end subroutine implicit_solve
 
-!=============================================================================80
+!=============================== set_time_step ===============================80
 !
-!
+! Sets the time step
+! FIXME: can this be taken from solvers.f90?
 !
 !=============================================================================80
   pure function set_time_step( cells, dx, prim_cc ) result(dt)
@@ -167,9 +165,11 @@ module adjoint_solvers
 
   end function set_time_step
 
-!=============================================================================80
+!================================== get_dfdq =================================80
 !
-!
+! Sets the linearized functional
+! FIXME: pass dx rather than dadx
+! FIXME: add other functionals such as entropy
 !
 !=============================================================================80
   subroutine get_dfdq( cells, dadx_cc, cell_jac, prim_cc, dfdq )
@@ -204,9 +204,10 @@ module adjoint_solvers
 
   end subroutine get_dfdq
 
-!=============================================================================80
+!================================== fill_rhs =================================80
 !
-!
+! Performs the matrix vector multiplication to fill the RHS ( w/o dfdq )
+! FIXME: add dfdq here or change name?
 !
 !=============================================================================80
   subroutine fill_rhs( cells, psi, L2, L, D, U, U2, RHS )
@@ -256,9 +257,10 @@ module adjoint_solvers
 
   end subroutine fill_rhs
 
-!=============================================================================80
+!============================= check_convergence =============================80
 !
-!
+! Checks convergence
+! FIXME: the printed residuals are not properly normalized
 !
 !=============================================================================80
   subroutine check_convergence(cells, iteration, residuals, convergence_flag)
