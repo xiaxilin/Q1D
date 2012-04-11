@@ -30,9 +30,10 @@ module namelist
 
 contains
 
-!================================= read_nml ==================================80
+!================================== read_nml =================================80
 !
 ! Reads the q1d.nml file
+! FIXME: rethink where the variables live so the input file can be cleaner
 !
 !=============================================================================80
   subroutine read_nml
