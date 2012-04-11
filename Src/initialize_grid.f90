@@ -34,10 +34,12 @@ module initialize_grid
 
 contains
 
-!=============================================================================80
+!================================= read_grid =================================80
+!
+! Reads the grid file
+! FIXME: consider removing dadx_cc and area_cc
 !
 !=============================================================================80
-
   subroutine read_grid
 
     use set_constants, only : half, one
@@ -78,8 +80,9 @@ contains
 
 !=============================================================================80
 !
+! Allocates and initializes the grid variables
+!
 !=============================================================================80
-
   subroutine allocate_grid
 
     use set_constants, only : zero
@@ -101,7 +104,9 @@ contains
 
   end subroutine allocate_grid
 
-!=============================================================================80
+!============================== deallocate_grid ==============================80
+!
+! Deallocates the grid variables in the correct order
 !
 !=============================================================================80
 
