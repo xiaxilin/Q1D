@@ -25,11 +25,11 @@ contains
 
     implicit none
 
-    integer,                          intent(in)    :: cells
-    real(dp), dimension(cells+2),     intent(in)    :: cell_vol, area_f
-    real(dp), dimension(cells+2),     intent(in)    :: dadx_cc, dt
-    real(dp), dimension(3,cells+2),   intent(in)    :: cons_cc
-    real(dp), dimension(3,3,cells+2), intent(out)   :: L2, L, D, U, U2
+    integer,                          intent(in)  :: cells
+    real(dp), dimension(cells+2),     intent(in)  :: cell_vol, area_f
+    real(dp), dimension(cells+2),     intent(in)  :: dadx_cc, dt
+    real(dp), dimension(3,cells+2),   intent(in)  :: cons_cc
+    real(dp), dimension(3,3,cells+2), intent(out) :: L2, L, D, U, U2
 
     integer                        :: cell
     real(dp), dimension(3,3)       :: ident3x3, jac_L, jac_R, source_jac
@@ -65,8 +65,8 @@ contains
 ! Subtract from cell to the right
 
 ! First the Jacobian on the left side of the face...
-    L(:,:,cell+1)  = L(:,:,cell+1) - jac_L*area_f(cell)*(one-fourth*(kappa+one))
-    D(:,:,cell+1)  = D(:,:,cell+1) - jac_L*area_f(cell)*fourth*(kappa+one)
+! no MUSCL extrapolation for the inflow ghost cell
+    L(:,:,cell+1) = L(:,:,cell+1) - jac_L*area_f(cell)
 
 ! and now the right side.
     L(:,:,cell+1) = L(:,:,cell+1) - jac_R*area_f(cell)*fourth*(kappa+one)
@@ -114,8 +114,8 @@ contains
       D(:,:,cell) = D(:,:,cell) + jac_L*area_f(cell)*(one-half*kappa)
       U(:,:,cell) = U(:,:,cell) + jac_L*area_f(cell)*fourth*(kappa+one)
 ! and now the right side.
-      D(:,:,cell)  = D(:,:,cell) + jac_R*area_f(cell)*fourth*(kappa+one)
-      U(:,:,cell)  = U(:,:,cell) + jac_R*area_f(cell)*(one-fourth*kappa)
+! no MUSCL extrapolation for the outflow ghost cell
+      U(:,:,cell) = U(:,:,cell) + jac_R*area_f(cell)
 
 ! Add source Jacobian
     do cell = 2, cells+1
