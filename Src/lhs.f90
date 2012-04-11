@@ -97,7 +97,7 @@ contains
 
     continue
 
-    ident3x3 = reshape( (/one, zero, zero, zero, one, zero, zero, zero, one/) ,&
+    ident3x3 = reshape( (/one, zero, zero, zero, one, zero, zero, zero, one/), &
                         (/3,3/) )
 
     L2 = zero
@@ -173,7 +173,7 @@ contains
       L(:,:,cell) = L(:,:,cell) + jac_L*area_f(cell)*fourth*(kappa-one)
       D(:,:,cell) = D(:,:,cell) + jac_L*area_f(cell)*(one-half*kappa)
       U(:,:,cell) = U(:,:,cell) + jac_L*area_f(cell)*fourth*(kappa+one)
-! and now the right side...
+! and now the right side.
 ! no MUSCL extrapolation for the outflow ghost cell
       U(:,:,cell) = U(:,:,cell) + jac_R*area_f(cell)
 
