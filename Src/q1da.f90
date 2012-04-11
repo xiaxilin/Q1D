@@ -44,6 +44,8 @@ program q1d_adjoint
 ! set up initial flow solution or read a restart
   call initial_soln(cells)
 
+  restart = .false.
+
   print*, 'Beginning Implicit Solve'
   call implicit_solve(cells, faces, prim_cc, cons_cc, cell_vol,              &
                       area_f, dx, dadx_cc, x_cc)

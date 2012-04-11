@@ -93,7 +93,7 @@ module adjoint_solvers
       RHS = RHS - dfdq
 
 ! Check residuals for convergence before they are destroyed by the direct solver
-      if (n /=0 .and. mod(n,itercheck) == 0) then
+      if (mod(n,itercheck) == 0) then
         call check_convergence(cells, n, RHS, convergence_flag)
         if ( convergence_flag ) then
           write(*,*) 'Solution has converged!'
@@ -260,7 +260,6 @@ module adjoint_solvers
 !============================= check_convergence =============================80
 !
 ! Checks convergence
-! FIXME: the printed residuals are not properly normalized
 !
 !=============================================================================80
   subroutine check_convergence(cells, iteration, residuals, convergence_flag)
