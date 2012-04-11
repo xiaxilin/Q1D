@@ -47,8 +47,13 @@ module adjoint_solvers
 
     continue
 
+! Initialize some stuff...
+
     ident3x3 = reshape( (/one, zero, zero, zero, one, zero, zero, zero, one/), &
                         (/3,3/) )
+
+    cfl = cfl_end
+
     psi = zero
     rL2 = zero
     rL  = zero
@@ -56,8 +61,7 @@ module adjoint_solvers
     rU  = zero
     rU2 = zero
 
-    call get_dfdq( cells, dx, cell_vol, prim_cc, dfdq )
-
+! Get interior of LHS
     call fill_full_lhs( cells, cell_vol, area_f, dadx_cc, dt,                  &
                         cons_cc, rL2, rL, rD, rU, rU2 )
 
@@ -74,23 +78,20 @@ module adjoint_solvers
 
     call transpose_lhs( cells, rL2, rL, rD, rU, rU2 )
 
-    cfl = cfl_end
+! Get the functional linearization only once and store it
+    call get_dfdq( cells, dx, cell_vol, prim_cc, dfdq )
 
     main_loop : do n = 0, iterations
 
+! Reinitialize the LHS destroyed by the solver
       L2 = rL2
       L  = rL
       D  = rD
       U  = rU
       U2 = rU2
 
-! Time step calculations
-      dt = set_time_step( cells, dx, prim_cc )
-
 ! Form RHS
-      call fill_rhs( cells, psi, rL2, rL, rD, rU, rU2, RHS )
-
-      RHS = RHS - dfdq
+      call fill_rhs( cells, psi, rL2, rL, rD, rU, rU2, dfdq, RHS )
 
 ! Check residuals for convergence before they are destroyed by the direct solver
       if (mod(n,itercheck) == 0) then
@@ -101,12 +102,15 @@ module adjoint_solvers
         end if
       end if
 
+! Time step calculations
+      dt = set_time_step( cells, dx, prim_cc )
+
 ! Add volume/timestep
       do cell = 2, cells+1
         D(:,:,cell) = D(:,:,cell) + ident3x3*cell_vol(cell)/dt(cell)
       end do
 
-! solve the system of equations
+! Solve the system of equations
       call pentablocksolve(3, cells+2, L2, L, D, U, U2, RHS, delta_psi)
 
 ! Update the conserved variables
@@ -171,18 +175,17 @@ module adjoint_solvers
 
 !================================== fill_rhs =================================80
 !
-! Performs the matrix vector multiplication to fill the RHS ( w/o dfdq )
-! FIXME: add dfdq here or change name?
+! Performs the matrix vector multiplication to fill the RHS and subtracts dfdq
 !
 !=============================================================================80
-  subroutine fill_rhs( cells, psi, L2, L, D, U, U2, RHS )
+  subroutine fill_rhs( cells, psi, L2, L, D, U, U2, dfdq, RHS )
 
     use set_precision, only : dp
 
     implicit none
 
     integer,                          intent(in)  :: cells
-    real(dp), dimension(3,cells+2),   intent(in)  :: psi
+    real(dp), dimension(3,cells+2),   intent(in)  :: psi, dfdq
     real(dp), dimension(3,3,cells+2), intent(in)  :: L2, L, D, U, U2
     real(dp), dimension(3,cells+2),   intent(out) :: RHS
 
@@ -193,32 +196,32 @@ module adjoint_solvers
     cell = 1
     rhs(:,cell) = matmul(D(:,:,cell),  psi(:,cell))   + &
                   matmul(U(:,:,cell),  psi(:,cell+1)) + &
-                  matmul(U2(:,:,cell), psi(:,cell+2))
+                  matmul(U2(:,:,cell), psi(:,cell+2)) - dfdq(:,cell)
 
     cell = 2
     rhs(:,cell) = matmul(L(:,:,cell),  psi(:,cell-1)) + &
                   matmul(D(:,:,cell),  psi(:,cell))   + &
                   matmul(U(:,:,cell),  psi(:,cell+1)) + &
-                  matmul(U2(:,:,cell), psi(:,cell+2))
+                  matmul(U2(:,:,cell), psi(:,cell+2)) - dfdq(:,cell)
 
     do cell = 3, cells
       rhs(:,cell) = matmul(L2(:,:,cell), psi(:,cell-2)) + &
                     matmul(L(:,:,cell),  psi(:,cell-1)) + &
                     matmul(D(:,:,cell),  psi(:,cell))   + &
                     matmul(U(:,:,cell),  psi(:,cell+1)) + &
-                    matmul(U2(:,:,cell), psi(:,cell+2))
+                    matmul(U2(:,:,cell), psi(:,cell+2)) - dfdq(:,cell)
     end do
 
     cell = cells+1
     rhs(:,cell) = matmul(L2(:,:,cell), psi(:,cell-2)) + &
                   matmul(L(:,:,cell),  psi(:,cell-1)) + &
                   matmul(D(:,:,cell),  psi(:,cell))   + &
-                  matmul(U(:,:,cell),  psi(:,cell+1))
+                  matmul(U(:,:,cell),  psi(:,cell+1)) - dfdq(:,cell)
 
     cell = cells+2
     rhs(:,cell) = matmul(L2(:,:,cell), psi(:,cell-2)) + &
                   matmul(L(:,:,cell),  psi(:,cell-1)) + &
-                  matmul(D(:,:,cell),  psi(:,cell))
+                  matmul(D(:,:,cell),  psi(:,cell)) - dfdq(:,cell)
 
   end subroutine fill_rhs
 
