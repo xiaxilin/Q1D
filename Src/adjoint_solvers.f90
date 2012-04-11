@@ -50,7 +50,7 @@ module adjoint_solvers
 
     continue
 
-    ident3x3 = reshape( (/one, zero, zero, zero, one, zero, zero, zero, one/) ,&
+    ident3x3 = reshape( (/one, zero, zero, zero, one, zero, zero, zero, one/), &
                         (/3,3/) )
     psi = zero
     rL2 = zero
