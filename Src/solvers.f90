@@ -23,8 +23,6 @@ module solvers
 
   public :: solver     ! 'explicit' or 'implicit' solver
 
-! set initial values
-
   integer  :: iterations
   integer  :: itercheck
   integer  :: iter_out
@@ -43,7 +41,6 @@ module solvers
 !=============================== explicit_solve ==============================80
 !
 ! Routine to handle explicit solve
-! FIXME: revist and clean up a bit
 !
 !=============================================================================80
   subroutine explicit_solve( cells, faces, prim_cc, cons_cc, cell_vol,         &
@@ -79,19 +76,18 @@ module solvers
     end do
 
     iteration_loop : do n = 0, iterations
-! set both local and global time step
+! Set both local and global time step
       dt = set_time_step( cells, dx, prim_cc )
 
-! make copy of solution for RK schemes...
-! wouldn't be necessary for pure Euler explicit
+! Store solution before RK loop. Wouldn't be necessary for pure Euler explicit
       cons_cc_0 = cons_cc
 
       rk_loop : do rk = 1, rkorder
         call create_residual( cells, faces, n, prim_cc, cons_cc,               &
                               area_f, dadx_cc, dx, resid )
 
-! perform explicit iterations on interior cells
-
+! Perform explicit iterations on interior cells
+! Note that the conserved variables are converted to primitive and floored
         do cell = 2,cells+1
           cons_cc(:,cell) = cons_cc_0(:,cell) - dt(cell)*resid(:,cell)         &
                           / ( rk_const(rkorder)*cell_vol(cell) )
@@ -99,18 +95,18 @@ module solvers
           prim_cc(:,cell) = floor_primitive_vars(prim_cc(:,cell))
         end do
 
+! Enforce BC's
 !        select case(inflow)
 !        case('sub')
-          call subsonic_inflow_explicit( prim_cc(:,1),                         &
-                                         prim_cc(:,2), prim_cc(:,3))
+        call subsonic_inflow_explicit(prim_cc(:,1), prim_cc(:,2), prim_cc(:,3))
 !          call set_sub_sonic_inflow_r(prim_cc(:,1), prim_cc(:,2) )
 !        case('ss')
           ! don't need to do anything... they're already set
 !        end select
 
-! This routine handles both sub and supersonic conditions
-          call outflow_explicit( prim_cc(:,cells+2),                           &
-                                 prim_cc(:,cells+1), prim_cc(:,cells) )
+! This routine handles both sub and supersonic outflow
+        call outflow_explicit( prim_cc(:,cells+2),                             &
+                               prim_cc(:,cells+1), prim_cc(:,cells) )
 
         do cell = 1, cells+2
           cons_cc(:,cell) = primitive_to_conserved_1D(prim_cc(:,cell))
@@ -149,7 +145,6 @@ module solvers
 !=============================== implicit_solve ==============================80
 !
 ! Routine to handle implicit solve
-! FIXME: revist and clean up a bit
 !
 !=============================================================================80
   subroutine implicit_solve( cells, faces, prim_cc, cons_cc, cell_vol,         &
@@ -174,7 +169,6 @@ module solvers
 
     integer  :: n, eq, cell
 
-!    real(dp)                         :: cfl0
     real(dp), dimension(3)           :: l2out
     real(dp), dimension(cells+2)     :: dt
     real(dp), dimension(3,cells+2)   :: RHS, delta_cons_cc
@@ -184,16 +178,12 @@ module solvers
 
     continue
 
-!    cfl0 = cfl
-!    l2out = one
-
     main_loop : do n = 0, iterations
 
 ! Time step calculations
       if (n <= cfl_ramp) then
         cfl = cfl + cfl_end/real(cfl_ramp,dp)
       end if
-!      cfl = cfl0 - log10(l2out(1))!/real(cfl_ramp,dp)
 
       dt = set_time_step( cells, dx, prim_cc )
 
@@ -231,7 +221,7 @@ module solvers
                         D(:,:,cells+2), L(:,:,cells+2), L2(:,:,cells+2),       &
                         RHS(:,cells+2) )
 
-! solve the system of equations
+! Solve the system of equations
       if ( n < firstorder .or. lhs_order == 1 ) then
         call triblocksolve(3, cells+2, L, D, U, RHS, delta_cons_cc)
       else
@@ -239,11 +229,7 @@ module solvers
       end if
 
 ! Update the conserved variables
-      do cell = 1, cells+2
-        do eq = 1,3
-          cons_cc(eq,cell) = cons_cc(eq,cell) + delta_cons_cc(eq,cell)
-        end do
-      end do
+      cons_cc = cons_cc + delta_cons_cc
 
 ! Floor variables for stability
       do cell = 1, cells+2
