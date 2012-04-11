@@ -10,14 +10,12 @@ module initialize_grid
 
   public :: cells
   public :: faces
-  public :: dxsi
   public :: area_f
   public :: area_cc
   public :: x_f
   public :: x_cc
   public :: dx
   public :: dadx_cc
-  public :: dxdxsi_cc
   public :: cell_vol
 
   public :: read_grid
@@ -25,16 +23,14 @@ module initialize_grid
 
   integer  :: cells ! # of interior cells
   integer  :: faces ! # of cell faces
-  real(dp) :: dxsi  ! curvilinear stretching term
 
-  real(dp), allocatable, dimension(:) :: area_f    ! face area
-  real(dp), allocatable, dimension(:) :: area_cc   ! cell center area
-  real(dp), allocatable, dimension(:) :: x_f       ! face node location
-  real(dp), allocatable, dimension(:) :: x_cc      ! cell center node location
-  real(dp), allocatable, dimension(:) :: dadx_cc   ! cell center da/dx
-  real(dp), allocatable, dimension(:) :: dxdxsi_cc ! cell dx/dxsi metric
-  real(dp), allocatable, dimension(:) :: dx        ! cell dx
-  real(dp), allocatable, dimension(:) :: cell_vol  ! cell area/volume
+  real(dp), allocatable, dimension(:) :: area_f   ! face area
+  real(dp), allocatable, dimension(:) :: area_cc  ! cell center area
+  real(dp), allocatable, dimension(:) :: x_f      ! face node location
+  real(dp), allocatable, dimension(:) :: x_cc     ! cell center node location
+  real(dp), allocatable, dimension(:) :: dadx_cc  ! cell center da/dx
+  real(dp), allocatable, dimension(:) :: dx       ! cell dx
+  real(dp), allocatable, dimension(:) :: cell_vol ! cell area/volume
 
 contains
 
@@ -60,8 +56,6 @@ contains
 
     faces = cells + 1
 
-    dxsi = one/real(cells, dp)
-
     call allocate_grid()
 
     do face = 1, faces
@@ -73,11 +67,8 @@ contains
     do cell = 2, cells+1
       dx(cell)        = x_f(cell) - x_f(cell-1)
       x_cc(cell)      = x_f(cell-1) + half*dx(cell)
-      dxdxsi_cc(cell) = dx(cell)/dxsi
       cell_vol(cell)  = dx(cell)*area_cc(cell)
     end do
-    dxdxsi_cc(1)       = dxdxsi_cc(2)
-    dxdxsi_cc(faces+1) = dxdxsi_cc(faces)
     dx(1)       = dx(2)
     dx(cells+2) = dx(cells+1)
     cell_vol(1)       = cell_vol(2)
@@ -98,8 +89,7 @@ contains
     continue
 
     allocate( area_f(faces), x_f(faces), area_cc(cells+2), x_cc(cells+2) )
-    allocate( dadx_cc(cells+2), dx(cells+2), dxdxsi_cc(cells+2))
-    allocate( cell_vol(cells+2) )
+    allocate( dadx_cc(cells+2), dx(cells+2), cell_vol(cells+2) )
 
     area_f  = zero
     x_f     = zero
@@ -107,7 +97,6 @@ contains
     x_cc    = zero
     dadx_cc = zero
     dx      = zero
-    dxdxsi_cc = zero
     cell_vol = zero
 
   end subroutine allocate_grid
@@ -122,7 +111,7 @@ contains
 
     continue
 
-    deallocate( area_f, x_f, area_cc, x_cc, dadx_cc, dx, dxdxsi_cc, cell_vol)
+    deallocate( cell_vol, dx, dadx_cc, x_cc, area_cc, x_f, area_f )
 
   end subroutine deallocate_grid
 
