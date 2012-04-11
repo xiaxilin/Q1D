@@ -13,7 +13,7 @@ module matrix_manip
 
 contains
 
-!============================== triblocksolve ================================80
+!=============================== triblocksolve ===============================80
 !
 ! Uses the Thomas algorithm to solve a generic block tridiagonal system
 ! Destroys the DD, UD, RHS matrices
@@ -68,6 +68,7 @@ contains
 !============================== pentablocksolve ==============================80
 !
 ! Uses a modified Thomas algorithm to solve a generic block pentadiagonal system
+! FIXME: revist to make more efficient
 !
 !=============================================================================80
   subroutine pentablocksolve(neq, dof, LD2, LD, DD, UD, UD2, RHS, soln)
@@ -88,6 +89,7 @@ contains
 
 ! Eliminate the LD2 diagonal
     do i = 3, dof-1
+!      call matrix_inv(neq, LD(:,:,i-1), temp)
       call mat_inv_3x3(LD(:,:,i-1), temp)
       temp2 = matmul(LD2(:,:,i), temp)
 
@@ -98,6 +100,7 @@ contains
     end do
 
     i = dof
+!    call matrix_inv(neq, LD(:,:,i-1), temp)
     call mat_inv_3x3(LD(:,:,i-1), temp)
     temp2 = matmul(LD2(:,:,i), temp)
 
@@ -107,6 +110,7 @@ contains
 
 ! Eliminate the LD diagonal
     do i = 2, dof-1
+!      call matrix_inv(neq, DD(:,:,i-1), temp)
       call mat_inv_3x3(DD(:,:,i-1), temp)
       temp2 = matmul(LD(:,:,i), temp )
 
@@ -117,6 +121,7 @@ contains
     end do
 
     i = dof
+!    call matrix_inv(neq, DD(:,:,i-1), temp)
     call mat_inv_3x3(DD(:,:,i-1), temp)
     temp2 = matmul(LD(:,:,i), temp )
 
@@ -124,15 +129,18 @@ contains
     RHS(:,i)  = RHS(:,i)  - matmul(temp2, RHS(:,i-1))
 
 ! Back solve
+!    call matrix_inv(neq, DD(:,:,dof), temp)
     call mat_inv_3x3(DD(:,:,dof), temp)
     soln(:,dof)   = matmul(temp, RHS(:,dof))
 
+!    call matrix_inv(neq, DD(:,:,dof-1), temp)
     call mat_inv_3x3(DD(:,:,dof-1), temp)
 
     soln(:,dof-1) = matmul(temp, &
       RHS(:,dof-1) - matmul(UD(:,:,dof-1), soln(:,dof)))
 
     do i = dof-2,1,-1
+!      call matrix_inv(neq, DD(:,:,i), temp)
       call mat_inv_3x3(DD(:,:,i), temp)
       soln(:,i) = matmul(temp, RHS(:,i)                                        &
         - matmul(UD(:,:,i), soln(:,i+1)) - matmul(UD2(:,:,i), soln(:,i+2)))
@@ -140,10 +148,11 @@ contains
 
   end subroutine pentablocksolve
 
-!================================= ludcmp ====================================80
+!=================================== ludcmp ==================================80
 !
 ! This subroutine performs LU decomposition without pivoting,
 ! most ( CFD related ) matrices passed to it will be diagonally dominant
+! FIXME: Needs pivoting!
 !
 !=============================================================================80
   subroutine ludcmp(neq, matrix, lower, upper)
@@ -208,9 +217,9 @@ contains
 
   end subroutine ludcmp
 
-!=============================================================================80
+!================================== lubkslv ==================================80
 !
-!
+! Peforms the LU back solve
 !
 !=============================================================================80
 
@@ -254,9 +263,9 @@ contains
 
   end subroutine lubkslv
 
-!=============================================================================80
+!================================= matrix_inv ================================80
 !
-!
+! Calculates a general matrix inverse using LU decomposition
 !
 !=============================================================================80
 
@@ -289,7 +298,7 @@ contains
     end do
 
   end subroutine matrix_inv
-!=============================== mat_inv_3x3 =================================80
+!================================ mat_inv_3x3 ================================80
 !
 ! Calculates inverse of 3x3 matrix for speed!!!!
 !
