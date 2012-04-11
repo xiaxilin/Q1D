@@ -46,3 +46,13 @@ Supersonic outflow with totally subsonic inflow initial conditions will not
 converge with kappa = -1.0 or 0.333333333333!
 mref = 1.5 is a good starting constant initial condition for 1st order lhs with
 a 1st or 2nd order rhs
+
+Update April 11th, 2012
+After making a linear ramp for the initial conditions, 
+convergence is much improved.
+Have finally been able to test convergence rates on the fully isentropic case.
+Ramping CFL from 1 to 2000 over 10 iterations shows that the 2nd order LHS
+outperforms the 1st order LHS, although 27 vs 46 iterations is essentially
+instantaneous Newton convergence.
+Ramping CFL from 1 to 6000 over 10 iterations causes the 1st order LHS to 
+become unstable, while the 2nd order LHS converges in 22 iterations.
