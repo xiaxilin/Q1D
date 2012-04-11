@@ -17,7 +17,7 @@ module bc
 
 contains
 
-!=============================================================================80
+!========================== subsonic_inflow_explicit =========================80
 !
 ! Uses primitive variables
 !
@@ -79,7 +79,7 @@ contains
 
   end subroutine subsonic_inflow_explicit
 
-!=============================================================================80
+!========================= subsonic_inflow_r_explicit ========================80
 !
 ! Uses primitive variables
 !
@@ -122,7 +122,7 @@ contains
 
   end subroutine subsonic_inflow_r_explicit
 
-!=============================================================================80
+!============================= outflow_explicit ==============================80
 !
 ! Uses primitive variables
 !
@@ -151,9 +151,10 @@ contains
 
   end subroutine outflow_explicit
 
-!=============================================================================80
+!============================== subsonic_inflow ==============================80
 !
 ! Uses conserved variables with Po and To specified to calculate subsonic inflow
+! FIXME: Check directions on extrapolations, could account for adjoint wiggles
 !
 !=============================================================================80
   subroutine subsonic_inflow(iter, cc_in, cc_1, cc_2, DD, DU1, DU2, RHS)
@@ -242,7 +243,7 @@ contains
 
   end subroutine subsonic_inflow
 
-!=============================================================================80
+!================================ set_outflow ================================80
 !
 ! Creates matrices for variable extrapolation
 !
@@ -323,7 +324,7 @@ contains
     end if
 
     if (pback > zero) then
-      if ( iter >= firstorder .and. lhs_order /= 1 ) DD(3,:)  = DD(3,:)/three
+      if ( iter >= firstorder .and. lhs_order /= 1 ) DD(3,:) = DD(3,:)/three
       DL1(3,:) = zero
       DL2(3,:) = zero
       RHS(3)   = pback - p_out
