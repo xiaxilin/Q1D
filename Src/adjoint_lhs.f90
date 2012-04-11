@@ -12,7 +12,7 @@ contains
 !=============================== fill_full_lhs ===============================80
 !
 ! Fills the lhs (full 2nd order linearized residual)
-! FIXME: diff with version in lhs.f90 to check consistency
+! FIXME: change routine so that the version on lhs.f90 can be reused here
 !
 !=============================================================================80
   subroutine fill_full_lhs( cells, cell_vol, area_f, dadx_cc, dt, &
