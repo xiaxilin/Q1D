@@ -56,7 +56,7 @@ module adjoint_solvers
     rU  = zero
     rU2 = zero
 
-    call get_dfdq( cells, dadx_cc, cell_vol, prim_cc, dfdq )
+    call get_dfdq( cells, dx, cell_vol, prim_cc, dfdq )
 
     call fill_full_lhs( cells, cell_vol, area_f, dadx_cc, dt,                  &
                         cons_cc, rL2, rL, rD, rU, rU2 )
@@ -168,11 +168,10 @@ module adjoint_solvers
 !================================== get_dfdq =================================80
 !
 ! Sets the linearized functional
-! FIXME: pass dx rather than dadx
 ! FIXME: add other functionals such as entropy
 !
 !=============================================================================80
-  subroutine get_dfdq( cells, dadx_cc, cell_jac, prim_cc, dfdq )
+  subroutine get_dfdq( cells, dx, cell_jac, prim_cc, dfdq )
 
     use set_precision,   only : dp
     use set_constants,   only : zero, half
@@ -181,7 +180,7 @@ module adjoint_solvers
     implicit none
 
     integer,                        intent(in)  :: cells
-    real(dp), dimension(cells+2),   intent(in)  :: dadx_cc, cell_jac
+    real(dp), dimension(cells+2),   intent(in)  :: dx, cell_jac
     real(dp), dimension(3,cells+2), intent(in)  :: prim_cc
     real(dp), dimension(3,cells+2), intent(out) :: dfdq
 
@@ -194,7 +193,7 @@ module adjoint_solvers
 
     do cell = 2,cells+1
 
-      sidewall_area = 2.0_dp/real(cells,dp)!abs(dadx_cc(cell))*cell_jac(cell)
+      sidewall_area = dx(cell)
 
       dfdq(1,cell) = half*sidewall_area*gm1*prim_cc(2,cell)**2
       dfdq(2,cell) = -gm1*prim_cc(2,cell)*sidewall_area
