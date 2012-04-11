@@ -1,3 +1,6 @@
+!FIXME: change initial conditions to be smarter... 
+!ie, find throat if it exists, set pback in outflow cell if > 0, etc
+
 module initialize_soln
 
   use set_precision, only : dp
@@ -68,7 +71,7 @@ contains
 
     continue
 
-    deallocate( prim_cc, cons_cc )
+    deallocate( cons_cc, prim_cc )
 
   end subroutine deallocate_soln
 
@@ -88,7 +91,7 @@ contains
     integer, intent(in) :: cells
 
     integer  :: cell, restart_unit
-    real(dp) :: p, psi, t, m
+    real(dp) :: psi, t, p, m
 
     continue
 
@@ -115,16 +118,33 @@ contains
 
     else
 
-!      cp = cp/r
-!      cv = cv/r
-!      r = 1.0_dp
-!      to = to/(gamma*288.15_dp)
-!      po = po/(gamma*101325.0_dp)
+! Constant initial conditions
+!      psi = one + half*gm1*mref*mref
+!      t   = to/psi
+!      p   = po/(psi**gxgm1)
 
-      psi = one + half*gm1*mref*mref
-      t   = to/psi
-      p   = po/(psi**gxgm1)
+!      do cell = 1, cells+2
+!        prim_cc(1,cell) = p/(r*t)
+!        prim_cc(2,cell) = mref*sqrt(gamma*r*t)
+!        prim_cc(3,cell) = p
+!      end do
 
+! Inflow velocity set, everything else stagnant
+!      psi = one + half*gm1*mref*mref
+!      t   = to/psi
+!      p   = po/(psi**gxgm1)
+
+!      prim_cc(1,1) = p/(r*t)
+!      prim_cc(2,1) = mref*sqrt(gamma*r*t)
+!      prim_cc(3,1) = p
+
+!      do cell = 2, cells+2
+!        prim_cc(1,cell) = po/(r*to)
+!        prim_cc(2,cell) = zero
+!        prim_cc(3,cell) = po
+!      end do
+
+! Linear ramp from mref to Mach = 1 at the throat
       do cell = 1, cells+2
         m = mref + (one-mref)*real(cell,dp)/real(cells/2+1,dp)
         psi = one + half*gm1*m**2
@@ -134,7 +154,9 @@ contains
         prim_cc(1,cell) = p/(r*t)
         prim_cc(2,cell) = m*sqrt(gamma*r*t)
         prim_cc(3,cell) = p
+      end do
 
+      do cell = 1, cells+2
         cons_cc(:,cell) = primitive_to_conserved_1D( prim_cc(:,cell) )
       end do
 
