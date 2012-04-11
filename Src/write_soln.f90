@@ -11,7 +11,7 @@ module write_soln
 
 contains
 
-!=============================================================================80
+!=============================== write_restart ===============================80
 !
 ! Writes basic restart file
 !
@@ -45,12 +45,11 @@ contains
 
   end subroutine write_restart
 
-!=============================================================================80
+!============================== init_write_files =============================80
 !
 ! Open the lines file so that it replaces the old
 !
 !=============================================================================80
-
   subroutine init_write_files()
 
     implicit none
@@ -65,12 +64,11 @@ contains
 
   end subroutine init_write_files
 
-!=============================================================================80
+!============================== write_soln_line ==============================80
 !
 ! Writes solution as simple X-Y line output
 !
 !=============================================================================80
-
   subroutine write_soln_line(iteration, cells, x_cc, prim_cc, cons_cc)
 
     use set_precision, only : dp
@@ -110,12 +108,11 @@ contains
 
   end subroutine write_soln_line
 
-!=============================================================================80
+!=============================== write_entropy ===============================80
 !
 ! Writes entropy vars as simple X-Y line output
 !
 !=============================================================================80
-
   subroutine write_entropy(cells, x_cc, prim_cc, cons_cc)
 
     use set_precision,   only : dp
@@ -164,13 +161,12 @@ contains
 
   end subroutine write_entropy
 
-
 !=============================================================================80
 !
 ! Writes solution as cell output ( fancy color plot )
+! FIXME: add this... need TECPLOT cell centered format
 !
 !=============================================================================80
-
   subroutine write_soln_cells()
 
   end subroutine write_soln_cells
