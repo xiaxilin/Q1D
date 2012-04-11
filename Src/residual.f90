@@ -29,9 +29,9 @@ module residual
 
 contains
 
-!=============================================================================80
+!============================== create_residual ==============================80
 !
-!
+! Forms the steady state residual/RHS
 !
 !=============================================================================80
   subroutine create_residual( cells, faces, iteration, prim_cc, cons_cc,       &
@@ -68,9 +68,9 @@ contains
 
   end subroutine create_residual
 
-!=============================================================================80
+!=============================== create_fluxes ===============================80
 !
-!
+! Fills the flux array
 !
 !=============================================================================80
   subroutine create_fluxes( cells, faces, iteration, prim_cc, cons_cc, flux )
@@ -93,12 +93,6 @@ contains
     if (trim(flux_type) /= 'jst' .or. trim(flux_type) /= 'central') then
       call muscl_extrapolation(cells, faces, iteration, &
                                prim_cc, prim_left, prim_right)
-
-      do i = 1, faces
-        prim_left(:,i)  = floor_primitive_vars(prim_left(:,i))
-        prim_right(:,i) = floor_primitive_vars(prim_right(:,i))
-      end do
-
     end if
 
 ! create flux vectors
@@ -133,14 +127,16 @@ contains
         flux(:,i) = flux_roe( prim_left(:,i), prim_right(:,i) )
       end do
     case('hllc')
-
+! FIXME: not implemented yet
+    case('aufs')
+! FIXME: not implemented yet
     end select
 
   end subroutine create_fluxes
 
-!=============================================================================80
+!=============================== create_source ===============================80
 !
-!
+! Calculates the source term
 !
 !=============================================================================80
   subroutine create_source( cells, pressure, dadx_cc, source )
@@ -166,9 +162,9 @@ contains
 
   end subroutine create_source
 
-!=============================================================================80
+!============================== add_jst_damping ==============================80
 !
-!
+! Adds JST damping, if selected by flux = 'jst', for central difference scheme
 !
 !=============================================================================80
   subroutine add_jst_damping( cells, faces, prim_cc, cons_cc, central_flux )
@@ -240,9 +236,11 @@ contains
 
   end subroutine add_jst_damping
 
-!=============================================================================80
+!============================ muscl_extrapolation ============================80
 !
-!
+! Calculates divided differences and variable limiters, then performs
+! MUSCL extrapolation for either primitive or conserved variables.
+! It is highly recommended to use primitive variables, see FIXME: citation!
 !
 !=============================================================================80
   subroutine muscl_extrapolation( cells, faces, iteration, vars_cc,           &
