@@ -4,7 +4,7 @@
 
 ! FIXME: change subsonic/supersonic flag so that it is calculated from the
 !        computed solution as well as mach_init
-! FIXME: search area_f and area_cc for throat area
+! FIXME: find a_star by searching area_f so that this is more general
 
 module solution_error
 
@@ -216,9 +216,9 @@ contains
 
   end function mach_from_area
 
-!=============================================================================80
+!=========================== subsonic_mach_at_exit ===========================80
 !
-!
+! Finds the subsonic exit Mach number based on pressure and area ratios
 !
 !=============================================================================80
   pure function subsonic_mach_at_exit(ratio) result(mach)
@@ -255,9 +255,9 @@ contains
 
   end function subsonic_mach_at_exit
 
-!=============================================================================80
+!=============================== pre_shock_mach ==============================80
 !
-!
+! Finds the pre-shock Mach number based on pressure and area ratios
 !
 !=============================================================================80
   pure function pre_shock_mach(ratio) result(mach)
