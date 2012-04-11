@@ -36,7 +36,7 @@ contains
 
     continue
 
-    ident3x3 = reshape( (/one, zero, zero, zero, one, zero, zero, zero, one/) ,&
+    ident3x3 = reshape( (/one, zero, zero, zero, one, zero, zero, zero, one/), &
                         (/3,3/) )
 
     L2 = zero
@@ -45,7 +45,7 @@ contains
     U  = zero
     U2 = zero
 
-    do cell = 1, cells+1
+    do cell = 1, cells+2
       prim_cc(:,cell) = conserved_to_primitive_1D(cons_cc(:,cell))
     end do
 
@@ -53,9 +53,7 @@ contains
                               prim_cc, prim_L, prim_R )
 
     do cell = 1, cells+1
-      prim_L(:,cell) = floor_primitive_vars(prim_L(:,cell))
       cons_L(:,cell) = primitive_to_conserved_1D(prim_L(:,cell))
-      prim_R(:,cell) = floor_primitive_vars(prim_R(:,cell))
       cons_R(:,cell) = primitive_to_conserved_1D(prim_R(:,cell))
     end do
 
@@ -115,8 +113,8 @@ contains
       D(:,:,cell) = D(:,:,cell) + jac_L*area_f(cell)*(one-half*kappa)
       U(:,:,cell) = U(:,:,cell) + jac_L*area_f(cell)*fourth*(kappa+one)
 ! and now the right side.
-      D(:,:,cell)  = D(:,:,cell)  + jac_R*area_f(cell)*fourth*(kappa+one)
-      U(:,:,cell)  = U(:,:,cell)  + jac_R*area_f(cell)*(one-fourth*kappa)
+      D(:,:,cell)  = D(:,:,cell) + jac_R*area_f(cell)*fourth*(kappa+one)
+      U(:,:,cell)  = U(:,:,cell) + jac_R*area_f(cell)*(one-fourth*kappa)
 
 ! Add source Jacobian
     do cell = 2, cells+1
