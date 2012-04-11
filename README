@@ -32,7 +32,9 @@ Roe's FDS
 van Leer FVS, currently the only implicit LHS formulation
 Steger-Warming FVS
 AUSM
+AUSM+
 HLLC ( to be added! )
+AUFS ( to be added! )
 
 Variable limiters:
 OSPRE
