@@ -41,12 +41,11 @@ module initialize_soln
 
 contains
 
+!=============================== allocate_soln ===============================80
+!
+! Allocates the soln variables
+!
 !=============================================================================80
-!
-!
-!
-!=============================================================================80
-
   subroutine allocate_soln(neq, cells)
 
     implicit none
@@ -59,12 +58,11 @@ contains
 
   end subroutine allocate_soln
 
+!============================== deallocate_soln ==============================80
+!
+! Deallocates the soln variables in the correct order
+!
 !=============================================================================80
-!
-!
-!
-!=============================================================================80
-
   subroutine deallocate_soln()
 
     implicit none
@@ -75,12 +73,11 @@ contains
 
   end subroutine deallocate_soln
 
+!================================ initial_soln ===============================80
+!
+! Sets the initial soln
+!
 !=============================================================================80
-!
-!
-!
-!=============================================================================80
-
   subroutine initial_soln(cells)
 
     use set_constants,   only : half, one
