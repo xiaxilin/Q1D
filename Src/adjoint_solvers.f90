@@ -7,7 +7,6 @@ module adjoint_solvers
   private
 
   public :: implicit_solve
-  public :: check_convergence
 
   contains
 !=============================== implicit_solve ==============================80
@@ -21,7 +20,8 @@ module adjoint_solvers
     use set_precision,   only : dp
     use set_constants,   only : zero, half, one, two
     use fluid_constants, only : gm1
-    use solvers,         only : iterations, itercheck, iter_out, cfl, cfl_end
+    use solvers,         only : iterations, itercheck, iter_out, cfl, cfl_end, &
+                                set_time_step, check_convergence
     use adjoint_lhs,     only : fill_full_lhs, transpose_lhs
     use residual,        only : firstorder
     use bc,              only : subsonic_inflow, set_outflow
@@ -102,7 +102,7 @@ module adjoint_solvers
       end if
 
 ! Add volume/timestep
-      do cell = 2, cells+2
+      do cell = 2, cells+1
         D(:,:,cell) = D(:,:,cell) + ident3x3*cell_vol(cell)/dt(cell)
       end do
 
@@ -130,40 +130,6 @@ module adjoint_solvers
     call write_soln_line(iterations, cells, x_cc, psi, cons_cc)
 
   end subroutine implicit_solve
-
-!=============================== set_time_step ===============================80
-!
-! Sets the time step
-! FIXME: can this be taken from solvers.f90?
-!
-!=============================================================================80
-  pure function set_time_step( cells, dx, prim_cc ) result(dt)
-
-    use set_precision, only : dp
-    use set_constants, only : large
-    use solvers,       only : cfl
-
-    implicit none
-
-    integer,                         intent(in)  :: cells
-    real(dp), dimension(cells+2),    intent(in)  :: dx
-    real(dp), dimension(3, cells+2), intent(in)  :: prim_cc
-    real(dp), dimension(cells+2)                 :: dt
-
-    integer  :: cell
-    real(dp) :: a, dt_global
-
-    continue
-
-    dt_global = large
-
-    do cell = 1, cells+2
-      a = speed_of_sound( prim_cc(3,cell), prim_cc(1,cell) )
-      dt(cell) = cfl*dx(cell) / ( abs(prim_cc(2,cell)) + a )
-      dt_global = min(dt_global, dt(cell))
-    end do
-
-  end function set_time_step
 
 !================================== get_dfdq =================================80
 !
@@ -255,62 +221,6 @@ module adjoint_solvers
                   matmul(D(:,:,cell),  psi(:,cell))
 
   end subroutine fill_rhs
-
-!============================= check_convergence =============================80
-!
-! Checks convergence
-!
-!=============================================================================80
-  subroutine check_convergence(cells, iteration, residuals, convergence_flag)
-
-    use set_precision,   only : dp
-    use set_constants,   only : zero
-    use solvers,         only : toler
-    use initialize_soln, only : restart, L1_init, L2_init, Linf_init
-
-    implicit none
-
-    integer,                        intent(in)  :: cells, iteration
-    real(dp), dimension(3,cells+2), intent(in)  :: residuals
-    logical,                        intent(out) :: convergence_flag
-
-    integer :: cell
-    real(dp), dimension(3) :: L1, L2, Linf
-
-    continue
-
-    L1 = zero
-    L2 = zero
-    Linf = zero
-
-    do cell = 2, cells+1
-      L1(:) = L1(:) + abs(residuals(:,cell))
-      L2(:) = L2(:) + residuals(:,cell)**2
-      Linf(:) = max(Linf(:), abs(residuals(:,cell)))
-    end do
-
-    L1(:) = L1(:)/real(cells,dp)
-    L2(:) = sqrt(L2(:))/real(cells,dp)
-
-    if (iteration == 0 .and. .not. restart) then
-      L1_init(:)   = L1(:)
-      L2_init(:)   = L2(:)
-      Linf_init(:) = Linf(:)
-    end if
-
-    L1(:)   = L1(:)/L1_init(:)
-    L2(:)   = L2(:)/L2_init(:)
-    Linf(:) = Linf(:)/Linf_init(:)
-
-    write(*,300) iteration, L2(1), L2(2), L2(3)
-300 format(1X,i8,2(e15.6),3(e15.6),4(e15.6))
-
-    convergence_flag = .false.
-    if (L2(1) <= toler .and. L2(2) <= toler .and. L2(3) <= toler ) then
-      convergence_flag = .true.
-    end if
-
-  end subroutine check_convergence
 
 ! begin include statements
 

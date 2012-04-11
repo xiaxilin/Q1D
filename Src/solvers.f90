@@ -8,8 +8,8 @@ module solvers
 
   public :: explicit_solve
   public :: implicit_solve
-  public :: check_convergence
   public :: set_time_step
+  public :: check_convergence
 
   public :: iterations ! total number of iterations
   public :: itercheck  ! check for convergence every itercheck iters
