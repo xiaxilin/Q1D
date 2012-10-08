@@ -12,7 +12,7 @@ program q1d_primal
                               deallocate_soln
   use solvers,         only : explicit_solve, implicit_solve, solver
   use write_soln,      only : write_restart, init_write_files, write_entropy
-  use solution_error,  only : calculate_exact_soln
+  use solution_error,  only : calculate_exact_soln, estimate_te
 
   implicit none
 
@@ -64,7 +64,7 @@ program q1d_primal
   print *, 'Calculating Exact Solution'
   call calculate_exact_soln(cells, x_cc, area_cc, fifth,                      &
                             area_f(cells+1), cons_cc)
-
+  call estimate_te( cells, faces,  fifth, area_f, dadx_cc, dx )
 ! free memory
 
   print *, 'Deallocating Memory'

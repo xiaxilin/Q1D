@@ -13,6 +13,7 @@ module solution_error
   private
 
   public :: calculate_exact_soln
+  public :: estimate_te
 
 contains
 
@@ -22,7 +23,8 @@ contains
 !
 !=============================================================================80
 
-  subroutine calculate_exact_soln(cells, x_cc, area_cc, a_star, a_e, cons_cc)
+  subroutine calculate_exact_soln( cells, x_cc, area_cc, a_star, a_e, cons_cc, &
+                                   cons_cc_ex)
 
     use set_precision,   only : dp
     use set_constants,   only : zero, half, one, two
@@ -37,6 +39,7 @@ contains
     real(dp),                       intent(in) :: a_star
     real(dp),                       intent(in) :: a_e
     real(dp), dimension(3,cells+2), intent(in) :: cons_cc
+    real(dp), optional, dimension(3,cells+2), intent(out) :: cons_cc_ex
 
     integer               :: i, i_throat, i_shock, unit
     integer, dimension(1) :: i_min      ! needed for minloc function
@@ -133,6 +136,10 @@ contains
     do i = 2, cells+1
       cons_exact = primitive_to_conserved_1D(soln_exact(:,i))
 
+      if (present(cons_cc_ex)) then
+        cons_cc_ex(:,i) = cons_exact
+      end if
+
       derho   = derho   + abs(cons_cc(1,i)-cons_exact(1))
       derhou  = derhou  + abs(cons_cc(2,i)-cons_exact(2))
       derhoet = derhoet + abs(cons_cc(3,i)-cons_exact(3))
@@ -146,9 +153,11 @@ contains
 
     close(unit)
 
-    write(*,*) 'L1 DE of rho, rho*u rho*et'
-    write(*,*) derho/real(cells,dp), derhou/real(cells,dp), &
-      derhoet/real(cells,dp)
+    if ( .not. present(cons_cc_ex) ) then
+      write(*,*) 'L1 DE of rho, rho*u rho*et'
+      write(*,*) derho/real(cells,dp), derhou/real(cells,dp), &
+        derhoet/real(cells,dp)
+    end if
 
   end subroutine calculate_exact_soln
 
@@ -299,8 +308,85 @@ contains
     end do
 
   end function pre_shock_mach
+
+!================================ estimate_te ================================80
+!
+! This routine uses three point Gauss quadrature to reconstruct a cell
+! average approximation from the exact solution
+!
+!=============================================================================80
+  subroutine estimate_te( cells, faces,  a_star, area_f, dadx_cc, dx)
+
+    use set_precision, only : dp
+    use set_constants, only : zero
+    use solvers,       only : iterations
+    use residual,      only : create_residual
+    use bc,            only : subsonic_inflow_explicit, outflow_explicit
+
+    implicit none
+
+    integer,                      intent(in) :: cells, faces
+    real(dp),                     intent(in) :: a_star
+    real(dp), dimension(faces),   intent(in) :: area_f
+    real(dp), dimension(cells+2), intent(in) :: dadx_cc, dx
+
+    integer :: grid_te_unit, faces_te, cells_te, face, cell, i, j
+
+    real(dp), dimension(2+3*cells)    :: x_te, area_te, soln_te
+    real(dp), dimension(3, 2+cells)   :: cons_cc, prim_cc, te
+    real(dp), dimension(3, 2+3*cells) :: cons_gq_te, cons_dummy
+
+    continue
+
+    cons_dummy = zero
+
+    grid_te_unit = find_available_unit()
+
+    open(grid_te_unit, file='q1d_te.grd', status='old')
+
+    read(grid_te_unit,*) faces_te
+
+    do face = 1, faces_te
+      read(grid_te_unit, *) x_te(face), area_te(face)
+    end do
+
+    close(grid_te_unit)
+
+    cells_te = 3*cells
+
+    call calculate_exact_soln( cells_te, x_te, area_te, a_star, x_te(faces_te),&
+                               cons_dummy, cons_gq_te )
+
+    do i = 2, cells+1
+      j = 3*i - 3
+
+      cons_cc(:,i) = (5.0_dp/9.0_dp)*cons_gq_te(:,j-1) &
+                   + (8.0_dp/9.0_dp)*cons_gq_te(:,j)   &
+                   + (5.0_dp/9.0_dp)*cons_gq_te(:,j+1)
+      cons_cc(:,i) = 0.5_dp*cons_cc(:,i)
+      prim_cc(:,i) = conserved_to_primitive_1D( cons_cc(:,i) )
+    end do
+
+    call subsonic_inflow_explicit(prim_cc(:,1), prim_cc(:,2), prim_cc(:,3))
+    call outflow_explicit( prim_cc(:,cells+2),                                 &
+                           prim_cc(:,cells+1), prim_cc(:,cells) )
+
+    call create_residual( cells, faces, iterations, prim_cc, cons_cc,          &
+                          area_f, dadx_cc, dx, te )
+
+    grid_te_unit = find_available_unit()
+
+    open(grid_te_unit, file='q1d_te.dat', status='replace')
+    do cell = 2, cells+1
+      write(grid_te_unit, *) te(1, cell), te(2, cell), te(3, cell)
+    end do
+    close(grid_te_unit)
+
+  end subroutine estimate_te
+
   include 'speed_of_sound.f90'
   include 'primitive_to_conserved_1D.f90'
+  include 'conserved_to_primitive_1D.f90'
   include 'find_available_unit.f90'
 
 end module solution_error
