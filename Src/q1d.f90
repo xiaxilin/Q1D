@@ -64,6 +64,7 @@ program q1d_primal
   print *, 'Calculating Exact Solution'
   call calculate_exact_soln(cells, x_cc, area_cc, fifth,                      &
                             area_f(cells+1), cons_cc)
+
   call estimate_te( cells, faces,  fifth, area_f, dadx_cc, dx )
 ! free memory
 
