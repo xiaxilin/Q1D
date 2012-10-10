@@ -58,6 +58,8 @@ contains
     i_min = minloc(area_cc(2:cells+1))
     i_throat = i_min(1) + 1
 
+    if ( i_throat == 1 .or. i_throat == 2 ) i_throat = 0
+
 ! calculate exact mach/area solution
     mach_init = 0.1_dp
 ! subsonic section to throat
@@ -117,6 +119,8 @@ contains
                       * speed_of_sound(soln_exact(3,i), soln_exact(1,i))
 
     end do
+
+    write(*,*) i_throat, soln_exact(1,i_throat), soln_exact(2,i_throat), soln_exact(3,i_throat)
 
     unit = find_available_unit()
 
@@ -315,13 +319,15 @@ contains
 ! average approximation from the exact solution
 !
 !=============================================================================80
-  subroutine estimate_te( cells, faces,  a_star, area_f, dadx_cc, dx)
+  subroutine estimate_te( cells, faces, a_star, area_f, dadx_cc, dx )
 
-    use set_precision, only : dp
-    use set_constants, only : zero
-    use solvers,       only : iterations
-    use residual,      only : create_residual
-    use bc,            only : subsonic_inflow_explicit, outflow_explicit
+    use set_precision,   only : dp
+    use set_constants,   only : zero, half, one
+    use fluid_constants, only : r, gamma, gm1, gxgm1
+    use solvers,         only : iterations
+    use residual,        only : create_residual
+    use bc,              only : subsonic_inflow_explicit, outflow_explicit
+    use initialize_soln, only : mref, to, po
 
     implicit none
 
@@ -330,7 +336,8 @@ contains
     real(dp), dimension(faces),   intent(in) :: area_f
     real(dp), dimension(cells+2), intent(in) :: dadx_cc, dx
 
-    integer :: grid_te_unit, faces_te, cells_te, face, cell, i, j
+    integer  :: grid_te_unit, faces_te, cells_te, face, cell, i, j
+    real(dp) :: psi, p, t
 
     real(dp), dimension(2+3*cells)    :: x_te, area_te, soln_te
     real(dp), dimension(3, 2+cells)   :: cons_cc, prim_cc, te
@@ -367,9 +374,20 @@ contains
       prim_cc(:,i) = conserved_to_primitive_1D( cons_cc(:,i) )
     end do
 
-    call subsonic_inflow_explicit(prim_cc(:,1), prim_cc(:,2), prim_cc(:,3))
+    psi = one + half*gm1*mref**2
+    t   = to/psi
+    p   = po/(psi**gxgm1)
+
+    prim_cc(1,1) = p/(r*t)
+    prim_cc(2,1) = mref*sqrt(gamma*r*t)
+    prim_cc(3,1) = p
+
+    cons_cc(:,1) = primitive_to_conserved_1D(prim_cc(:,1))
+
+!    call subsonic_inflow_explicit(prim_cc(:,1), prim_cc(:,2), prim_cc(:,3))
     call outflow_explicit( prim_cc(:,cells+2),                                 &
                            prim_cc(:,cells+1), prim_cc(:,cells) )
+    cons_cc(:,cells+2) = primitive_to_conserved_1D(prim_cc(:,cells+2))
 
     call create_residual( cells, faces, iterations, prim_cc, cons_cc,          &
                           area_f, dadx_cc, dx, te )
