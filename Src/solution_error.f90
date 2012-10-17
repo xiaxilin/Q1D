@@ -120,8 +120,7 @@ contains
 
     end do
 
-    write(*,*) i_throat, soln_exact(1,i_throat), soln_exact(2,i_throat), soln_exact(3,i_throat)
-
+    if ( .not. present(cons_cc_ex) ) then
     unit = find_available_unit()
 
 ! set up output file for exact solution
@@ -156,6 +155,13 @@ contains
     end do
 
     close(unit)
+
+    else
+    do i = 2, cells+1
+      cons_cc_ex(:,i) = primitive_to_conserved_1D(soln_exact(:,i))
+    end do
+    end if
+
 
     if ( .not. present(cons_cc_ex) ) then
       write(*,*) 'L1 DE of rho, rho*u rho*et'
@@ -384,7 +390,7 @@ contains
 
     cons_cc(:,1) = primitive_to_conserved_1D(prim_cc(:,1))
 
-!    call subsonic_inflow_explicit(prim_cc(:,1), prim_cc(:,2), prim_cc(:,3))
+    call subsonic_inflow_explicit(prim_cc(:,1), prim_cc(:,2), prim_cc(:,3))
     call outflow_explicit( prim_cc(:,cells+2),                                 &
                            prim_cc(:,cells+1), prim_cc(:,cells) )
     cons_cc(:,cells+2) = primitive_to_conserved_1D(prim_cc(:,cells+2))
@@ -392,11 +398,18 @@ contains
     call create_residual( cells, faces, iterations, prim_cc, cons_cc,          &
                           area_f, dadx_cc, dx, te )
 
+    write(*,*) te(1, 2)
+
     grid_te_unit = find_available_unit()
 
     open(grid_te_unit, file='q1d_te.dat', status='replace')
+    write(grid_te_unit,*) 'TITLE = "Quasi-1D Nozzle: TE from exact Solution"'
+    write(grid_te_unit,*) 'variables="x(m)""TE1""TE2""TE3"'
+    write(grid_te_unit,*) 'ZONE T="TE From Exact Nozzle Solution"'
+    write(grid_te_unit,*) 'DT=(DOUBLE DOUBLE DOUBLE DOUBLE )'
+
     do cell = 2, cells+1
-      write(grid_te_unit, *) te(1, cell), te(2, cell), te(3, cell)
+      write(grid_te_unit, *) x_te(3*(cell-1)), te(1, cell), te(2, cell), te(3, cell)
     end do
     close(grid_te_unit)
 
