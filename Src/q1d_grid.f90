@@ -2,21 +2,211 @@
 
 ! Needs to know the # of cells & nozzle length, otherwise, reads x coords
 
-program q1d_grid
+module q1d_grid_functions
 
   use set_precision, only : dp
-  use set_constants, only : pi, set_pi
 
   implicit none
 
-  integer  :: i, j,  cells, faces, available_unit, find_available_unit
-  real(dp) :: nozzlelength, dx
+  private
+
+  abstract interface
+
+    pure function areaf(x)
+
+      use set_precision, only : dp
+
+      real(dp), intent(in) :: x
+      real(dp)             :: areaf
+
+    end function areaf
+
+  end interface
+
+  abstract interface
+
+    pure function dadxf(x)
+
+      use set_precision, only : dp
+
+      real(dp), intent(in) :: x
+      real(dp)             :: dadxf
+
+    end function dadxf
+
+  end interface
+
+  public :: areaf, dadxf, choose_area_distribution
+
+contains
+
+  subroutine choose_area_distribution(type, area, dadx)
+
+    character(*),              intent(in)  :: type
+    procedure(areaf), pointer, intent(out) :: area
+    procedure(dadxf), pointer, intent(out) :: dadx
+
+    continue
+
+    area => null()
+    dadx => null()
+
+    select case(trim(type))
+    case('sin')
+      area => sinx_nozzle
+      dadx => da_sinx_nozzle
+    case('ext-sin')
+      area => sinx_nozzle
+      dadx => da_sinx_nozzle
+    case('cosh')
+      area => coshx_nozzle
+      dadx => da_coshx_nozzle
+    case('tyrone')
+      area => tyrone_nozzle
+      dadx => da_tyrone_nozzle
+    end select
+
+  end subroutine choose_area_distribution
+
+  pure function sinx_nozzle(x) result(area)
+
+    use set_constants, only : pi
+
+    real(dp), intent(in) :: x
+    real(dp)             :: area
+
+    continue
+
+    if (x < -1.0_dp) then
+      area = 1.0_dp
+    else
+      area = 0.2_dp + 0.4_dp * ( 1.0_dp + sin( pi*( x - 0.5_dp ) ) )
+    end if
+
+  end function sinx_nozzle
+
+  pure function da_sinx_nozzle(x) result(dadx)
+
+    use set_constants, only : pi
+
+    real(dp), intent(in) :: x
+    real(dp)             :: dadx
+
+    continue
+
+    if (x < -1.0_dp) then
+      dadx = 0.0_dp
+    else
+      dadx = 0.4_dp * pi * cos( pi*( x - 0.5_dp ) )
+    end if
+
+  end function da_sinx_nozzle
+
+  pure function coshx_nozzle(x) result(area)
+
+    real(dp), intent(in) :: x
+    real(dp)             :: area
+
+    continue
+
+    area = 0.8_dp + cosh(x)
+
+  end function coshx_nozzle
+
+  pure function da_coshx_nozzle(x) result(dadx)
+
+    real(dp), intent(in) :: x
+    real(dp)             :: dadx
+
+    continue
+
+    dadx = sinh(x)
+
+  end function da_coshx_nozzle
+
+  pure function yee_nozzle(x) result(area)
+
+    real(dp), intent(in) :: x
+    real(dp)             :: area
+
+    continue
+! From Yee et al., JCP 1985
+    area = 1.398_dp + 0.347_dp * tanh( 0.8_dp*x - 4.0_dp )
+
+  end function yee_nozzle
+
+  pure function da_yee_nozzle(x) result(dadx)
+
+    real(dp), intent(in) :: x
+    real(dp)             :: dadx
+
+    continue
+
+    dadx = 0.8_dp*0.347_dp / cosh( 0.8_dp*x - 4.0_dp )**2
+
+  end function da_yee_nozzle
+
+  pure function tyrone_nozzle(x) result(area)
+
+    real(dp), intent(in) :: x
+    real(dp)             :: area
+
+    real(dp) :: a, c
+
+    continue
+
+    a = 2.0_dp
+    c = 0.3_dp
+
+    area = -a*exp(-x**2/(2.0_dp*c**2)) + tanh(4.0_dp*x) + 1.9_dp*a
+
+  end function tyrone_nozzle
+
+  pure function da_tyrone_nozzle(x) result(dadx)
+
+    real(dp), intent(in) :: x
+    real(dp)             :: dadx
+
+    real(dp) :: a, c
+
+    continue
+
+    a = 2.0_dp
+    c = 0.3_dp
+
+    dadx = a*x*exp(-x**2/(2.0_dp*c**2))/(c**2) + 4.0_dp/cosh(4.0_dp*x)**2
+
+  end function da_tyrone_nozzle
+
+end module q1d_grid_functions
+
+program q1d_grid
+
+  use set_precision,      only : dp
+  use set_constants,      only : pi, set_pi
+  use q1d_grid_functions, only : choose_area_distribution, areaf, dadxf
+
+  implicit none
+
+  integer       :: i, j,  cells, faces, available_unit, find_available_unit
+  real(dp)      :: nozzlelength, dx
+  character(10) :: nozzle_func
+
   real(dp), allocatable, dimension(:) :: x, areaface, areacent, dadx
   real(dp), allocatable, dimension(:) :: x_te, areaface_te
+
+  procedure(areaf), pointer :: area_func
+  procedure(dadxf), pointer :: dadx_func
 
   continue
 
   call set_pi()
+
+  write(*,*) "What nozzle function?"
+
+  nozzle_func = 'tyrone'
+
+  call choose_area_distribution(nozzle_func, area_func, dadx_func)
 
   write(*,*) "How many cells to create?  Enter 0 to read from file."
   read(*,*) cells
@@ -31,8 +221,14 @@ program q1d_grid
 
     dx = nozzlelength/real(cells,dp)
 
+! Special extended nozzle
+!    dx = (2.0_dp+nozzlelength)/real(cells,dp)
+
     do i = 1, faces
       x(i) = -0.5_dp*nozzlelength + dx*real(i-1,dp)
+! Special extended nozzle
+!      x(i) = -10.0_dp -0.5_dp*nozzlelength + dx*real(i-1,dp)
+! For supersonic diffuser
 !      x(i) = dx*real(i-1,dp)
     end do
 
@@ -58,7 +254,6 @@ program q1d_grid
 ! Arrays for TE estimation
   allocate( x_te(2+3*(faces-1)), areaface_te(2+3*(faces-1)) )
 
-
   x_te(1) = x(1)
   do i = 2, faces
     j = i*3 - 3
@@ -71,23 +266,18 @@ program q1d_grid
   end do
   x_te(2+3*(faces-1)) = x(faces)
 
+! Calculate the face areas
   do i = 1, faces
-    areaface(i) = 0.2_dp + 0.4_dp * (1.0_dp + sin(pi*(x(i) - 0.5_dp)))
-! From Yee et al., JCP 1985
-!    areaface(i) = 1.398_dp + 0.347_dp*tanh(0.8_dp*x(i)-4.0_dp)
+    areaface(i) = area_func(x(i))
   end do
   do i = 1, 2+3*(faces-1)
-    areaface_te(i) = 0.2_dp + 0.4_dp * (1.0_dp + sin(pi*(x_te(i) - 0.5_dp)))
-! From Yee et al., JCP 1985
-!    areaface_te(i) = 1.398_dp + 0.347_dp*tanh(0.8_dp*x_te(i)-4.0_dp)
+    areaface_te(i) = area_func(x_te(i))
   end do
 
+! Calculate the cell center areas and slopes
   do i = 2, cells+1
-    areacent(i) = 0.2_dp + 0.4_dp &
-                * (1.0_dp + sin(pi*( 0.5_dp*(x(i)+x(i-1)) - 0.5_dp )))
-    dadx(i) = 0.4_dp * pi * cos(pi*( 0.5_dp*(x(i)+x(i-1)) - 0.5_dp ))
-!    areacent(i) = 1.398_dp + 0.347_dp*tanh(0.4_dp*(x(i)+x(i-1))-4.0_dp)
-!    dadx(i) = 0.8_dp*0.347_dp/cosh(0.4_dp*(x(i)+x(i-1))-4.0_dp)**2
+    areacent(i) = area_func(0.5_dp*(x(i)+x(i-1)))
+    dadx(i) = dadx_func(0.5_dp*(x(i)+x(i-1)))
   end do
   areacent(1) = areacent(2)
   dadx(1) = dadx(2)
@@ -114,9 +304,11 @@ program q1d_grid
     write(available_unit,*) x_te(i), areaface_te(i)
   end do
 
+  write(*,*) 2+3*(faces-1), x_te( 2+3*(faces-1) ), areaface_te( 2+3*(faces-1) )
+
   close(available_unit)
 
-  deallocate( x, areaface, areacent, dadx )
+  deallocate( x, areaface, areacent, dadx, x_te, areaface_te )
 
 end program q1d_grid
 

@@ -3,6 +3,7 @@
 
 program q1d_primal
 
+  use set_precision,   only : dp
   use set_constants,   only : fifth
   use namelist,        only : read_nml
   use fluid_constants, only : set_gamma_constants
@@ -62,10 +63,10 @@ program q1d_primal
 ! get exact solution and plot it
 
   print *, 'Calculating Exact Solution'
-  call calculate_exact_soln(cells, x_cc, area_cc, fifth,                      &
+  call calculate_exact_soln(cells, x_cc, area_cc, 1.49779_dp,                  &
                             area_f(cells+1), cons_cc)
 
-  call estimate_te( cells, faces,  fifth, area_f, dadx_cc, dx )
+  call estimate_te( cells, faces, 1.49779_dp, area_f, dadx_cc, dx )
 ! free memory
 
   print *, 'Deallocating Memory'
