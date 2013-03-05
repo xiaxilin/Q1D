@@ -3,6 +3,9 @@ bin_PROGRAMS =
 
 bin_PROGRAMS += q1d q1da q1d_grid
 
+SAM_INCLUDE := -I ~/SAM/examples/Example_Tanh/build
+SAM_LIB := ~/SAM/examples/Example_Tanh/build/sam.o
+
 q1d_SOURCES = \
          initialize_grid.f90 \
          initialize_soln.f90 \
@@ -17,9 +20,9 @@ q1d_SOURCES = \
          namelist.f90 \
          q1d.f90
 
-q1d_LDADD = ../Libraries/libconstants.a
+q1d_LDADD = ../Libraries/libconstants.a $(SAM_LIB)
 
-q1d_FCFLAGS = $(FC_MODINC)$(top_srcdir)/Functions $(FC_MODINC)../Libraries
+q1d_FCFLAGS =  $(SAM_INCLUDE) $(FC_MODINC)$(top_srcdir)/Functions $(FC_MODINC)../Libraries
 
 q1da_SOURCES = \
           initialize_grid.f90 \
@@ -37,9 +40,9 @@ q1da_SOURCES = \
           adjoint_solvers.f90 \
           q1da.f90
 
-q1da_LDADD = ../Libraries/libconstants.a
+q1da_LDADD = ../Libraries/libconstants.a $(SAM_LIB)
 
-q1da_FCFLAGS = $(FC_MODINC)$(top_srcdir)/Functions $(FC_MODINC)../Libraries
+q1da_FCFLAGS =  $(SAM_INCLUDE) $(FC_MODINC)$(top_srcdir)/Functions $(FC_MODINC)../Libraries
 
 q1d_grid_SOURCES = q1d_grid.f90
 

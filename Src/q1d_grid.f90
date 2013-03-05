@@ -40,6 +40,11 @@ module q1d_grid_functions
 
 contains
 
+!=============================================================================80
+!
+!
+!
+!=============================================================================80
   subroutine choose_area_distribution(type, area, dadx)
 
     character(*),              intent(in)  :: type
@@ -61,6 +66,9 @@ contains
     case('cosh')
       area => coshx_nozzle
       dadx => da_coshx_nozzle
+    case('bump')
+      area => bumpx_nozzle
+      dadx => da_bumpx_nozzle
     case('tyrone')
       area => tyrone_nozzle
       dadx => da_tyrone_nozzle
@@ -68,6 +76,11 @@ contains
 
   end subroutine choose_area_distribution
 
+!=============================================================================80
+!
+!
+!
+!=============================================================================80
   pure function sinx_nozzle(x) result(area)
 
     use set_constants, only : pi
@@ -77,7 +90,7 @@ contains
 
     continue
 
-    if (x < -1.0_dp) then
+    if (x < -1.0_dp .or. x > 1.0) then
       area = 1.0_dp
     else
       area = 0.2_dp + 0.4_dp * ( 1.0_dp + sin( pi*( x - 0.5_dp ) ) )
@@ -85,6 +98,11 @@ contains
 
   end function sinx_nozzle
 
+!=============================================================================80
+!
+!
+!
+!=============================================================================80
   pure function da_sinx_nozzle(x) result(dadx)
 
     use set_constants, only : pi
@@ -94,7 +112,7 @@ contains
 
     continue
 
-    if (x < -1.0_dp) then
+    if (x < -1.0_dp .or. x > 1.0) then
       dadx = 0.0_dp
     else
       dadx = 0.4_dp * pi * cos( pi*( x - 0.5_dp ) )
@@ -102,6 +120,11 @@ contains
 
   end function da_sinx_nozzle
 
+!=============================================================================80
+!
+!
+!
+!=============================================================================80
   pure function coshx_nozzle(x) result(area)
 
     real(dp), intent(in) :: x
@@ -113,6 +136,11 @@ contains
 
   end function coshx_nozzle
 
+!=============================================================================80
+!
+!
+!
+!=============================================================================80
   pure function da_coshx_nozzle(x) result(dadx)
 
     real(dp), intent(in) :: x
@@ -124,6 +152,50 @@ contains
 
   end function da_coshx_nozzle
 
+!=============================================================================80
+!
+!
+!
+!=============================================================================80
+  pure function bumpx_nozzle(x) result(area)
+
+    real(dp), intent(in) :: x
+    real(dp)             :: area
+
+    continue
+
+    area = 1.0_dp
+    if ( x > -1.0_dp .and. x < 1.0_dp ) then
+      area = 1.0_dp - exp(-1.0_dp/(1.0_dp-x**2))
+    end if
+
+  end function bumpx_nozzle
+
+!=============================================================================80
+!
+!
+!
+!=============================================================================80
+  pure function da_bumpx_nozzle(x) result(dadx)
+
+    real(dp), intent(in) :: x
+    real(dp)             :: dadx
+
+    continue
+
+    dadx = 0.0_dp
+    if ( x > -1.0_dp .and. x < 1.0_dp ) then
+      dadx = -2.0_dp*x*exp(1.0_dp/(x**2-1.0_dp))
+      dadx = dadx / (x**2 - 1.0_dp)
+    end if
+
+  end function da_bumpx_nozzle
+
+!=============================================================================80
+!
+!
+!
+!=============================================================================80
   pure function yee_nozzle(x) result(area)
 
     real(dp), intent(in) :: x
@@ -135,6 +207,11 @@ contains
 
   end function yee_nozzle
 
+!=============================================================================80
+!
+!
+!
+!=============================================================================80
   pure function da_yee_nozzle(x) result(dadx)
 
     real(dp), intent(in) :: x
@@ -146,6 +223,11 @@ contains
 
   end function da_yee_nozzle
 
+!=============================================================================80
+!
+!
+!
+!=============================================================================80
   pure function tyrone_nozzle(x) result(area)
 
     real(dp), intent(in) :: x
@@ -162,6 +244,11 @@ contains
 
   end function tyrone_nozzle
 
+!=============================================================================80
+!
+!
+!
+!=============================================================================80
   pure function da_tyrone_nozzle(x) result(dadx)
 
     real(dp), intent(in) :: x
@@ -204,7 +291,7 @@ program q1d_grid
 
   write(*,*) "What nozzle function?"
 
-  nozzle_func = 'tyrone'
+  nozzle_func = 'ext-sin'
 
   call choose_area_distribution(nozzle_func, area_func, dadx_func)
 

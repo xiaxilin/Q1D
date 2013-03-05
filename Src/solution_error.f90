@@ -325,7 +325,7 @@ contains
 ! average approximation from the exact solution
 !
 !=============================================================================80
-  subroutine estimate_te( cells, faces, a_star, area_f, dadx_cc, dx )
+  subroutine estimate_te( cells, faces, a_star, area_f, dadx_cc, dx, x_f )
 
     use set_precision,   only : dp
     use set_constants,   only : zero, half, one
@@ -334,12 +334,14 @@ contains
     use residual,        only : create_residual
     use bc,              only : subsonic_inflow_explicit, outflow_explicit
     use initialize_soln, only : mref, to, po
+    use SAM,             only : SAM_Set_Problem, SAM_Make_Positive_NonZero,    &
+                                SAM_Write_Data, SAM_Adapt_Mesh
 
     implicit none
 
     integer,                      intent(in) :: cells, faces
     real(dp),                     intent(in) :: a_star
-    real(dp), dimension(faces),   intent(in) :: area_f
+    real(dp), dimension(faces),   intent(in) :: area_f, x_f
     real(dp), dimension(cells+2), intent(in) :: dadx_cc, dx
 
     integer  :: grid_te_unit, faces_te, cells_te, face, cell, i, j
@@ -348,6 +350,10 @@ contains
     real(dp), dimension(2+3*cells)    :: x_te, area_te, soln_te
     real(dp), dimension(3, 2+cells)   :: cons_cc, prim_cc, te
     real(dp), dimension(3, 2+3*cells) :: cons_gq_te, cons_dummy
+
+    integer :: new_grid
+    real(dp), dimension(faces) :: xout
+    real(dp), dimension(cells) :: ind_in, ind_out
 
     continue
 
@@ -412,6 +418,25 @@ contains
       write(grid_te_unit, *) x_te(3*(cell-1)), te(1, cell), te(2, cell), te(3, cell)
     end do
     close(grid_te_unit)
+
+    ind_in = te(1, 2:cells+1)
+
+    ! Set problem for SAM
+    call SAM_Set_Problem(faces)
+    ! Truncate and shift Wt Function !
+    call SAM_Make_Positive_NonZero(ind_in)
+
+    ! Write initial data !
+    call SAM_Write_Data(x_f, ind_in, fn=80, zn=0)
+    ! Adapt Mesh
+    call SAM_Adapt_Mesh(x_f, ind_in, xout, ind_out)
+
+    open(newunit=new_grid, file="nodes.dat", status="replace")
+    write(new_grid,*) cells
+    do i = 1, faces
+      write(new_grid,*) xout(i)
+    end do
+    close(new_grid)
 
   end subroutine estimate_te
 

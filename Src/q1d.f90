@@ -7,7 +7,7 @@ program q1d_primal
   use set_constants,   only : fifth
   use namelist,        only : read_nml
   use fluid_constants, only : set_gamma_constants
-  use initialize_grid, only : read_grid, cells, faces, dx, x_cc, cell_vol,     &
+  use initialize_grid, only : read_grid, cells, faces, dx, x_cc, x_f, cell_vol,&
                               area_f, area_cc, dadx_cc, deallocate_grid
   use initialize_soln, only : allocate_soln, initial_soln, prim_cc, cons_cc,   &
                               deallocate_soln
@@ -63,10 +63,14 @@ program q1d_primal
 ! get exact solution and plot it
 
   print *, 'Calculating Exact Solution'
-  call calculate_exact_soln(cells, x_cc, area_cc, 1.49779_dp,                  &
+!  call calculate_exact_soln(cells, x_cc, area_cc, 1.49779_dp,                 &
+!                            area_f(cells+1), cons_cc)
+  call calculate_exact_soln(cells, x_cc, area_cc, 0.2_dp,                      &
                             area_f(cells+1), cons_cc)
 
-  call estimate_te( cells, faces, 1.49779_dp, area_f, dadx_cc, dx )
+!  call estimate_te( cells, faces, 1.49779_dp, area_f, dadx_cc, dx )
+!  call estimate_te( cells, faces, 1.0_dp - exp(-1.0_dp), area_f, dadx_cc, dx )
+  call estimate_te( cells, faces, 0.2_dp, area_f, dadx_cc, dx, x_f )
 ! free memory
 
   print *, 'Deallocating Memory'

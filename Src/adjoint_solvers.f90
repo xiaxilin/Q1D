@@ -8,7 +8,8 @@ module adjoint_solvers
 
   public :: implicit_solve
 
-  contains
+contains
+
 !=============================== implicit_solve ==============================80
 !
 ! Performs the dual consistent discrete adjoint solve
