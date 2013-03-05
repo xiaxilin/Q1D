@@ -1,4 +1,4 @@
 
 AUTOMAKE_OPTIONS = 1.7
 
-SUBDIRS = Libraries Src Complex
+SUBDIRS = libraries src complex
