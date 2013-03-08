@@ -590,8 +590,8 @@ contains
 !=============================================================================80
   subroutine jac_source_q_1D( dadx_cc, cell_jac, source_jac )
 
-    use set_precision,   only : dp
-    use set_constants,   only : zero
+    use set_precision, only : dp
+    use set_constants, only : zero
 
     real(dp),                 intent(in)  :: dadx_cc, cell_jac
     real(dp), dimension(3,3), intent(out) :: source_jac
@@ -612,6 +612,34 @@ contains
 !    source_jac(3,3) = zero
 
   end subroutine jac_source_q_1D
+
+!============================== jac_source_q_1D ==============================80
+!
+! This subroutine returns the source Jacobian wrt conserved variables
+!
+!=============================================================================80
+  subroutine dconserved_dprimitive( q, dcdp )
+
+    use set_precision,   only : dp
+    use set_constants,   only : zero, half, one
+    use fluid_constants, only : xgm1
+
+    real(dp), dimension(3),   intent(in)  :: q
+    real(dp), dimension(3,3), intent(out) :: dcdp
+
+    continue
+
+    dcdp(1,1) = one
+    dcdp(2,1) = q(2)
+    dcdp(3,1) = half*q(2)*q(2)
+    dcdp(1,2) = zero
+    dcdp(2,2) = q(1)
+    dcdp(3,2) = q(1)*q(2)
+    dcdp(1,3) = zero
+    dcdp(2,3) = zero
+    dcdp(3,3) = xgm1
+
+  end subroutine dconserved_dprimitive
 
   include 'speed_of_sound.f90'
 
