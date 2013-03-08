@@ -9,7 +9,7 @@ module jacobians
 
 contains
 
-!============================ jac_vanleer_1D =================================80
+!=============================== jac_vanleer_1D ==============================80
 !
 ! This subroutine takes the left and right *conserved* variables at a face
 ! and returns the left and right flux jacobians wrt conserved variables
@@ -165,7 +165,7 @@ contains
 
   end subroutine jac_vanleer_1D
 
-!============================= jac_central_1D ================================80
+!=============================== jac_central_1D ==============================80
 !
 ! This subroutine takes the left and right *conserved* variables at a face
 ! and returns the left and right flux jacobians wrt conserved variables
@@ -398,7 +398,7 @@ contains
 
   end subroutine jac_ausm_1D
 
-!============================= jac_source_1D =================================80
+!=============================== jac_source_1D ===============================80
 !
 ! This subroutine returns the source Jacobian wrt conserved variables
 !
@@ -429,6 +429,189 @@ contains
     source_jac(3,3) = zero
 
   end subroutine jac_source_1D
+
+!============================== jac_vanleer_q_1D =============================80
+!
+! This subroutine takes the left and right *primitive* variables at a face
+! and returns the left and right flux jacobians wrt primitive variables
+!
+!=============================================================================80
+  subroutine jac_vanleer_q_1D( qL, qR, jac_l, jac_r )
+
+    use set_precision,   only : dp
+    use set_constants,   only : zero, fourth, half, one, two, four
+    use fluid_constants, only : gamma, gm1, xg, xgm1, xg2m1
+
+    implicit none
+
+    real(dp), dimension(3),   intent(in)  :: ql, qr
+    real(dp), dimension(3,3), intent(out) :: jac_l, jac_r
+
+    real(dp) :: rho, rhoinv, u, p, rhoet, a, m, fa, fb
+
+    real(dp), dimension(3)   :: drho_dq, du_dq, dp_dq, drhoet_dq
+    real(dp), dimension(3)   :: da_dq, dm_dq, dfa_dq, dfb_dq
+    real(dp), dimension(3,3) :: mat
+
+    continue
+
+! handle left side first
+
+! calculate primitive vars from conserved
+    rho = qL(1)
+    rhoinv = one/rho
+    u = qL(2)
+    p = qL(3)
+    rhoet = p*xgm1 + half * rho * u**2
+    a = speed_of_sound(p, rho)
+    m = u/a
+
+! linearization of primitive variables wrt conserved
+    drho_dq(1) = one
+    drho_dq(2) = zero
+    drho_dq(3) = zero
+
+    du_dq(1) = zero
+    du_dq(2) = one
+    du_dq(3) = zero
+
+    dp_dq(1) = zero
+    dp_dq(2) = zero
+    dp_dq(3) = one
+
+    drhoet_dq(1) = half*u**2
+    drhoet_dq(2) = rho*u
+    drhoet_dq(3) = xgm1
+
+! speed of sound linearization
+    da_dq(:) = (half*gamma/a) * ( rhoinv*dp_dq(:) - (p*rhoinv**2)*drho_dq(:) )
+
+! mach number linearization
+
+    dm_dq(:) = du_dq(:)/a - (u/a**2)*da_dq(:)
+
+! linearization of FVS mass term
+    fa =  fourth*rho*a*(m+one)**2
+
+    dfa_dq(:) =  fourth*( drho_dq(:)*a*(m+one)**2                              &
+              + rho*da_dq(:)*(m+one)**2 + rho*a*two*(m+one)*dm_dq(:) )
+
+! linearization of FVS energy term
+    fb = a*(gm1*m + two)
+
+    dfb_dq(:) = da_dq(:)*(gm1*m + two) + dm_dq(:)*gm1*a
+
+!    Flux = (/ fa, fa*fb*xg, half*fa*fb*fb*xg2m1 /)
+
+! now, formulate jacobian
+
+    mat = zero
+
+    if( abs(m) < 1.0_dp ) then
+      mat(1,:) = dfa_dq(:)
+      mat(2,:) = (dfa_dq(:)*fb + dfb_dq(:)*fa)*xg
+      mat(3,:) = half*xg2m1*(dfa_dq(:)*fb*fb + two*fa*fb*dfb_dq(:))
+    elseif( m >= 1.0_dp ) then
+      mat(1,:) = drho_dq(:)*u + rho*du_dq(:)
+      mat(2,:) = drho_dq(:)*u*u + two*rho*u*du_dq(:) + dp_dq(:)
+      mat(3,:) = ( drhoet_dq(:) + dp_dq(:) )*u + (rhoet + p)*du_dq(:)
+    endif
+
+    jac_l = mat
+
+! handle right side second
+
+! calculate primitive vars from conserved
+    rho = qR(1)
+    rhoinv = one/rho
+    u = qR(2)
+    p = qR(3)
+    rhoet = p*xgm1 + half * rho * u**2
+    a = speed_of_sound(p,rho)
+    m = u/a
+
+! linearization of right primitive variables wrt conserved
+    drho_dq(1) = one
+    drho_dq(2) = zero
+    drho_dq(3) = zero
+
+    du_dq(1) = zero
+    du_dq(2) = one
+    du_dq(3) = zero
+
+    dp_dq(1) = zero
+    dp_dq(2) = zero
+    dp_dq(3) = one
+
+    drhoet_dq(1) = half*u**2
+    drhoet_dq(2) = rho*u
+    drhoet_dq(3) = xgm1
+
+! speed of sound linearization
+    da_dq(:) = (half*gamma/a) * ( rhoinv*dp_dq(:) - (p*rhoinv**2)*drho_dq(:) )
+
+! mach number linearization
+    dm_dq(:) = du_dq(:)/a - (u/a**2)*da_dq(:)
+
+! linearization of FVS mass term
+    fa = -fourth*rho*a*(m-one)**2
+
+    dfa_dq(:) = -fourth*( drho_dq(:)*a*(m-one)**2                              &
+              + rho*da_dq(:)*(m-one)**2 + rho*a*two*(m-one)*dm_dq(:) )
+
+! linearization of FVS energy term
+
+    fb = a*(gm1*m - two)
+
+    dfb_dq(:) = (gm1*m - two)*da_dq(:) + gm1*a*dm_dq(:)
+
+! now, form jacobian
+
+    mat = zero
+
+    if( abs(m) < 1.0_dp ) then
+      mat(1,:) = dfa_dq(:)
+      mat(2,:) = (dfa_dq(:)*fb + dfb_dq(:)*fa)*xg
+      mat(3,:) = half*xg2m1*(dfa_dq(:)*fb*fb + two*fa*fb*dfb_dq(:))
+    elseif( m <= -1.0_dp ) then
+      mat(1,:) = drho_dq(:)*u   + rho*du_dq(:)
+      mat(2,:) = drho_dq(:)*u*u + two*rho*u*du_dq(:) + dp_dq(:)
+      mat(3,:) = ( drhoet_dq(:) + dp_dq(:) )*u + (rhoet + p)*du_dq(:)
+    endif
+
+    jac_r = mat
+
+  end subroutine jac_vanleer_q_1D
+
+!============================== jac_source_q_1D ==============================80
+!
+! This subroutine returns the source Jacobian wrt conserved variables
+!
+!=============================================================================80
+  subroutine jac_source_q_1D( dadx_cc, cell_jac, source_jac )
+
+    use set_precision,   only : dp
+    use set_constants,   only : zero
+
+    real(dp),                 intent(in)  :: dadx_cc, cell_jac
+    real(dp), dimension(3,3), intent(out) :: source_jac
+
+    continue
+
+    source_jac = zero
+    source_jac(2,3) = dadx_cc*cell_jac
+
+!    source_jac(1,1) = zero
+!    source_jac(2,1) = zero
+!    source_jac(3,1) = zero
+!    source_jac(1,2) = zero
+!    source_jac(2,2) = zero
+!    source_jac(3,2) = zero
+!    source_jac(1,3) = zero
+!    source_jac(2,3) = dadx_cc*cell_jac
+!    source_jac(3,3) = zero
+
+  end subroutine jac_source_q_1D
 
   include 'speed_of_sound.f90'
 
