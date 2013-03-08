@@ -55,6 +55,7 @@ contains
     continue
 
     allocate( prim_cc(neq, cells+2), cons_cc(neq, cells+2) )
+!    allocate( prim_cc(neq, cells+2) )
 
   end subroutine allocate_soln
 
@@ -70,6 +71,7 @@ contains
     continue
 
     deallocate( cons_cc, prim_cc )
+    deallocate( prim_cc )
 
   end subroutine deallocate_soln
 

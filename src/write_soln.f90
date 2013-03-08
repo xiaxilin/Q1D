@@ -101,6 +101,7 @@ contains
     do var = 2,3
       do i = 2, cells+1
         write(line_unit,*) cons_cc(var,i)
+!        write(line_unit,*) conserved_to_primitive_1D(prim_cc(var,i))
       end do
     end do
 
@@ -143,6 +144,12 @@ contains
     end do
 
     do i = 2, cells+1
+!      entropy(i) = log(prim_cc(3,i)/prim_cc(1,i)**gamma)
+!      ent_var(1,i) = (gamma - entropy(i))*xgm1                                &
+!                   - half*prim_cc(1,i)*prim_cc(2,i)**2/prim_cc(3,i)
+!      ent_var(2,i) = prim_cc(1,i)*prim_cc(2,i)/prim_cc(3,i)
+!      ent_var(3,i) = -prim_cc(1,i)/prim_cc(3,i)
+
       entropy(i) = log(prim_cc(3,i)/prim_cc(1,i)**gamma)
       ent_var(1,i) = (gamma - entropy(i))*xgm1                                 &
                    - half*cons_cc(2,i)**2/prim_cc(1,i)/prim_cc(3,i)
@@ -172,5 +179,6 @@ contains
   end subroutine write_soln_cells
 
   include 'find_available_unit.f90'
+  include 'conserved_to_primitive_1D.f90'
 
 end module write_soln

@@ -40,8 +40,6 @@ contains
     use set_precision, only : dp
     use set_constants, only : zero
 
-    implicit none
-
     integer,                        intent(in)  :: cells, faces, iteration
     real(dp), dimension(3,cells+2), intent(in)  :: prim_cc
     real(dp), dimension(3,cells+2), intent(in)  :: cons_cc
@@ -51,6 +49,7 @@ contains
     real(dp), dimension(3,cells+2), intent(out) :: residual
 
     integer :: cell
+
     real(dp), dimension(3,faces)   :: F
     real(dp), dimension(3,cells+2) :: S
 
@@ -77,15 +76,14 @@ contains
 
     use set_precision, only : dp
 
-    implicit none
-
     integer,                         intent(in)  :: cells, faces, iteration
     real(dp), dimension(3, cells+2), intent(in)  :: prim_cc
     real(dp), dimension(3, cells+2), intent(in)  :: cons_cc
     real(dp), dimension(3, faces),   intent(out) :: flux
 
-    real(dp), dimension(3, faces) :: prim_left, prim_right
     integer :: i
+
+    real(dp), dimension(3, faces) :: prim_left, prim_right
 
     continue
 
@@ -144,8 +142,6 @@ contains
     use set_precision, only : dp
     use set_constants, only : zero
 
-    implicit none
-
     integer,                         intent(in)  :: cells
     real(dp), dimension(cells+2),    intent(in)  :: pressure, dadx_cc
     real(dp), dimension(3, cells+2), intent(out) :: source
@@ -172,17 +168,17 @@ contains
     use set_precision, only : dp
     use set_constants, only : zero, half, two, three
 
-    implicit none
-
     integer,                         intent(in)    :: cells, faces
     real(dp), dimension(3, cells+2), intent(in)    :: prim_cc
     real(dp), dimension(3, cells+2), intent(in)    :: cons_cc
     real(dp), dimension(3, faces),   intent(inout) :: central_flux
 
     integer                      :: i
-    real(dp), dimension(cells+2) :: nu, a
-    real(dp), dimension(3)       :: dissipation
     real(dp)                     :: lambda, epstwo, epsfour
+
+    real(dp), dimension(cells+2) :: nu, a
+    real(dp), dimension(3)       :: dissipation!, cons_L2, cons_L1, cons_R1,   &
+!                                   cons_R2
 
     continue
 
@@ -208,9 +204,21 @@ contains
     dissipation(:) = -lambda* (epstwo*(cons_cc(:,i+1) - cons_cc(:,i))          &
        - epsfour*(cons_cc(:,i+2) - three*cons_cc(:,i+1) + two*cons_cc(:,i)))
 
+!    cons_L1 = primitive_to_conserved_1D(prim_cc(:,i))
+!    cons_R1 = primitive_to_conserved_1D(prim_cc(:,i+1))
+!    cons_R2 = primitive_to_conserved_1D(prim_cc(:,i+2))
+
+!    dissipation = -lambda* (epstwo*(cons_R1 - cons_L1)                        &
+!                - epsfour*(cons_R2 - three*cons_R1 + two*cons_L1))
+
     central_flux(:,i) = central_flux(:,i) + dissipation(:)
 
     do i = 2, faces-1
+!      cons_L2 = cons_L1
+!      cons_L1 = cons_R1
+!      cons_R1 = cons_R2
+!      cons_R2 = primitive_to_conserved_1D(prim_cc(:,i+2))
+
       epstwo  = k2*max(nu(i-1), nu(i), nu(i+1), nu(i+2))
       epsfour = max(zero, k4-epstwo)
 
@@ -220,10 +228,17 @@ contains
         - epsfour*(cons_cc(:,i+2) - three*cons_cc(:,i+1) + three*cons_cc(:,i)  &
         - cons_cc(:,i-1)))
 
+!      dissipation = -lambda*(epstwo*(cons_R1-cons_L1)                         &
+!                 - epsfour*(cons_R2 - three*cons_R1 + three*cons_L1 - cons_L2))
+
       central_flux(:,i) = central_flux(:,i) + dissipation(:)
     end do
 
     i = faces
+!    cons_L2 = cons_L1
+!    cons_L1 = cons_R1
+!    cons_R1 = cons_R2
+
     epstwo  = k2*max(nu(i-1), nu(i), nu(i+1))
     epsfour = max(zero, k4-epstwo)
 
@@ -231,6 +246,9 @@ contains
 
     dissipation(:) = -lambda*(epstwo*(cons_cc(:,i+1) - cons_cc(:,i))           &
       - epsfour*(-two*cons_cc(:,i+1) + three*cons_cc(:,i) - cons_cc(:,i-1)))
+
+!    dissipation = -lambda*(epstwo*(cons_R1 - cons_L1)                         &
+!                - epsfour*(-two*cons_R1 + three*cons_L1 - cons_L2))
 
     central_flux(:,i) = central_flux(:,i) + dissipation(:)
 
@@ -249,17 +267,16 @@ contains
     use set_precision, only : dp
     use set_constants, only : zero, fourth, half, one, onep5, two, small
 
-    implicit none
-
     integer,                        intent(in)  :: cells, faces, iteration
     real(dp), dimension(3,cells+2), intent(in)  :: vars_cc
     real(dp), dimension(3,faces),   intent(out) :: vars_left, vars_right
     real(dp), optional, dimension(3,cells+2), intent(out) :: limL, limR
 
-    integer                       :: i
-    real(dp), dimension(3, faces) :: r_L, r_R, psi_L, psi_R
-
     real(dp), parameter :: small_factor = 0.0000001_dp
+
+    integer :: i
+
+    real(dp), dimension(3, faces) :: r_L, r_R, psi_L, psi_R
 
     continue
 
