@@ -34,7 +34,7 @@ contains
 ! Forms the steady state residual/RHS
 !
 !=============================================================================80
-  subroutine create_residual( cells, faces, iteration, prim_cc, cons_cc,       &
+  subroutine create_residual( cells, faces, iteration, prim_cc,                &
                               area_f, dadx_cc, dx, residual )
 
     use set_precision, only : dp
@@ -42,7 +42,6 @@ contains
 
     integer,                        intent(in)  :: cells, faces, iteration
     real(dp), dimension(3,cells+2), intent(in)  :: prim_cc
-    real(dp), dimension(3,cells+2), intent(in)  :: cons_cc
     real(dp), dimension(faces),     intent(in)  :: area_f
     real(dp), dimension(cells+2),   intent(in)  :: dadx_cc
     real(dp), dimension(cells+2),   intent(in)  :: dx
@@ -57,7 +56,7 @@ contains
 
     residual = zero
 
-    call create_fluxes( cells, faces, iteration, prim_cc, cons_cc, F )
+    call create_fluxes( cells, faces, iteration, prim_cc, F )
     call create_source( cells, prim_cc(3,:), dadx_cc, S )
 
     do cell = 2, cells+1
@@ -72,13 +71,12 @@ contains
 ! Fills the flux array
 !
 !=============================================================================80
-  subroutine create_fluxes( cells, faces, iteration, prim_cc, cons_cc, flux )
+  subroutine create_fluxes( cells, faces, iteration, prim_cc, flux )
 
     use set_precision, only : dp
 
     integer,                         intent(in)  :: cells, faces, iteration
     real(dp), dimension(3, cells+2), intent(in)  :: prim_cc
-    real(dp), dimension(3, cells+2), intent(in)  :: cons_cc
     real(dp), dimension(3, faces),   intent(out) :: flux
 
     integer :: i
@@ -103,7 +101,7 @@ contains
       do i = 1, faces
         flux(:,i) = flux_central( prim_cc(:,i), prim_cc(:,i+1) )
       end do
-      call add_jst_damping( cells, faces, prim_cc, cons_cc, flux )
+      call add_jst_damping( cells, faces, prim_cc, flux )
     case('vanleer')
       do i = 1, faces
         flux(:,i) = flux_vanleer( prim_left(:,i), prim_right(:,i) )
@@ -163,22 +161,21 @@ contains
 ! Adds JST damping, if selected by flux = 'jst', for central difference scheme
 !
 !=============================================================================80
-  subroutine add_jst_damping( cells, faces, prim_cc, cons_cc, central_flux )
+  subroutine add_jst_damping( cells, faces, prim_cc, central_flux )
 
     use set_precision, only : dp
     use set_constants, only : zero, half, two, three
 
     integer,                         intent(in)    :: cells, faces
     real(dp), dimension(3, cells+2), intent(in)    :: prim_cc
-    real(dp), dimension(3, cells+2), intent(in)    :: cons_cc
     real(dp), dimension(3, faces),   intent(inout) :: central_flux
 
     integer                      :: i
     real(dp)                     :: lambda, epstwo, epsfour
 
     real(dp), dimension(cells+2) :: nu, a
-    real(dp), dimension(3)       :: dissipation!, cons_L2, cons_L1, cons_R1,   &
-!                                   cons_R2
+    real(dp), dimension(3)       :: cons_L2, cons_L1, cons_R1, cons_R2
+    real(dp), dimension(3)       :: dissipation
 
     continue
 
@@ -201,54 +198,44 @@ contains
 
     lambda  = half*(abs(prim_cc(2,i+1))+a(i+1) + abs(prim_cc(2,i))+a(i))
 
-    dissipation(:) = -lambda* (epstwo*(cons_cc(:,i+1) - cons_cc(:,i))          &
-       - epsfour*(cons_cc(:,i+2) - three*cons_cc(:,i+1) + two*cons_cc(:,i)))
+    cons_L1 = primitive_to_conserved_1D(prim_cc(:,i))
+    cons_R1 = primitive_to_conserved_1D(prim_cc(:,i+1))
+    cons_R2 = primitive_to_conserved_1D(prim_cc(:,i+2))
 
-!    cons_L1 = primitive_to_conserved_1D(prim_cc(:,i))
-!    cons_R1 = primitive_to_conserved_1D(prim_cc(:,i+1))
-!    cons_R2 = primitive_to_conserved_1D(prim_cc(:,i+2))
-
-!    dissipation = -lambda* (epstwo*(cons_R1 - cons_L1)                        &
-!                - epsfour*(cons_R2 - three*cons_R1 + two*cons_L1))
+    dissipation = -lambda* (epstwo*(cons_R1 - cons_L1)                        &
+                - epsfour*(cons_R2 - three*cons_R1 + two*cons_L1))
 
     central_flux(:,i) = central_flux(:,i) + dissipation(:)
 
     do i = 2, faces-1
-!      cons_L2 = cons_L1
-!      cons_L1 = cons_R1
-!      cons_R1 = cons_R2
-!      cons_R2 = primitive_to_conserved_1D(prim_cc(:,i+2))
+      cons_L2 = cons_L1
+      cons_L1 = cons_R1
+      cons_R1 = cons_R2
+      cons_R2 = primitive_to_conserved_1D(prim_cc(:,i+2))
 
       epstwo  = k2*max(nu(i-1), nu(i), nu(i+1), nu(i+2))
       epsfour = max(zero, k4-epstwo)
 
       lambda  = half*(abs(prim_cc(2,i+1))+a(i+1) + abs(prim_cc(2,i))+a(i))
 
-      dissipation(:) = -lambda*(epstwo*(cons_cc(:,i+1)-cons_cc(:,i))           &
-        - epsfour*(cons_cc(:,i+2) - three*cons_cc(:,i+1) + three*cons_cc(:,i)  &
-        - cons_cc(:,i-1)))
-
-!      dissipation = -lambda*(epstwo*(cons_R1-cons_L1)                         &
-!                 - epsfour*(cons_R2 - three*cons_R1 + three*cons_L1 - cons_L2))
+      dissipation = -lambda*(epstwo*(cons_R1-cons_L1)                         &
+                  - epsfour*(cons_R2 - three*cons_R1 + three*cons_L1 - cons_L2))
 
       central_flux(:,i) = central_flux(:,i) + dissipation(:)
     end do
 
     i = faces
-!    cons_L2 = cons_L1
-!    cons_L1 = cons_R1
-!    cons_R1 = cons_R2
+    cons_L2 = cons_L1
+    cons_L1 = cons_R1
+    cons_R1 = cons_R2
 
     epstwo  = k2*max(nu(i-1), nu(i), nu(i+1))
     epsfour = max(zero, k4-epstwo)
 
     lambda  = half*(abs(prim_cc(2,i+1))+a(i+1) + abs(prim_cc(2,i))+a(i))
 
-    dissipation(:) = -lambda*(epstwo*(cons_cc(:,i+1) - cons_cc(:,i))           &
-      - epsfour*(-two*cons_cc(:,i+1) + three*cons_cc(:,i) - cons_cc(:,i-1)))
-
-!    dissipation = -lambda*(epstwo*(cons_R1 - cons_L1)                         &
-!                - epsfour*(-two*cons_R1 + three*cons_L1 - cons_L2))
+    dissipation = -lambda*(epstwo*(cons_R1 - cons_L1)                         &
+                - epsfour*(-two*cons_R1 + three*cons_L1 - cons_L2))
 
     central_flux(:,i) = central_flux(:,i) + dissipation(:)
 

@@ -401,8 +401,8 @@ contains
                            prim_cc(:,cells+1), prim_cc(:,cells) )
     cons_cc(:,cells+2) = primitive_to_conserved_1D(prim_cc(:,cells+2))
 
-    call create_residual( cells, faces, iterations, prim_cc, cons_cc,          &
-                          area_f, dadx_cc, dx, te )
+    call create_residual( cells, faces, iterations, prim_cc, area_f, dadx_cc,  &
+                          dx, te )
 
     write(*,*) te(1, 2)
 

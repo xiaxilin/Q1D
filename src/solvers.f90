@@ -86,8 +86,8 @@ module solvers
 !      end do
 
       rk_loop : do rk = 1, rkorder
-        call create_residual( cells, faces, n, prim_cc, cons_cc,               &
-                              area_f, dadx_cc, dx, resid )
+        call create_residual( cells, faces, n, prim_cc, area_f, dadx_cc, dx,   &
+                              resid )
 
 ! Perform explicit iterations on interior cells
 ! Note that the conserved variables are converted to primitive and floored
@@ -196,8 +196,7 @@ module solvers
       dt = set_time_step( cells, dx, prim_cc )
 
 ! Form RHS
-      call create_residual( cells, faces, n, prim_cc, cons_cc,                 &
-                            area_f, dadx_cc, dx, RHS)
+      call create_residual( cells, faces, n, prim_cc, area_f, dadx_cc, dx, RHS )
 ! Account for sign since the residual is moved to the RHS
       RHS = -RHS
 
