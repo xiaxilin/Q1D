@@ -71,7 +71,7 @@ contains
     continue
 
     deallocate( cons_cc, prim_cc )
-    deallocate( prim_cc )
+!    deallocate( prim_cc )
 
   end subroutine deallocate_soln
 
