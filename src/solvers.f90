@@ -65,7 +65,7 @@ module solvers
     real(dp), dimension(3)         :: cons
     real(dp), dimension(4)         :: rk_const
     real(dp), dimension(cells+2)   :: dt
-    real(dp), dimension(3,cells+2) :: cons_cc_0, resid
+    real(dp), dimension(3,cells+2) :: resid
 
     logical :: convergence_flag = .false.
 
@@ -82,7 +82,7 @@ module solvers
 
 ! Store solution before RK loop. Wouldn't be necessary for pure Euler explicit
       do cell = 1, cells+2
-        cons_cc_0(:,cell) = primitive_to_conserved_1D(prim_cc(:,cell))
+        cons_cc(:,cell) = primitive_to_conserved_1D(prim_cc(:,cell))
       end do
 
       rk_loop : do rk = 1, rkorder
@@ -92,7 +92,7 @@ module solvers
 ! Perform explicit iterations on interior cells
 ! Note that the conserved variables are converted to primitive and floored
         do cell = 2,cells+1
-          cons(:) = cons_cc_0(:,cell) - dt(cell)*resid(:,cell)                 &
+          cons(:) = cons_cc(:,cell) - dt(cell)*resid(:,cell)                   &
                   / ( rk_const(rkorder)*cell_vol(cell) )
           prim_cc(:,cell) = conserved_to_primitive_1D(cons(:))
           prim_cc(:,cell) = floor_primitive_vars(prim_cc(:,cell))
