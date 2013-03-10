@@ -114,7 +114,7 @@ contains
 ! Writes entropy vars as simple X-Y line output
 !
 !=============================================================================80
-  subroutine write_entropy(cells, x_cc, prim_cc, cons_cc)
+  subroutine write_entropy( cells, x_cc, prim_cc )
 
     use set_precision,   only : dp
     use set_constants,   only : half
@@ -124,7 +124,7 @@ contains
 
     integer,                        intent(in) :: cells
     real(dp), dimension(cells+2),   intent(in) :: x_cc
-    real(dp), dimension(3,cells+2), intent(in) :: prim_cc, cons_cc
+    real(dp), dimension(3,cells+2), intent(in) :: prim_cc
 
     integer :: i, var, entropy_unit
     real(dp), dimension(cells+2)    :: entropy
@@ -144,17 +144,13 @@ contains
     end do
 
     do i = 2, cells+1
-!      entropy(i) = log(prim_cc(3,i)/prim_cc(1,i)**gamma)
-!      ent_var(1,i) = (gamma - entropy(i))*xgm1                                &
-!                   - half*prim_cc(1,i)*prim_cc(2,i)**2/prim_cc(3,i)
-!      ent_var(2,i) = prim_cc(1,i)*prim_cc(2,i)/prim_cc(3,i)
-!      ent_var(3,i) = -prim_cc(1,i)/prim_cc(3,i)
-
       entropy(i) = log(prim_cc(3,i)/prim_cc(1,i)**gamma)
-      ent_var(1,i) = (gamma - entropy(i))*xgm1                                 &
-                   - half*cons_cc(2,i)**2/prim_cc(1,i)/prim_cc(3,i)
-      ent_var(2,i) = cons_cc(2,i)/prim_cc(3,i)
+
+      ent_var(1,i) = (gamma - entropy(i))*xgm1                                &
+                   - half*prim_cc(1,i)*prim_cc(2,i)**2/prim_cc(3,i)
+      ent_var(2,i) = prim_cc(1,i)*prim_cc(2,i)/prim_cc(3,i)
       ent_var(3,i) = -prim_cc(1,i)/prim_cc(3,i)
+
       write(entropy_unit, *) entropy(i)
     end do
 

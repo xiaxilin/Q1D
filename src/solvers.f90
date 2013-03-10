@@ -62,6 +62,7 @@ module solvers
 
     integer  :: n, rk, cell
 
+    real(dp), dimension(3)         :: cons
     real(dp), dimension(4)         :: rk_const
     real(dp), dimension(cells+2)   :: dt
     real(dp), dimension(3,cells+2) :: cons_cc_0, resid
@@ -80,10 +81,9 @@ module solvers
       dt = set_time_step( cells, dx, prim_cc )
 
 ! Store solution before RK loop. Wouldn't be necessary for pure Euler explicit
-      cons_cc_0 = cons_cc
-!      do cell = 1, cells+2
-!        cons_cc_0(:,cell) = primitive_to_conserved_1D(prim_cc(:,cell)
-!      end do
+      do cell = 1, cells+2
+        cons_cc_0(:,cell) = primitive_to_conserved_1D(prim_cc(:,cell))
+      end do
 
       rk_loop : do rk = 1, rkorder
         call create_residual( cells, faces, n, prim_cc, area_f, dadx_cc, dx,   &
@@ -92,14 +92,10 @@ module solvers
 ! Perform explicit iterations on interior cells
 ! Note that the conserved variables are converted to primitive and floored
         do cell = 2,cells+1
-          cons_cc(:,cell) = cons_cc_0(:,cell) - dt(cell)*resid(:,cell)         &
-                          / ( rk_const(rkorder)*cell_vol(cell) )
-          prim_cc(:,cell) = conserved_to_primitive_1D(cons_cc(:,cell))
+          cons(:) = cons_cc_0(:,cell) - dt(cell)*resid(:,cell)                 &
+                  / ( rk_const(rkorder)*cell_vol(cell) )
+          prim_cc(:,cell) = conserved_to_primitive_1D(cons(:))
           prim_cc(:,cell) = floor_primitive_vars(prim_cc(:,cell))
-!          cons_cc(:) = cons_cc_0(:,cell) - dt(cell)*resid(:,cell)             &
-!                     / ( rk_const(rkorder)*cell_vol(cell) )
-!          prim_cc(:,cell) = conserved_to_primitive_1D(cons_cc(:))
-!          prim_cc(:,cell) = floor_primitive_vars(prim_cc(:,cell))
         end do
 
 ! Enforce BC's
@@ -115,12 +111,11 @@ module solvers
         call outflow_explicit( prim_cc(:,cells+2),                             &
                                prim_cc(:,cells+1), prim_cc(:,cells) )
 
-! This won't be needed
-        do cell = 1, cells+2
-          cons_cc(:,cell) = primitive_to_conserved_1D(prim_cc(:,cell))
-        end do
-
       end do rk_loop
+
+      do cell = 1, cells+2
+        cons_cc(:,cell) = primitive_to_conserved_1D(prim_cc(:,cell))
+      end do
 
       if (iter_out >= 0 .and. mod(n,iter_out) == 0) then
         call write_soln_line(n, cells, x_cc, prim_cc, cons_cc)

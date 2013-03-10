@@ -46,19 +46,19 @@ program q1d_primal
   select case( solver )
   case('explicit')
     print*, 'Beginning Explicit Solve'
-    call explicit_solve(cells, faces, prim_cc, cons_cc, cell_vol,              &
-                        area_f, dx, dadx_cc, x_cc)
+    call explicit_solve( cells, faces, prim_cc, cons_cc, cell_vol,             &
+                        area_f, dx, dadx_cc, x_cc )
   case('implicit')
     print*, 'Beginning Implicit Solve'
-    call implicit_solve(cells, faces, prim_cc, cons_cc, cell_vol,              &
-                        area_f, dx, dadx_cc, x_cc)
+    call implicit_solve( cells, faces, prim_cc, cons_cc, cell_vol,             &
+                         area_f, dx, dadx_cc, x_cc )
   end select
 
 ! do solution output
-  call write_restart(cells, prim_cc)
+  call write_restart( cells, prim_cc )
 
 ! write the entropy vars
-  call write_entropy(cells, x_cc, prim_cc, cons_cc)
+  call write_entropy( cells, x_cc, prim_cc )
 
 ! get exact solution and plot it
 
