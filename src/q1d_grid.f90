@@ -291,7 +291,7 @@ program q1d_grid
 
   write(*,*) "What nozzle function?"
 
-  nozzle_func = 'ext-sin'
+  nozzle_func = 'sin'
 
   call choose_area_distribution(nozzle_func, area_func, dadx_func)
 
