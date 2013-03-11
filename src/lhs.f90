@@ -35,10 +35,11 @@ contains
     real(dp), dimension(3,3,cells+2), intent(out) :: L, D, U
 
     integer                  :: cell
-    real(dp), dimension(3,3) :: ident3x3, jac_L, jac_R, source_jac
+    real(dp), dimension(3,3) :: ident3x3, jac_L, jac_R, source_jac!, dc_dp
 
     continue
 
+! Won't need ident3x3 anymore
     ident3x3 = reshape( (/one, zero, zero, zero, one, zero, zero, zero, one/) ,&
                         (/3,3/) )
     L = zero
@@ -46,6 +47,8 @@ contains
     U = zero
 
     call jac_vanleer_1D( cons_cc(:,1), cons_cc(:,2), jac_L, jac_R )
+!    cell = 1
+!    call jac_vanleer_q_1D( prim_cc(:,cell), prim_cc(:,cell+1), jac_L, jac_R )
 
     do cell = 2, cells+1
 ! subtract contribution from left hand face
@@ -54,6 +57,7 @@ contains
 
 ! now add contribution from right side face
       call jac_vanleer_1D( cons_cc(:,cell), cons_cc(:,cell+1), jac_L, jac_R )
+!      call jac_vanleer_q_1D( prim_cc(:,cell), prim_cc(:,cell+1), jac_L, jac_R )
 
       D(:,:,cell) = D(:,:,cell) + jac_L*area_f(cell)
       U(:,:,cell) = U(:,:,cell) + jac_R*area_f(cell)
@@ -65,6 +69,10 @@ contains
                           cell_vol(cell), source_jac )
 
       D(:,:,cell) = D(:,:,cell) + ident3x3*cell_vol(cell)/dt(cell) - source_jac
+
+!      call jac_source_1D( dadx_cc(cell), cell_vol(cell), source_jac )
+!      call dconserved_dprimitive( prim_cc(:,cell), dc_dp )
+!      D(:,:,cell) = D(:,:,cell) + dc_dp*cell_vol(cell)/dt(cell) - source_jac
     end do
 
   end subroutine fill_lhs
