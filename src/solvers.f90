@@ -174,7 +174,7 @@ module solvers
 
     real(dp), dimension(3)           :: l2out
     real(dp), dimension(cells+2)     :: dt
-    real(dp), dimension(3,cells+2)   :: RHS, delta_cons_cc
+    real(dp), dimension(3,cells+2)   :: RHS, delta_cons_cc!, delta_prim_cc
     real(dp), dimension(3,3,cells+2) :: L2, L, D, U, U2
 
     logical :: convergence_flag = .false.
@@ -207,31 +207,43 @@ module solvers
 ! Form LHS
       if ( n < firstorder .or. lhs_order == 1 ) then
         call fill_lhs( cells, cell_vol, area_f, dadx_cc, dt, cons_cc, L, D, U )
+!        call fill_lhs( cells, cell_vol, area_f, dadx_cc, dt, prim_cc, L, D, U )
       else
         call fill_full_lhs( cells, cell_vol, area_f, dadx_cc, &
                             dt, cons_cc, L2, L, D, U, U2 )
+!        call fill_full_lhs( cells, cell_vol, area_f, dadx_cc, &
+!                            dt, prim_cc, L2, L, D, U, U2 )
       end if
 
 ! Take care of BC's
 ! Inflow, modify according to bc
       call subsonic_inflow( n, cons_cc(:,1), cons_cc(:,2), cons_cc(:,3),       &
                             D(:,:,1), U(:,:,1), U2(:,:,1), RHS(:,1) )
+!      call subsonic_inflow( n, prim_cc(:,1), prim_cc(:,2), prim_cc(:,3),      &
+!                            D(:,:,1), U(:,:,1), U2(:,:,1), RHS(:,1) )
 
 ! Outflow
       call set_outflow( n, cons_cc(:,cells+2), cons_cc(:,cells+1),             &
                         cons_cc(:,cells),                                      &
                         D(:,:,cells+2), L(:,:,cells+2), L2(:,:,cells+2),       &
                         RHS(:,cells+2) )
+!      call set_outflow( n, prim_cc(:,cells+2), prim_cc(:,cells+1),            &
+!                        prim_cc(:,cells),                                     &
+!                        D(:,:,cells+2), L(:,:,cells+2), L2(:,:,cells+2),      &
+!                        RHS(:,cells+2) )
 
 ! Solve the system of equations
       if ( n < firstorder .or. lhs_order == 1 ) then
         call triblocksolve(3, cells+2, L, D, U, RHS, delta_cons_cc)
+!        call triblocksolve(3, cells+2, L, D, U, RHS, delta_prim_cc)
       else
         call pentablocksolve(3, cells+2, L2, L, D, U, U2, RHS, delta_cons_cc)
+!        call pentablocksolve(3, cells+2, L2, L, D, U, U2, RHS, delta_prim_cc)
       end if
 
 ! Update the conserved variables
       cons_cc = cons_cc + delta_cons_cc
+!      prim_cc = prim_cc + delta_prim_cc
 
 ! Floor variables for stability
       do cell = 1, cells+2
