@@ -84,6 +84,8 @@ contains
 !=============================================================================80
   subroutine fill_full_lhs( cells, cell_vol, area_f, dadx_cc, dt, &
                             cons_cc, L2, L, D, U, U2 )
+!  subroutine fill_full_lhs( cells, cell_vol, area_f, dadx_cc, dt, &
+!                            prim_cc, L2, L, D, U, U2 )
 
     use set_precision, only : dp
     use set_constants, only : zero, fourth, half, one
@@ -95,7 +97,7 @@ contains
     integer,                          intent(in)  :: cells
     real(dp), dimension(cells+2),     intent(in)  :: cell_vol, area_f
     real(dp), dimension(cells+2),     intent(in)  :: dadx_cc, dt
-    real(dp), dimension(3,cells+2),   intent(in)  :: cons_cc
+    real(dp), dimension(3,cells+2),   intent(in)  :: cons_cc!,prim_cc
     real(dp), dimension(3,3,cells+2), intent(out) :: L2, L, D, U, U2
 
     integer                        :: cell
@@ -105,6 +107,7 @@ contains
 
     continue
 
+! Won't need ident3x3 anymore
     ident3x3 = reshape( (/one, zero, zero, zero, one, zero, zero, zero, one/), &
                         (/3,3/) )
 
@@ -114,6 +117,7 @@ contains
     U  = zero
     U2 = zero
 
+! prim will be passed in
     do cell = 1, cells+2
       prim_cc(:,cell) = conserved_to_primitive_1D(cons_cc(:,cell))
     end do
@@ -121,6 +125,7 @@ contains
     call muscl_extrapolation( cells, cells+1, firstorder+1, &
                               prim_cc, prim_L, prim_R )
 
+! won't need
     do cell = 1, cells+1
       cons_L(:,cell) = primitive_to_conserved_1D(prim_L(:,cell))
       cons_R(:,cell) = primitive_to_conserved_1D(prim_R(:,cell))
@@ -129,6 +134,7 @@ contains
 ! Inflow face
     cell = 1
     call jac_vanleer_1D( cons_L(:,cell), cons_R(:,cell), jac_L, jac_R )
+!    call jac_vanleer_q_1D( prim_L(:,cell), prim_R(:,cell), jac_L, jac_R )
 
 ! Subtract from cell to the right
 
@@ -145,7 +151,7 @@ contains
     do cell = 2, cells
 
       call jac_vanleer_1D( cons_L(:,cell), cons_R(:,cell), jac_L, jac_R )
-
+!    call jac_vanleer_q_1D( prim_L(:,cell), prim_R(:,cell), jac_L, jac_R )
 ! Add to cell
 
 ! First the Jacobian on the left side of the face...
@@ -174,6 +180,7 @@ contains
 ! Outflow face
     cell = cells+1
     call jac_vanleer_1D( cons_L(:,cell), cons_R(:,cell), jac_L, jac_R )
+!    call jac_vanleer_q_1D( prim_L(:,cell), prim_R(:,cell), jac_L, jac_R )
 
 ! Add to cell
 
@@ -192,6 +199,9 @@ contains
 
       D(:,:,cell) = D(:,:,cell) + ident3x3*cell_vol(cell)/dt(cell) - source_jac
 
+!      call jac_source_1D( dadx_cc(cell), cell_vol(cell), source_jac )
+!      call dconserved_dprimitive( prim_cc(:,cell), dc_dp )
+!      D(:,:,cell) = D(:,:,cell) + dc_dp*cell_vol(cell)/dt(cell) - source_jac
     end do
 
   end subroutine fill_full_lhs
