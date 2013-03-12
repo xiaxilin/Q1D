@@ -296,7 +296,7 @@ contains
 
     factor = one + half*gm1*m**2
 
-    dTdrho = -p/rho**2
+    dTdrho = -p/(R*rho**2)
     dTdu   = zero
     dTdp   = one/(rho*R)
 
@@ -502,8 +502,8 @@ contains
 
     if (pback > zero) then
       if ( iter >= firstorder .and. lhs_order /= 1 ) DD(3,:) = DD(3,:)/three
-      DL1(3,:) = zero
-      DL2(3,:) = zero
+      DL1(3,3) = zero
+      DL2(3,3) = zero
       RHS(3)   = pback - p_out
     end if
 
