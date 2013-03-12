@@ -158,7 +158,7 @@ module solvers
     use fluid_constants, only : gm1
     use residual,        only : create_residual, firstorder
     use lhs,             only : fill_lhs, fill_full_lhs, lhs_order
-    use bc,              only : subsonic_inflow, set_outflow
+    use bc,              only : subsonic_inflow, set_outflow, set_outflow_prim
     use matrix_manip,    only : triblocksolve, pentablocksolve
     use write_soln,      only : write_soln_line
 
@@ -227,7 +227,7 @@ module solvers
                         cons_cc(:,cells),                                      &
                         D(:,:,cells+2), L(:,:,cells+2), L2(:,:,cells+2),       &
                         RHS(:,cells+2) )
-!      call set_outflow( n, prim_cc(:,cells+2), prim_cc(:,cells+1),            &
+!      call set_outflow_prim( n, prim_cc(:,cells+2), prim_cc(:,cells+1),       &
 !                        prim_cc(:,cells),                                     &
 !                        D(:,:,cells+2), L(:,:,cells+2), L2(:,:,cells+2),      &
 !                        RHS(:,cells+2) )

@@ -14,6 +14,7 @@ module bc
   public :: outflow_explicit
   public :: subsonic_inflow
   public :: set_outflow
+  public :: set_outflow_prim
 
 contains
 
@@ -331,6 +332,94 @@ contains
     end if
 
   end subroutine set_outflow
+
+!============================== set_outflow_prim =============================80
+!
+! Creates matrices for variable extrapolation wrt primitive variables
+!
+!=============================================================================80
+  subroutine set_outflow_prim(iter, cc_out, cc_1, cc_2, DD, DL1, DL2, RHS)
+
+    use set_precision,   only : dp
+    use set_constants,   only : zero, one, two, three, four
+    use initialize_soln, only : pback
+    use residual,        only : firstorder
+    use lhs,             only : lhs_order
+
+    implicit none
+
+    integer,                  intent(in)  :: iter
+    real(dp), dimension(3),   intent(in)  :: cc_out, cc_1, cc_2
+    real(dp), dimension(3,3), intent(out) :: DD, DL1, DL2
+    real(dp), dimension(3),   intent(out) :: RHS
+
+    real(dp) :: u_out, u_1, u_2
+    real(dp) :: p_out, p_1, p_2
+
+    continue
+
+    u_out = cc_out(2)
+    u_1   = cc_1(2)
+    u_2   = cc_2(2)
+
+    p_out = cc_out(3)
+    p_1   = cc_1(3)
+    p_2   = cc_2(3)
+
+! Extrapolate velocity from interior
+    DD(1,1) = one
+    DD(2,1) = zero
+    DD(3,1) = zero
+    DD(1,2) = zero
+    DD(2,2) = one
+    DD(3,2) = zero
+    DD(1,3) = zero
+    DD(2,3) = zero
+    DD(3,3) = one
+
+    DL1(1,1) = one
+    DL1(2,1) = zero
+    DL1(3,1) = zero
+    DL1(1,2) = zero
+    DL1(2,2) = one
+    DL1(3,2) = zero
+    DL1(1,3) = zero
+    DL1(2,3) = zero
+    DL1(3,3) = one
+
+    DL1 = -DL1
+
+    DL2(1,1) = one
+    DL2(2,1) = zero
+    DL2(3,1) = zero
+    DL2(1,2) = zero
+    DL2(2,2) = one
+    DL2(3,2) = zero
+    DL2(1,3) = zero
+    DL2(2,3) = zero
+    DL2(3,3) = one
+
+    RHS(1) = -cc_out(1) + cc_1(1)! - cc_2(1)
+    RHS(2) = -u_out     + u_1!     - u_2
+    RHS(3) = -p_out     + p_1!     - p_2
+
+    if ( iter >= firstorder .and. lhs_order /= 1 ) then
+      DD  = three*DD
+      DL1 = four*DL1
+
+      RHS(1) = -three*cc_out(1) + four*cc_1(1) - cc_2(1)
+      RHS(2) = -three*u_out     + four*u_1     - u_2
+      RHS(3) = -three*p_out     + four*p_1     - p_2
+    end if
+
+    if (pback > zero) then
+      if ( iter >= firstorder .and. lhs_order /= 1 ) DD(3,:) = DD(3,:)/three
+      DL1(3,:) = zero
+      DL2(3,:) = zero
+      RHS(3)   = pback - p_out
+    end if
+
+  end subroutine set_outflow_prim
 
   include 'speed_of_sound.f90'
   include 'floor_primitive_vars.f90'
