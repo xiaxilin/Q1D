@@ -19,35 +19,37 @@ contains
 ! Fills the 1st order lhs
 !
 !=============================================================================80
-  subroutine fill_lhs( cells, cell_vol, area_f, dadx_cc, dt, &
-                       cons_cc, L, D, U )
+  subroutine fill_lhs( cells, cell_vol, area_f, dadx_cc, dt, cons_cc, L, D, U )
+!  subroutine fill_lhs( cells, cell_vol, area_f, dadx_cc, dt, prim_cc, L, D, U )
 
     use set_precision, only : dp
     use set_constants, only : zero, one
-    use jacobians,     only : jac_source_1D, jac_vanleer_1D
-
+    use jacobians,     only : jac_source_1D, jac_vanleer_1D, &
+                              jac_source_q_1D, jac_vanleer_q_1D, &
+                              dconserved_dprimitive
     implicit none
 
     integer,                          intent(in)  :: cells
     real(dp), dimension(cells+2),     intent(in)  :: cell_vol, area_f
     real(dp), dimension(cells+2),     intent(in)  :: dadx_cc, dt
     real(dp), dimension(3,cells+2),   intent(in)  :: cons_cc
+!    real(dp), dimension(3,cells+2),   intent(in)  :: prim_cc
     real(dp), dimension(3,3,cells+2), intent(out) :: L, D, U
 
     integer                  :: cell
-    real(dp), dimension(3,3) :: ident3x3, jac_L, jac_R, source_jac!, dc_dp
+    real(dp), dimension(3,3) :: ident3x3, jac_L, jac_R, source_jac, dc_dp
 
     continue
 
 ! Won't need ident3x3 anymore
-    ident3x3 = reshape( (/one, zero, zero, zero, one, zero, zero, zero, one/) ,&
-                        (/3,3/) )
+    ident3x3 = reshape( [one, zero, zero, zero, one, zero, zero, zero, one],  &
+                        [3,3] )
     L = zero
     D = zero
     U = zero
 
+    cell = 1
     call jac_vanleer_1D( cons_cc(:,1), cons_cc(:,2), jac_L, jac_R )
-!    cell = 1
 !    call jac_vanleer_q_1D( prim_cc(:,cell), prim_cc(:,cell+1), jac_L, jac_R )
 
     do cell = 2, cells+1
@@ -65,12 +67,12 @@ contains
 
 ! Add contributions from cell volume/area and the wall pressure/source jacobian
     do cell = 2, cells+1
-      call jac_source_1D( cons_cc(2,cell)/cons_cc(1,cell), dadx_cc(cell),      &
+      call jac_source_1D( cons_cc(2,cell)/cons_cc(1,cell), dadx_cc(cell),     &
                           cell_vol(cell), source_jac )
 
       D(:,:,cell) = D(:,:,cell) + ident3x3*cell_vol(cell)/dt(cell) - source_jac
 
-!      call jac_source_1D( dadx_cc(cell), cell_vol(cell), source_jac )
+!      call jac_source_q_1D( dadx_cc(cell), cell_vol(cell), source_jac )
 !      call dconserved_dprimitive( prim_cc(:,cell), dc_dp )
 !      D(:,:,cell) = D(:,:,cell) + dc_dp*cell_vol(cell)/dt(cell) - source_jac
     end do
