@@ -279,18 +279,16 @@ contains
     DU2 = zero
 
 ! Extrapolate velocity from interior
-    DD(2,1) = -cc_in(2)
+    DD(2,2)  = one
 
-    DU1(2,1) = -cc_1(2)
+    DU1(2,2) = -one
 
-    DU1 = -DU1
-
-    DU2(2,1) = -cc_2(2)
+    DU2(2,2) = one
 
 ! Now need to account for delta Po = delta To = 0 at inflow... DD matrix
 
     rho = cc_in(1)
-    u   = cc_in(2)/cc_in(1)
+    u   = cc_in(2)
     p   = cc_in(3)
     T   = p/(rho*R)
 
@@ -322,14 +320,14 @@ contains
     DD(3,3) = factor**gxgm1*dPdp   + half*gamma*factor**xgm1*P*dM2dp
 
     RHS(1) = to - T*factor
-    RHS(2) = -cc_in(2)/cc_in(1) + cc_1(2)/cc_1(1)! - cc_2(2)/cc_2(1)
+    RHS(2) = -cc_in(2) + cc_1(2)! - cc_2(2)
     RHS(3) = po - p*factor**gxgm1
 
     if ( iter >= firstorder .and. lhs_order /= 1 ) then
       DD(2,:) = three*DD(2,:)
       DU1 = four*DU1
 
-      RHS(2) = -three*cc_in(2)/cc_in(1) + four*cc_1(2)/cc_1(1) - cc_2(2)/cc_2(1)
+      RHS(2) = -three*cc_in(2) + four*cc_1(2) - cc_2(2)
     end if
 
   end subroutine subsonic_inflow_prim
