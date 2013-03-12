@@ -14,6 +14,7 @@ module bc
   public :: outflow_explicit
   public :: subsonic_inflow
   public :: set_outflow
+  public :: subsonic_inflow_prim
   public :: set_outflow_prim
 
 contains
@@ -243,6 +244,95 @@ contains
     end if
 
   end subroutine subsonic_inflow
+
+!============================ subsonic_inflow_prim ===========================80
+!
+! Uses primitive variables with Po and To specified to calculate subsonic inflow
+! FIXME: Check directions on extrapolations, could account for adjoint wiggles
+!
+!=============================================================================80
+  subroutine subsonic_inflow_prim(iter, cc_in, cc_1, cc_2, DD, DU1, DU2, RHS)
+
+    use set_precision,   only : dp
+    use set_constants,   only : zero, half, one, two, three, four
+    use fluid_constants, only : gamma, gm1, gxgm1, xgm1, R, cv
+    use initialize_soln, only : po, to
+    use residual,        only : firstorder
+    use lhs,             only : lhs_order
+
+    implicit none
+
+    integer,                  intent(in)  :: iter
+    real(dp), dimension(3),   intent(in)  :: cc_in, cc_1, cc_2
+    real(dp), dimension(3,3), intent(out) :: DD, DU1, DU2
+    real(dp), dimension(3),   intent(out) :: RHS
+
+    real(dp) :: rho, u, p, T, m, factor
+    real(dp) :: dTdrho, dTdu, dTdp
+    real(dp) :: dPdrho, dPdu, dPdp
+    real(dp) :: dM2drho, dM2du, dM2dp
+
+    continue
+
+    DD  = zero
+    DU1 = zero
+    DU2 = zero
+
+! Extrapolate velocity from interior
+    DD(2,1) = -cc_in(2)
+
+    DU1(2,1) = -cc_1(2)
+
+    DU1 = -DU1
+
+    DU2(2,1) = -cc_2(2)
+
+! Now need to account for delta Po = delta To = 0 at inflow... DD matrix
+
+    rho = cc_in(1)
+    u   = cc_in(2)/cc_in(1)
+    p   = cc_in(3)
+    T   = p/(rho*R)
+
+    m = u/speed_of_sound(p, rho) ! u/sqrt(gamma*P/rho)
+
+    factor = one + half*gm1*m**2
+
+    dTdrho = -p/rho**2
+    dTdu   = zero
+    dTdp   = one/(rho*R)
+
+! M**2 = (rho*u**2) / (gamma*P)
+    dM2drho = u**2/(gamma*P)
+    dM2du   = two*rho*u/(gamma*P)
+    dM2dp   = -rho*u**2 / (gamma*P**2)
+
+! add To equations...
+    DD(1,1) = factor*dTdrho + half*gm1*T*dM2drho
+    DD(1,2) = factor*dTdu   + half*gm1*T*dM2du
+    DD(1,3) = factor*dTdp   + half*gm1*T*dM2dp
+
+    dPdrho = zero
+    dPdu   = zero
+    dPdp   = one
+
+! add Po equations...
+    DD(3,1) = factor**gxgm1*dPdrho + half*gamma*factor**xgm1*P*dM2drho
+    DD(3,2) = factor**gxgm1*dPdu   + half*gamma*factor**xgm1*P*dM2du
+    DD(3,3) = factor**gxgm1*dPdp   + half*gamma*factor**xgm1*P*dM2dp
+
+    RHS(1) = to - T*factor
+    RHS(2) = -cc_in(2)/cc_in(1) + cc_1(2)/cc_1(1)! - cc_2(2)/cc_2(1)
+    RHS(3) = po - p*factor**gxgm1
+
+    if ( iter >= firstorder .and. lhs_order /= 1 ) then
+      DD(2,:) = three*DD(2,:)
+      DU1 = four*DU1
+
+      RHS(2) = -three*cc_in(2)/cc_in(1) + four*cc_1(2)/cc_1(1) - cc_2(2)/cc_2(1)
+    end if
+
+  end subroutine subsonic_inflow_prim
 
 !================================ set_outflow ================================80
 !
