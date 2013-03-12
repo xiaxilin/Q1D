@@ -24,8 +24,8 @@ contains
 
     use set_precision, only : dp
     use set_constants, only : zero, one
-    use jacobians,     only : jac_source_1D, jac_vanleer_1D, &
-                              jac_source_q_1D, jac_vanleer_q_1D, &
+    use jacobians,     only : jac_source_1D, jac_vanleer_1D,                   &
+                              jac_source_q_1D, jac_vanleer_q_1D,               &
                               dconserved_dprimitive
     implicit none
 
@@ -84,15 +84,17 @@ contains
 ! Fills the full, 2nd order LHS
 !
 !=============================================================================80
-  subroutine fill_full_lhs( cells, cell_vol, area_f, dadx_cc, dt, &
+  subroutine fill_full_lhs( cells, cell_vol, area_f, dadx_cc, dt,             &
                             cons_cc, L2, L, D, U, U2 )
-!  subroutine fill_full_lhs( cells, cell_vol, area_f, dadx_cc, dt, &
+!  subroutine fill_full_lhs( cells, cell_vol, area_f, dadx_cc, dt,             &
 !                            prim_cc, L2, L, D, U, U2 )
 
     use set_precision, only : dp
     use set_constants, only : zero, fourth, half, one
     use residual,      only : muscl_extrapolation, firstorder, kappa
-    use jacobians,     only : jac_source_1D, jac_vanleer_1D
+    use jacobians,     only : jac_source_1D, jac_vanleer_1D,                   &
+                              jac_source_q_1D, jac_vanleer_q_1D,               &
+                              dconserved_dprimitive
 
     implicit none
 
@@ -103,15 +105,15 @@ contains
     real(dp), dimension(3,3,cells+2), intent(out) :: L2, L, D, U, U2
 
     integer                        :: cell
-    real(dp), dimension(3,3)       :: ident3x3, jac_L, jac_R, source_jac
+    real(dp), dimension(3,3)       :: ident3x3, jac_L, jac_R, source_jac, dc_dp
     real(dp), dimension(3,cells+2) :: prim_cc, prim_L, prim_R, cons_L, cons_R
     real(dp), dimension(3,cells+2) :: limL, limR
 
     continue
 
 ! Won't need ident3x3 anymore
-    ident3x3 = reshape( (/one, zero, zero, zero, one, zero, zero, zero, one/), &
-                        (/3,3/) )
+    ident3x3 = reshape( [one, zero, zero, zero, one, zero, zero, zero, one],   &
+                        [3,3] )
 
     L2 = zero
     L  = zero
