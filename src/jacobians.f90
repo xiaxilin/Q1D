@@ -4,8 +4,9 @@ module jacobians
 
   private
 
-  public :: jac_vanleer_1D
-  public :: jac_source_1D
+  public :: jac_vanleer_1D, jac_vanleer_q_1D
+  public :: jac_source_1D, jac_source_q_1D
+  public :: dconserved_dprimitive
 
 contains
 
