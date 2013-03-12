@@ -20,6 +20,8 @@ module namelist
                           iter_out, rkorder, cfl, limiter, muscl, kappa, toler,&
                           cfl_end, cfl_ramp
 
+!  namelist /bc/ inflowbc, outflowbc
+
   namelist /flux/ flux_type, k2, k4
 
   namelist /conditions/ restart, mref, to, po, pback
@@ -95,6 +97,15 @@ contains
     rewind(nml_unit)
     read(nml_unit, nml=code_control)
 
+! set defaults and read&bc
+
+!    inflowbc = 'nozzle_central' !'nozzle_oneside', 'riemann'
+
+!    outflowbc = 'extrap' !'riemann'
+
+!    rewind(nml_unit)
+!    read(nml_unit, nml=bc)
+
 ! set defaults and read &flux
 
     flux_type  = 'jst'
@@ -122,6 +133,8 @@ contains
 
     po    = 300000.0_dp
     !reference total pressure, assumed SI, Pa
+
+!    so    = ?
 
     pback = -1.0_dp
     !back pressure, Pa.  set less than 0 for supersonic extrapolation
