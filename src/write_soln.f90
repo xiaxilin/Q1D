@@ -118,7 +118,7 @@ contains
 
     use set_precision,   only : dp
     use set_constants,   only : half
-    use fluid_constants, only : gamma, gp1, gm1, xgm1
+    use fluid_constants, only : gamma, xgm1
 
     implicit none
 

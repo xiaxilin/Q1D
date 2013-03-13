@@ -92,7 +92,7 @@ contains
     integer                        :: cell
     real(dp), dimension(3,3)       :: jac_L, jac_R, source_jac, dc_dp
     real(dp), dimension(3,cells+2) :: prim_L, prim_R
-    real(dp), dimension(3,cells+2) :: limL, limR
+!    real(dp), dimension(3,cells+2) :: limL, limR
 
     continue
 

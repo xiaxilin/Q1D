@@ -19,13 +19,12 @@ contains
                              area_f, dx, dadx_cc, x_cc )
 
     use set_precision,   only : dp
-    use set_constants,   only : zero, half, one, two
-    use fluid_constants, only : gm1
+    use set_constants,   only : zero, one
     use solvers,         only : iterations, itercheck, iter_out, cfl, cfl_end, &
                                 set_time_step, check_convergence
     use adjoint_lhs,     only : fill_full_lhs, transpose_lhs
     use residual,        only : firstorder
-    use bc,              only : subsonic_inflow, set_outflow
+    use bc,              only : subsonic_inflow_prim, set_outflow_prim
     use matrix_manip,    only : pentablocksolve
     use write_soln,      only : write_soln_line
 
@@ -50,8 +49,8 @@ contains
 
 ! Initialize some stuff...
 
-    ident3x3 = reshape( (/one, zero, zero, zero, one, zero, zero, zero, one/), &
-                        (/3,3/) )
+    ident3x3 = reshape( [one, zero, zero, zero, one, zero, zero, zero, one],   &
+                        [3,3] )
 
     cfl = cfl_end
 
@@ -63,24 +62,24 @@ contains
     rU2 = zero
 
 ! Get interior of LHS
-    call fill_full_lhs( cells, cell_vol, area_f, dadx_cc, dt,                  &
-                        cons_cc, rL2, rL, rD, rU, rU2 )
+    call fill_full_lhs( cells, cell_vol, area_f, dadx_cc, prim_cc,             &
+                        rL2, rL, rD, rU, rU2 )
 
 ! Inflow, modify according to bc
-    call subsonic_inflow( firstorder+1,                                        &
-                          cons_cc(:,1), cons_cc(:,2), cons_cc(:,3),            &
-                          rD(:,:,1), rU(:,:,1), rU2(:,:,1), RHS(:,1) )
+    call subsonic_inflow_prim( firstorder+1,                                   &
+                               prim_cc(:,1), prim_cc(:,2), prim_cc(:,3),       &
+                               rD(:,:,1), rU(:,:,1), rU2(:,:,1), RHS(:,1) )
 
 ! Outflow
-    call set_outflow( firstorder+1,                                            &
-                      cons_cc(:,cells+2), cons_cc(:,cells+1), cons_cc(:,cells),&
-                      rD(:,:,cells+2), rL(:,:,cells+2), rL2(:,:,cells+2),      &
-                      RHS(:,cells+2) )
+    call set_outflow_prim( firstorder+1, prim_cc(:,cells+2),                   &
+                           prim_cc(:,cells+1), prim_cc(:,cells),               &
+                           rD(:,:,cells+2), rL(:,:,cells+2), rL2(:,:,cells+2), &
+                           RHS(:,cells+2) )
 
     call transpose_lhs( cells, rL2, rL, rD, rU, rU2 )
 
 ! Get the functional linearization only once and store it
-    call get_dfdq( cells, dx, cell_vol, prim_cc, dfdq )
+    call get_dfdq( cells, dx, dfdq )
 
     main_loop : do n = 0, iterations
 
@@ -138,25 +137,22 @@ contains
 
 !================================== get_dfdq =================================80
 !
-! Sets the linearized functional
+! Sets the linearized functional as the integral of pressure through the nozzle
 ! FIXME: add other functionals such as entropy
 !
 !=============================================================================80
-  subroutine get_dfdq( cells, dx, cell_jac, prim_cc, dfdq )
+  subroutine get_dfdq( cells, dx, dfdq )
 
     use set_precision,   only : dp
-    use set_constants,   only : zero, half
-    use fluid_constants, only : gm1
+    use set_constants,   only : zero
 
     implicit none
 
     integer,                        intent(in)  :: cells
-    real(dp), dimension(cells+2),   intent(in)  :: dx, cell_jac
-    real(dp), dimension(3,cells+2), intent(in)  :: prim_cc
+    real(dp), dimension(cells+2),   intent(in)  :: dx
     real(dp), dimension(3,cells+2), intent(out) :: dfdq
 
     integer  :: cell
-    real(dp) :: sidewall_area
 
     continue
 
@@ -164,11 +160,9 @@ contains
 
     do cell = 2,cells+1
 
-      sidewall_area = dx(cell)
-
-      dfdq(1,cell) = half*sidewall_area*gm1*prim_cc(2,cell)**2
-      dfdq(2,cell) = -gm1*prim_cc(2,cell)*sidewall_area
-      dfdq(3,cell) = gm1*sidewall_area
+!      dfdq(1,cell) = zero
+!      dfdq(2,cell) = zero
+      dfdq(3,cell) = dx(cell)
 
     end do
 
@@ -225,12 +219,5 @@ contains
                   matmul(D(:,:,cell),  psi(:,cell)) - dfdq(:,cell)
 
   end subroutine fill_rhs
-
-! begin include statements
-
-  include 'conserved_to_primitive_1D.f90'
-  include 'floor_primitive_vars.f90'
-  include 'primitive_to_conserved_1D.f90'
-  include 'speed_of_sound.f90'
 
 end module adjoint_solvers

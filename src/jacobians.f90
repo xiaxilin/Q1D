@@ -20,7 +20,7 @@ contains
   subroutine jac_vanleer_1D( qL, qR, jac_l, jac_r )
 
     use set_precision,   only : dp
-    use set_constants,   only : zero, fourth, half, one, two, four
+    use set_constants,   only : zero, fourth, half, one, two
     use fluid_constants, only : gamma, gm1, xg, xg2m1
 
     implicit none
@@ -81,7 +81,7 @@ contains
 
     dfb_dq(:) = da_dq(:)*(gm1*m + two) + dm_dq(:)*gm1*a
 
-!    Flux = (/ fa, fa*fb*xg, half*fa*fb*fb*xg2m1 /)
+!    Flux = [ fa, fa*fb*xg, half*fa*fb*fb*xg2m1 ]
 
 ! now, formulate jacobian
 
@@ -253,7 +253,7 @@ contains
   subroutine jac_ausm_1D( qL, qR, jac_l, jac_r )
 
     use set_precision,   only : dp
-    use set_constants,   only : zero, fourth, half, one, two, four
+    use set_constants,   only : zero, fourth, half, one, two
     use fluid_constants, only : gamma, gm1, xg, xg2m1
 
     implicit none
@@ -314,7 +314,7 @@ contains
 
     dfb_dq(:) = da_dq(:)*(gm1*m + two) + dm_dq(:)*gm1*a
 
-!    Flux = (/ fa, fa*fb*xg, half*fa*fb*fb*xg2m1 /)
+!    Flux = [ fa, fa*fb*xg, half*fa*fb*fb*xg2m1 ]
 
 ! now, formulate jacobian
 
@@ -440,7 +440,7 @@ contains
   subroutine jac_vanleer_q_1D( qL, qR, jac_l, jac_r )
 
     use set_precision,   only : dp
-    use set_constants,   only : zero, fourth, half, one, two, four
+    use set_constants,   only : zero, fourth, half, one, two
     use fluid_constants, only : gamma, gm1, xg, xgm1, xg2m1
 
     implicit none
@@ -502,7 +502,7 @@ contains
 
     dfb_dq(:) = da_dq(:)*(gm1*m + two) + dm_dq(:)*gm1*a
 
-!    Flux = (/ fa, fa*fb*xg, half*fa*fb*fb*xg2m1 /)
+!    Flux = [ fa, fa*fb*xg, half*fa*fb*fb*xg2m1 ]
 
 ! now, formulate jacobian
 

@@ -27,8 +27,8 @@ contains
   subroutine subsonic_inflow_explicit( cc_in, cc_1, cc_2 )
 
     use set_precision,   only : dp
-    use set_constants,   only : one, half, two
-    use fluid_constants, only : r, gamma, gm1, xgm1, gxgm1, gm1xgp1, gp1
+    use set_constants,   only : one, two
+    use fluid_constants, only : r, gamma, gm1, xgm1, gxgm1!, gm1xgp1, gp1
     use initialize_soln, only : po, to
 
     implicit none
@@ -90,7 +90,7 @@ contains
 
     use set_precision,   only : dp
     use set_constants,   only : one, half, two
-    use fluid_constants, only : r, gamma, gm1, xgm1, gxgm1, gm1xgp1, gp1
+    use fluid_constants, only : r, gm1, xgm1, gxgm1, gm1xgp1, gp1
     use initialize_soln, only : po, to
 
     implicit none
@@ -255,7 +255,7 @@ contains
 
     use set_precision,   only : dp
     use set_constants,   only : zero, half, one, two, three, four
-    use fluid_constants, only : gamma, gm1, gxgm1, xgm1, R, cv
+    use fluid_constants, only : gamma, gm1, gxgm1, xgm1, R
     use initialize_soln, only : po, to
     use residual,        only : firstorder
     use lhs,             only : lhs_order
@@ -335,7 +335,7 @@ contains
   subroutine set_outflow(iter, cc_out, cc_1, cc_2, DD, DL1, DL2, RHS)
 
     use set_precision,   only : dp
-    use set_constants,   only : zero, half, one, two, three, four
+    use set_constants,   only : zero, half, one, three, four
     use fluid_constants, only : gm1
     use initialize_soln, only : pback
     use residual,        only : firstorder
@@ -425,7 +425,7 @@ contains
   subroutine set_outflow_prim(iter, cc_out, cc_1, cc_2, DD, DL1, DL2, RHS)
 
     use set_precision,   only : dp
-    use set_constants,   only : zero, one, two, three, four
+    use set_constants,   only : zero, one, three, four
     use initialize_soln, only : pback
     use residual,        only : firstorder
     use lhs,             only : lhs_order

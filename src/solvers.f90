@@ -158,8 +158,7 @@ module solvers
                              area_f, dx, dadx_cc, x_cc )
 
     use set_precision,   only : dp
-    use set_constants,   only : zero, half, one, two
-    use fluid_constants, only : gm1
+    use set_constants,   only : zero
     use residual,        only : create_residual, firstorder
     use lhs,             only : fill_lhs, fill_full_lhs, lhs_order
     use bc,              only : subsonic_inflow, set_outflow,                  &
@@ -186,6 +185,8 @@ module solvers
     logical :: convergence_flag = .false.
 
     continue
+
+    eq = 3
 
     main_loop : do n = 0, iterations
 
@@ -231,9 +232,9 @@ module solvers
 
 ! Solve the system of equations
       if ( n < firstorder .or. lhs_order == 1 ) then
-        call triblocksolve( 3, cells+2, L, D, U, RHS, delta_prim_cc )
+        call triblocksolve( eq, cells+2, L, D, U, RHS, delta_prim_cc )
       else
-        call pentablocksolve( 3, cells+2, L2, L, D, U, U2, RHS, delta_prim_cc )
+        call pentablocksolve( eq, cells+2, L2, L, D, U, U2, RHS, delta_prim_cc )
       end if
 
 ! Update the conserved variables

@@ -7,7 +7,7 @@ pure function flux_vanleer(qL, qR)
 
   use set_precision,   only : dp
   use set_constants,   only : zero, fourth, half, one, two
-  use fluid_constants, only : gamma, gm1, xg, xgm1, xg2m1
+  use fluid_constants, only : gm1, xg, xgm1, xg2m1
 
   implicit none
 

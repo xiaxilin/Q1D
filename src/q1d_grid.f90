@@ -270,7 +270,7 @@ end module q1d_grid_functions
 program q1d_grid
 
   use set_precision,      only : dp
-  use set_constants,      only : pi, set_pi
+  use set_constants,      only : set_pi
   use q1d_grid_functions, only : choose_area_distribution, areaf, dadxf
 
   implicit none

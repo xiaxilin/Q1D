@@ -6,7 +6,7 @@ program q1d_adjoint
   use namelist,        only : read_nml
   use fluid_constants, only : set_gamma_constants
   use initialize_grid, only : read_grid, cells, faces, dx, x_cc, cell_vol,     &
-                              area_f, area_cc, dadx_cc, deallocate_grid
+                              area_f, dadx_cc, deallocate_grid
   use initialize_soln, only : allocate_soln, initial_soln, prim_cc, cons_cc,   &
                               deallocate_soln, restart
   use solvers,         only : solver

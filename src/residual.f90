@@ -252,7 +252,7 @@ contains
                                   vars_left, vars_right, limL, limR )
 
     use set_precision, only : dp
-    use set_constants, only : zero, fourth, half, one, onep5, two, small
+    use set_constants, only : zero, fourth, one, onep5, two
 
     integer,                        intent(in)  :: cells, faces, iteration
     real(dp), dimension(3,cells+2), intent(in)  :: vars_cc

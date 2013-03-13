@@ -42,7 +42,7 @@ contains
 !=============================================================================80
   subroutine read_grid
 
-    use set_constants, only : half, one
+    use set_constants, only : half
 
     implicit none
 

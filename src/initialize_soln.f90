@@ -83,7 +83,7 @@ contains
   subroutine initial_soln(cells)
 
     use set_constants,   only : half, one
-    use fluid_constants, only : r, gamma, gm1, gxgm1, cv, cp
+    use fluid_constants, only : r, gamma, gm1, gxgm1
 
     implicit none
 

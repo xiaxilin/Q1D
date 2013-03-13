@@ -3,8 +3,7 @@
 ! Takes left and right primitive variables.  Returns flux
 !
 !=============================================================================80
-
- function flux_ausm(prim_L, prim_R)
+function flux_ausm(prim_L, prim_R)
 
   use set_precision,   only : dp
   use set_constants,   only : fourth, half, one
@@ -28,7 +27,7 @@
   ML   = uL/aL
   HTL  = xgm1*aL**2 + half*uL**2
 
-  if (abs(ML)<=1.0_dp) then
+  if ( abs(ML) <= 1.0_dp ) then
     PL = half*PL*(one+ML)
     ML = fourth*(ML+one)**2
   else
@@ -44,7 +43,7 @@
   MR   = uR/aR
   HTR  = xgm1*aR**2 + half*uR**2
 
-  if (abs(Mr)<=1.0_dp) then
+  if ( abs(Mr) <= 1.0_dp ) then
     PR = half*PR*(one-MR)
     MR = -fourth*(MR-one)**2
   else
@@ -52,8 +51,8 @@
     MR = half*(MR-abs(MR))
   end if
 
-  FL = (/rhoL*aL, rhoL*aL*uL, rhoL*aL*HTL/)
-  FR = (/rhoR*aR, rhoR*aR*uR, rhoR*aR*HTR/)
+  FL = [rhoL*aL, rhoL*aL*uL, rhoL*aL*HTL]
+  FR = [rhoR*aR, rhoR*aR*uR, rhoR*aR*HTR]
 
   flux_ausm = half*( (ML+MR)*(FL+FR) - abs(ML+MR)*(FR-FL) )
   flux_ausm(2) = flux_ausm(2) + PL + PR

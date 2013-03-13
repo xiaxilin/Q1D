@@ -3,12 +3,11 @@
 ! Takes entropy fix, and left and right primitive variables. Returns flux
 !
 !=============================================================================80
-
 pure function flux_roe(qL, qR)
 
   use set_precision,   only : dp
   use set_constants,   only : half, one, two, four
-  use fluid_constants, only : gamma, gm1
+  use fluid_constants, only : gm1
 
   implicit none
 
@@ -37,8 +36,8 @@ pure function flux_roe(qL, qR)
   consL = primitive_to_conserved_1D(qL)
   consR = primitive_to_conserved_1D(qR)
 
-  FL = (/rhoL*uL, rhoL*uL**2 + pL, uL*(consL(3) + pL)/)
-  FR = (/rhoR*uR, rhoR*uR**2 + pR, uR*(consR(3) + pR)/)
+  FL = [rhoL*uL, rhoL*uL**2 + pL, uL*(consL(3) + pL)]
+  FR = [rhoR*uR, rhoR*uR**2 + pR, uR*(consR(3) + pR)]
 
 ! Roe interface variable
   Rhalf = sqrt(rhoR/rhoL)
@@ -65,9 +64,9 @@ pure function flux_roe(qL, qR)
   dw(2) = half*( (pR-pL) + RoeAvgrho*RoeAvga*(uR-uL) ) / (RoeAvga*RoeAvga)
   dw(3) = half*( (pR-pL) - RoeAvgrho*RoeAvga*(uR-uL) ) / (RoeAvga*RoeAvga)
 
-  r1RoeAvg = (/one, RoeAvgu, half*RoeAvgu**2/)
-  r2RoeAvg = (/one, RoeAvgu+RoeAvga, RoeAvght+RoeAvgu*RoeAvga/)
-  r3RoeAvg = (/one, RoeAvgu-RoeAvga, RoeAvght-RoeAvgu*RoeAvga/)
+  r1RoeAvg = [one, RoeAvgu, half*RoeAvgu**2]
+  r2RoeAvg = [one, RoeAvgu+RoeAvga, RoeAvght+RoeAvgu*RoeAvga]
+  r3RoeAvg = [one, RoeAvgu-RoeAvga, RoeAvght-RoeAvgu*RoeAvga]
 
 !Calculate Interface Fluxes
   F = half*( (FL + FR)                                                         &

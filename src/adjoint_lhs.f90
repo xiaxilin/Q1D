@@ -15,30 +15,27 @@ contains
 ! FIXME: change routine so that the version on lhs.f90 can be reused here
 !
 !=============================================================================80
-  subroutine fill_full_lhs( cells, cell_vol, area_f, dadx_cc, dt, &
-                            cons_cc, L2, L, D, U, U2 )
+  subroutine fill_full_lhs( cells, cell_vol, area_f, dadx_cc, prim_cc,         &
+                            L2, L, D, U, U2 )
 
     use set_precision, only : dp
     use set_constants, only : zero, fourth, half, one
     use residual,      only : muscl_extrapolation, firstorder, kappa
-    use jacobians,     only : jac_source_1D, jac_vanleer_1D
+    use jacobians,     only : jac_source_q_1D, jac_vanleer_q_1D
 
     implicit none
 
     integer,                          intent(in)  :: cells
     real(dp), dimension(cells+2),     intent(in)  :: cell_vol, area_f
-    real(dp), dimension(cells+2),     intent(in)  :: dadx_cc, dt
-    real(dp), dimension(3,cells+2),   intent(in)  :: cons_cc
+    real(dp), dimension(cells+2),     intent(in)  :: dadx_cc
+    real(dp), dimension(3,cells+2),   intent(in)  :: prim_cc
     real(dp), dimension(3,3,cells+2), intent(out) :: L2, L, D, U, U2
 
     integer                        :: cell
-    real(dp), dimension(3,3)       :: ident3x3, jac_L, jac_R, source_jac
-    real(dp), dimension(3,cells+2) :: prim_cc, prim_L, prim_R, cons_L, cons_R
+    real(dp), dimension(3,3)       :: jac_L, jac_R, source_jac
+    real(dp), dimension(3,cells+2) :: prim_L, prim_R
 
     continue
-
-    ident3x3 = reshape( (/one, zero, zero, zero, one, zero, zero, zero, one/), &
-                        (/3,3/) )
 
     L2 = zero
     L  = zero
@@ -46,21 +43,12 @@ contains
     U  = zero
     U2 = zero
 
-    do cell = 1, cells+2
-      prim_cc(:,cell) = conserved_to_primitive_1D(cons_cc(:,cell))
-    end do
-
-    call muscl_extrapolation( cells, cells+1, firstorder+1, &
-                              prim_cc, prim_L, prim_R )
-
-    do cell = 1, cells+1
-      cons_L(:,cell) = primitive_to_conserved_1D(prim_L(:,cell))
-      cons_R(:,cell) = primitive_to_conserved_1D(prim_R(:,cell))
-    end do
+    call muscl_extrapolation( cells, cells+1, firstorder+1, prim_cc,           &
+                              prim_L, prim_R )
 
 ! Inflow face
     cell = 1
-    call jac_vanleer_1D( cons_L(:,cell), cons_R(:,cell), jac_L, jac_R )
+    call jac_vanleer_q_1D( prim_L(:,cell), prim_R(:,cell), jac_L, jac_R )
 
 ! Subtract from cell to the right
 
@@ -76,7 +64,7 @@ contains
 ! Take care of all interior faces
     do cell = 2, cells
 
-      call jac_vanleer_1D( cons_L(:,cell), cons_R(:,cell), jac_L, jac_R )
+    call jac_vanleer_q_1D( prim_L(:,cell), prim_R(:,cell), jac_L, jac_R )
 
 ! Add to cell
 
@@ -105,7 +93,7 @@ contains
 
 ! Outflow face
     cell = cells+1
-    call jac_vanleer_1D( cons_L(:,cell), cons_R(:,cell), jac_L, jac_R )
+    call jac_vanleer_q_1D( prim_L(:,cell), prim_R(:,cell), jac_L, jac_R )
 
 ! Add to cell
 
@@ -119,11 +107,8 @@ contains
 
 ! Add source Jacobian
     do cell = 2, cells+1
-      call jac_source_1D( cons_cc(2,cell)/cons_cc(1,cell), dadx_cc(cell),      &
-                          cell_vol(cell), source_jac )
-
+      call jac_source_q_1D( dadx_cc(cell), cell_vol(cell), source_jac )
       D(:,:,cell) = D(:,:,cell) - source_jac
-
     end do
 
   end subroutine fill_full_lhs
@@ -189,9 +174,5 @@ contains
     end do
 
   end subroutine transpose_lhs
-
-  include 'conserved_to_primitive_1D.f90'
-  include 'floor_primitive_vars.f90'
-  include 'primitive_to_conserved_1D.f90'
 
 end module adjoint_lhs

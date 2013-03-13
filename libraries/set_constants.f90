@@ -48,7 +48,6 @@ contains
 !
 !=============================================================================80
   subroutine set_pi
-    use set_precision, only : dp
 
     implicit none
 

@@ -7,7 +7,7 @@
 pure function flux_sw(qL, qR)
 
   use set_precision,   only : dp
-  use set_constants,   only : half, one, two, three
+  use set_constants,   only : half, two, three
   use fluid_constants, only : gamma, gm1, xg
 
   implicit none
@@ -26,14 +26,14 @@ pure function flux_sw(qL, qR)
   lambda(3) = qL(2) - a
 
   lambdafloor = half*( lambda + abs(lambda) )
-    
+
   FL(1) = two*gm1*lambdafloor(1) + lambdafloor(2) + lambdafloor(3)
   FL(2) = two*gm1*lambdafloor(1)*lambda(1) +                                   &
           lambdafloor(2)*lambda(2) + lambdafloor(3)*lambda(3)
   FL(3) = gm1*lambdafloor(1)*lambda(1)**2 +                                    &
           half*(lambdafloor(2)*lambda(2)**2+lambdafloor(3)*lambda(3)**2) +     &
           ((three-gamma)/(two*gm1))*(lambdafloor(2)+lambdafloor(3))*a**2
-                    
+
   FL = (half*qL(1)*xg)*FL
 
 !Calculate Right (-) Fluxes
@@ -44,7 +44,7 @@ pure function flux_sw(qL, qR)
   lambda(3) = qR(2) - a
 
   lambdafloor = half*( lambda - abs(lambda) )
-    
+
   FR(1) = two*gm1*lambdafloor(1)+lambdafloor(2)+lambdafloor(3)
   FR(2) = two*gm1*lambdafloor(1)*lambda(1) +                                   &
           lambdafloor(2)*lambda(2) + lambdafloor(3)*lambda(3)
