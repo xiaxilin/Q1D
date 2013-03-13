@@ -76,16 +76,18 @@ module solvers
       rk_const(rk) = real(1+rkorder-rk,dp)
     end do
 
+! Make sure that the primitive variables are saved off for the RK loop.
+! Other updates are handled further down
+    do cell = 1, cells+2
+      cons_cc(:,cell) = primitive_to_conserved_1D(prim_cc(:,cell))
+    end do
+
     iteration_loop : do n = 0, iterations
 ! Set both local and global time step
       dt = set_time_step( cells, dx, prim_cc )
 
-! Store solution before RK loop. Wouldn't be necessary for pure Euler explicit
-      do cell = 1, cells+2
-        cons_cc(:,cell) = primitive_to_conserved_1D(prim_cc(:,cell))
-      end do
-
       rk_loop : do rk = 1, rkorder
+
         call create_residual( cells, faces, n, prim_cc, area_f, dadx_cc, dx,   &
                               resid )
 
@@ -112,6 +114,8 @@ module solvers
                                prim_cc(:,cells+1), prim_cc(:,cells) )
 
       end do rk_loop
+
+! Store solution before RK loop. Wouldn't be necessary for pure Euler explicit
 
       do cell = 1, cells+2
         cons_cc(:,cell) = primitive_to_conserved_1D(prim_cc(:,cell))
@@ -166,7 +170,8 @@ module solvers
     implicit none
 
     integer,                        intent(in)    :: cells, faces
-    real(dp), dimension(3,cells+2), intent(inout) :: prim_cc, cons_cc
+    real(dp), dimension(3,cells+2), intent(inout) :: prim_cc
+    real(dp), dimension(3,cells+2), intent(out)   :: cons_cc
     real(dp), dimension(cells+2),   intent(in)    :: cell_vol
     real(dp), dimension(faces),     intent(in)    :: area_f
     real(dp), dimension(cells+2),   intent(in)    :: dx, dadx_cc, x_cc
@@ -175,7 +180,7 @@ module solvers
 
     real(dp), dimension(3)           :: l2out
     real(dp), dimension(cells+2)     :: dt
-    real(dp), dimension(3,cells+2)   :: RHS, delta_cons_cc, delta_prim_cc
+    real(dp), dimension(3,cells+2)   :: RHS, delta_prim_cc
     real(dp), dimension(3,3,cells+2) :: L2, L, D, U, U2
 
     logical :: convergence_flag = .false.
@@ -197,8 +202,8 @@ module solvers
       RHS = -RHS
 
 ! Check residuals for convergence before they are destroyed by the direct solver
-      if (mod(n,itercheck) == 0) then
-        call check_convergence(cells, n, RHS, convergence_flag, l2out)
+      if ( mod(n,itercheck) == 0 ) then
+        call check_convergence( cells, n, RHS, convergence_flag, l2out )
         if ( convergence_flag ) then
           write(*,*) 'Solution has converged!'
           exit
@@ -207,48 +212,35 @@ module solvers
 
 ! Form LHS
       if ( n < firstorder .or. lhs_order == 1 ) then
-        call fill_lhs( cells, cell_vol, area_f, dadx_cc, dt, cons_cc, L, D, U )
-!        call fill_lhs( cells, cell_vol, area_f, dadx_cc, dt, prim_cc, L, D, U )
+        call fill_lhs( cells, cell_vol, area_f, dadx_cc, dt, prim_cc, L, D, U )
       else
-        call fill_full_lhs( cells, cell_vol, area_f, dadx_cc, &
-                            dt, cons_cc, L2, L, D, U, U2 )
-!        call fill_full_lhs( cells, cell_vol, area_f, dadx_cc, &
-!                            dt, prim_cc, L2, L, D, U, U2 )
+        call fill_full_lhs( cells, cell_vol, area_f, dadx_cc, dt, prim_cc,     &
+                            L2, L, D, U, U2 )
       end if
 
 ! Take care of BC's
 ! Inflow, modify according to bc
-      call subsonic_inflow( n, cons_cc(:,1), cons_cc(:,2), cons_cc(:,3),      &
-                            D(:,:,1), U(:,:,1), U2(:,:,1), RHS(:,1) )
-!      call subsonic_inflow_prim( n, prim_cc(:,1), prim_cc(:,2), prim_cc(:,3), &
-!                            D(:,:,1), U(:,:,1), U2(:,:,1), RHS(:,1) )
+      call subsonic_inflow_prim( n, prim_cc(:,1), prim_cc(:,2), prim_cc(:,3),  &
+                                 D(:,:,1), U(:,:,1), U2(:,:,1), RHS(:,1) )
 
 ! Outflow
-      call set_outflow( n, cons_cc(:,cells+2), cons_cc(:,cells+1),            &
-                        cons_cc(:,cells),                                     &
-                        D(:,:,cells+2), L(:,:,cells+2), L2(:,:,cells+2),      &
-                        RHS(:,cells+2) )
-!      call set_outflow_prim( n, prim_cc(:,cells+2), prim_cc(:,cells+1),       &
-!                        prim_cc(:,cells),                                     &
-!                        D(:,:,cells+2), L(:,:,cells+2), L2(:,:,cells+2),      &
-!                        RHS(:,cells+2) )
+      call set_outflow_prim( n, prim_cc(:,cells+2), prim_cc(:,cells+1),        &
+                             prim_cc(:,cells),                                 &
+                             D(:,:,cells+2), L(:,:,cells+2), L2(:,:,cells+2),  &
+                             RHS(:,cells+2) )
 
 ! Solve the system of equations
       if ( n < firstorder .or. lhs_order == 1 ) then
-        call triblocksolve(3, cells+2, L, D, U, RHS, delta_cons_cc)
-!        call triblocksolve(3, cells+2, L, D, U, RHS, delta_prim_cc)
+        call triblocksolve( 3, cells+2, L, D, U, RHS, delta_prim_cc )
       else
-        call pentablocksolve(3, cells+2, L2, L, D, U, U2, RHS, delta_cons_cc)
-!        call pentablocksolve(3, cells+2, L2, L, D, U, U2, RHS, delta_prim_cc)
+        call pentablocksolve( 3, cells+2, L2, L, D, U, U2, RHS, delta_prim_cc )
       end if
 
 ! Update the conserved variables
-      cons_cc = cons_cc + delta_cons_cc
-!      prim_cc = prim_cc + delta_prim_cc
+      prim_cc = prim_cc + delta_prim_cc
 
 ! Floor variables for stability
       do cell = 1, cells+2
-        prim_cc(:,cell) = conserved_to_primitive_1D(cons_cc(:,cell))
         if ( prim_cc(1,cell) <= zero .or. prim_cc(3,cell) <= zero ) then
           prim_cc(1,cell) = 0.01_dp
           prim_cc(2,cell) = 1.0_dp

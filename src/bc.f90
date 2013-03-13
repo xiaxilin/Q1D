@@ -319,8 +319,8 @@ contains
     RHS(3) = po - p*factor**gxgm1
 
     if ( iter >= firstorder .and. lhs_order /= 1 ) then
-      DD(2,:) = three*DD(2,:)
-      DU1 = four*DU1
+      DD(2,2)  = three
+      DU1(2,2) = -four
 
       RHS(2) = -three*cc_in(2) + four*cc_1(2) - cc_2(2)
     end if
@@ -419,6 +419,7 @@ contains
 !============================== set_outflow_prim =============================80
 !
 ! Creates matrices for variable extrapolation wrt primitive variables
+! FIXME: review DL1 and DL2 when pback > 0
 !
 !=============================================================================80
   subroutine set_outflow_prim(iter, cc_out, cc_1, cc_2, DD, DL1, DL2, RHS)
@@ -436,81 +437,30 @@ contains
     real(dp), dimension(3,3), intent(out) :: DD, DL1, DL2
     real(dp), dimension(3),   intent(out) :: RHS
 
-!    real(dp) :: u_out, u_1, u_2
-!    real(dp) :: p_out, p_1, p_2
-
     real(dp), dimension(3,3) :: ident3x3
 
     continue
 
     ident3x3 = reshape( [one, zero, zero, zero, one, zero, zero, zero, one],   &
                         [3,3] )
-
-!    u_out = cc_out(2)
-!    u_1   = cc_1(2)
-!    u_2   = cc_2(2)
-
-!    p_out = cc_out(3)
-!    p_1   = cc_1(3)
-!    p_2   = cc_2(3)
-
-! Extrapolate velocity from interior
-!    DD(1,1) = one
-!    DD(2,1) = zero
-!    DD(3,1) = zero
-!    DD(1,2) = zero
-!    DD(2,2) = one
-!    DD(3,2) = zero
-!    DD(1,3) = zero
-!    DD(2,3) = zero
-!    DD(3,3) = one
-
-!    DL1(1,1) = one
-!    DL1(2,1) = zero
-!    DL1(3,1) = zero
-!    DL1(1,2) = zero
-!    DL1(2,2) = one
-!    DL1(3,2) = zero
-!    DL1(1,3) = zero
-!    DL1(2,3) = zero
-!    DL1(3,3) = one
-
-!    DL1 = -DL1
-
-!    DL2(1,1) = one
-!    DL2(2,1) = zero
-!    DL2(3,1) = zero
-!    DL2(1,2) = zero
-!    DL2(2,2) = one
-!    DL2(3,2) = zero
-!    DL2(1,3) = zero
-!    DL2(2,3) = zero
-!    DL2(3,3) = one
-
     DD  = ident3x3
     DL1 = -ident3x3
     DL2 = ident3x3
 
     RHS = -cc_out + cc_1! - cc_2
 
-!    RHS(1) = -cc_out(1) + cc_1(1)! - cc_2(1)
-!    RHS(2) = -u_out     + u_1!     - u_2
-!    RHS(3) = -p_out     + p_1!     - p_2
-
     if ( iter >= firstorder .and. lhs_order /= 1 ) then
       DD  = three*DD
       DL1 = four*DL1
 
       RHS = -three*cc_out + four*cc_1 - cc_2
-!      RHS(1) = -three*cc_out(1) + four*cc_1(1) - cc_2(1)
-!      RHS(2) = -three*u_out     + four*u_1     - u_2
-!      RHS(3) = -three*p_out     + four*p_1     - p_2
     end if
 
-    if (pback > zero) then
+    if ( pback > zero ) then
       if ( iter >= firstorder .and. lhs_order /= 1 ) DD(3,:) = DD(3,:)/three
       DL1(3,3) = zero
       DL2(3,3) = zero
+
       RHS(3)   = pback - cc_out(3)
     end if
 
