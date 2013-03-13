@@ -54,7 +54,7 @@ contains
 
     cfl = cfl_end
 
-    psi = zero
+    psi = one
     rL2 = zero
     rL  = zero
     rD  = zero
@@ -94,7 +94,7 @@ contains
       call fill_rhs( cells, psi, rL2, rL, rD, rU, rU2, dfdq, RHS )
 
 ! Check residuals for convergence before they are destroyed by the direct solver
-      if (mod(n,itercheck) == 0) then
+      if ( mod(n,itercheck) == 0 ) then
         call check_convergence(cells, n, RHS, convergence_flag)
         if ( convergence_flag ) then
           write(*,*) 'Solution has converged!'
