@@ -116,17 +116,17 @@ contains
 ! Update the conserved variables
       psi = psi - delta_psi
 
-      if (iter_out >= 0 .and. mod(n,iter_out) == 0) then
+      if ( iter_out >= 0 .and. mod(n,iter_out) == 0 ) then
         call write_soln_line(n, cells, x_cc, prim_cc, cons_cc)
       end if
 
-!      if (iter_restar >= 0 .and. mod(n,iter_restart) == 0) then
+!      if ( iter_restar >= 0 .and. mod(n,iter_restart) == 0 ) then
 !        call write_restart(cells, prim_cc)
 !      end if
 
     end do main_loop
 
-    if (.not. convergence_flag ) then
+    if ( .not. convergence_flag ) then
       write(*,*) 'Solution failed to converge...'
       write(*,*) 'Consider continuing from q1d.rst'
     end if
