@@ -55,7 +55,7 @@ contains
     continue
 
     allocate( prim_cc(neq, cells+2), cons_cc(neq, cells+2) )
-!    allocate( prim_cc(neq, cells+2) )
+!    allocate( prim_cc(neq, 0:cells+1), cons_cc(neq, 0:cells+1) )
 
   end subroutine allocate_soln
 
@@ -65,8 +65,6 @@ contains
 !
 !=============================================================================80
   subroutine deallocate_soln()
-
-    implicit none
 
     continue
 
@@ -84,8 +82,6 @@ contains
 
     use set_constants,   only : half, one
     use fluid_constants, only : r, gamma, gm1, gxgm1
-
-    implicit none
 
     integer, intent(in) :: cells
 
@@ -109,8 +105,8 @@ contains
       read(restart_unit,*) Linf_init(1), Linf_init(2), Linf_init(3)
 
       do cell = 1, cells+2
+!      do cell = 0, cells+1
         read(restart_unit,*) prim_cc(1, cell), prim_cc(2, cell), prim_cc(3,cell)
-        cons_cc(:,cell) = primitive_to_conserved_1D( prim_cc(:,cell) )
       end do
 
       close(restart_unit)
@@ -145,6 +141,7 @@ contains
 
 ! Linear ramp from mref to Mach = 1 at the throat
       do cell = 1, cells+2
+!      do cell = 0 cells+1
         m = mref + (one-mref)*real(cell,dp)/real(cells/2+1,dp)
         psi = one + half*gm1*m**2
         t   = to/psi
@@ -155,11 +152,12 @@ contains
         prim_cc(3,cell) = p
       end do
 
-      do cell = 1, cells+2
-        cons_cc(:,cell) = primitive_to_conserved_1D( prim_cc(:,cell) )
-      end do
-
     endif
+
+    do cell = 1, cells+2
+!    do cell = 0 cells+1
+      cons_cc(:,cell) = primitive_to_conserved_1D( prim_cc(:,cell) )
+    end do
 
   end subroutine initial_soln
 

@@ -44,8 +44,6 @@ contains
 
     use set_constants, only : half
 
-    implicit none
-
     integer  :: grid_unit, face, cell
 
     continue
@@ -74,7 +72,17 @@ contains
     dx(1)       = dx(2)
     dx(cells+2) = dx(cells+1)
     cell_vol(1)       = cell_vol(2)
-    cell_vol(cells+1) = cell_vol(cells+1)
+    cell_vol(cells+1) = cell_vol(cells+1) !FIXME: review this!
+
+!    do cell = 1, cells
+!      dx(cell)        = x_f(cell+1) - x_f(cell)
+!      x_cc(cell)      = x_f(cell) + half*dx(cell)
+!      cell_vol(cell)  = dx(cell)*area_cc(cell)
+!    end do
+!    dx(0)       = dx(1)
+!    dx(cells+1) = dx(cells)
+!    cell_vol(0)       = cell_vol(1)
+!    cell_vol(cells+1) = cell_vol(cell)
 
   end subroutine read_grid
 
@@ -87,19 +95,20 @@ contains
 
     use set_constants, only : zero
 
-    implicit none
-
     continue
 
-    allocate( area_f(faces), x_f(faces), area_cc(cells+2), x_cc(cells+2) )
+    allocate( area_f(faces), x_f(faces) )
+    allocate( area_cc(cells+2), x_cc(cells+2) )
     allocate( dadx_cc(cells+2), dx(cells+2), cell_vol(cells+2) )
+!    allocate( area_cc(0:cells+1), x_cc(0:cells+1) )
+!    allocate( dadx_cc(0:cells+1), dx(0:cells+1), cell_vol(0:cells+1) )
 
-    area_f  = zero
-    x_f     = zero
-    area_cc = zero
-    x_cc    = zero
-    dadx_cc = zero
-    dx      = zero
+    area_f   = zero
+    x_f      = zero
+    area_cc  = zero
+    x_cc     = zero
+    dadx_cc  = zero
+    dx       = zero
     cell_vol = zero
 
   end subroutine allocate_grid
@@ -109,10 +118,7 @@ contains
 ! Deallocates the grid variables in the correct order
 !
 !=============================================================================80
-
   subroutine deallocate_grid
-
-    implicit none
 
     continue
 
