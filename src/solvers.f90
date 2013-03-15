@@ -52,25 +52,19 @@ module solvers
     use bc,            only : subsonic_inflow_explicit, outflow_explicit
     use write_soln,    only : write_soln_line
 
-    integer,                        intent(in)    :: cells, faces
-    real(dp), dimension(3,cells+2), intent(inout) :: prim_cc, cons_cc
-    real(dp), dimension(cells+2),   intent(in)    :: cell_vol
-    real(dp), dimension(faces),     intent(in)    :: area_f
-    real(dp), dimension(cells+2),   intent(in)    :: dx, dadx_cc, x_cc
-!    real(dp), dimension(3,0:cells+1), intent(inout) :: prim_cc, cons_cc
-!    real(dp), dimension(0:cells+1),   intent(in)    :: cell_vol
-!    real(dp), dimension(faces),       intent(in)    :: area_f
-!    real(dp), dimension(0:cells+1),   intent(in)    :: dx, dadx_cc, x_cc
+    integer,                          intent(in)    :: cells, faces
+    real(dp), dimension(3,0:cells+1), intent(inout) :: prim_cc, cons_cc
+    real(dp), dimension(0:cells+1),   intent(in)    :: cell_vol
+    real(dp), dimension(faces),       intent(in)    :: area_f
+    real(dp), dimension(0:cells+1),   intent(in)    :: dx, dadx_cc, x_cc
 
     logical :: convergence_flag = .false.
     integer :: n, rk, cell
 
     real(dp), dimension(3)         :: cons
     real(dp), dimension(4)         :: rk_const
-    real(dp), dimension(cells+2)   :: dt
-    real(dp), dimension(3,cells+2) :: resid
-!    real(dp), dimension(0:cells+1)   :: dt
-!    real(dp), dimension(3,0:cells+1) :: resid
+    real(dp), dimension(0:cells+1)   :: dt
+    real(dp), dimension(3,0:cells+1) :: resid
 
     continue
 
@@ -81,7 +75,7 @@ module solvers
 
 ! Make sure that the primitive variables are saved off for the RK loop.
 ! Other updates are handled further down
-    do cell = 1, cells+2!0, cells+1
+    do cell = 0, cells+1
       cons_cc(:,cell) = primitive_to_conserved_1D(prim_cc(:,cell))
     end do
 
@@ -96,7 +90,7 @@ module solvers
 
 ! Perform explicit iterations on interior cells
 ! Note that the conserved variables are converted to primitive and floored
-        do cell = 2, cells+1!1, cells
+        do cell = 1, cells
           cons(:) = cons_cc(:,cell) - dt(cell)*resid(:,cell)                   &
                   / ( rk_const(rkorder)*cell_vol(cell) )
           prim_cc(:,cell) = conserved_to_primitive_1D(cons(:))
@@ -106,24 +100,21 @@ module solvers
 ! Enforce BC's
 !        select case(inflow)
 !        case('sub')
-        call subsonic_inflow_explicit(prim_cc(:,1), prim_cc(:,2), prim_cc(:,3))
-!        call subsonic_inflow_explicit(prim_cc(:,0), prim_cc(:,1), prim_cc(:,2))
+        call subsonic_inflow_explicit(prim_cc(:,0), prim_cc(:,1), prim_cc(:,2))
 !          call set_sub_sonic_inflow_r(prim_cc(:,0), prim_cc(:,1) )
 !        case('ss')
           ! don't need to do anything... they're already set
 !        end select
 
 ! This routine handles both sub and supersonic outflow
-        call outflow_explicit( prim_cc(:,cells+2),                             &
-                               prim_cc(:,cells+1), prim_cc(:,cells) )
-!        call outflow_explicit( prim_cc(:,cells+1),                            &
-!                               prim_cc(:,cells), prim_cc(:,cells-1) )
+        call outflow_explicit( prim_cc(:,cells+1),                             &
+                               prim_cc(:,cells), prim_cc(:,cells-1) )
 
       end do rk_loop
 
 ! Store solution before RK loop. Wouldn't be necessary for pure Euler explicit
 
-      do cell = 1, cells+2!0, cells+1
+      do cell = 0, cells+1
         cons_cc(:,cell) = primitive_to_conserved_1D(prim_cc(:,cell))
       end do
 
@@ -172,28 +163,20 @@ module solvers
     use matrix_manip,    only : triblocksolve, pentablocksolve
     use write_soln,      only : write_soln_line
 
-    integer,                        intent(in)    :: cells, faces
-    real(dp), dimension(3,cells+2), intent(inout) :: prim_cc
-    real(dp), dimension(3,cells+2), intent(out)   :: cons_cc
-    real(dp), dimension(cells+2),   intent(in)    :: cell_vol
-    real(dp), dimension(faces),     intent(in)    :: area_f
-    real(dp), dimension(cells+2),   intent(in)    :: dx, dadx_cc, x_cc
-!    real(dp), dimension(3,cells+2), intent(inout) :: prim_cc
-!    real(dp), dimension(3,cells+2), intent(out)   :: cons_cc
-!    real(dp), dimension(cells+2),   intent(in)    :: cell_vol
-!    real(dp), dimension(faces),     intent(in)    :: area_f
-!    real(dp), dimension(cells+2),   intent(in)    :: dx, dadx_cc, x_cc
+    integer,                          intent(in)    :: cells, faces
+    real(dp), dimension(3,0:cells+1), intent(inout) :: prim_cc
+    real(dp), dimension(3,0:cells+1), intent(out)   :: cons_cc
+    real(dp), dimension(0:cells+1),   intent(in)    :: cell_vol
+    real(dp), dimension(faces),       intent(in)    :: area_f
+    real(dp), dimension(0:cells+1),   intent(in)    :: dx, dadx_cc, x_cc
 
     logical :: convergence_flag = .false.
     integer :: n, eq, cell
 
     real(dp), dimension(3)           :: l2out
-    real(dp), dimension(cells+2)     :: dt
-    real(dp), dimension(3,cells+2)   :: RHS, delta_prim_cc
-    real(dp), dimension(3,3,cells+2) :: L2, L, D, U, U2
-!    real(dp), dimension(0:cells+1)     :: dt
-!    real(dp), dimension(3,0:cells+1)   :: RHS, delta_prim_cc
-!    real(dp), dimension(3,3,0:cells+1) :: L2, L, D, U, U2
+    real(dp), dimension(0:cells+1)     :: dt
+    real(dp), dimension(3,0:cells+1)   :: RHS, delta_prim_cc
+    real(dp), dimension(3,3,0:cells+1) :: L2, L, D, U, U2
 
     continue
 
@@ -232,20 +215,14 @@ module solvers
 
 ! Take care of BC's
 ! Inflow, modify according to bc
-      call subsonic_inflow_prim( n, prim_cc(:,1), prim_cc(:,2), prim_cc(:,3),  &
-                                 D(:,:,1), U(:,:,1), U2(:,:,1), RHS(:,1) )
-!      call subsonic_inflow_prim( n, prim_cc(:,0), prim_cc(:,1), prim_cc(:,2), &
-!                                 D(:,:,0), U(:,:,0), U2(:,:,0), RHS(:,0) )
+      call subsonic_inflow_prim( n, prim_cc(:,0), prim_cc(:,1), prim_cc(:,2),  &
+                                 D(:,:,0), U(:,:,0), U2(:,:,0), RHS(:,0) )
 
 ! Outflow
-      call set_outflow_prim( n, prim_cc(:,cells+2), prim_cc(:,cells+1),        &
-                             prim_cc(:,cells),                                 &
-                             D(:,:,cells+2), L(:,:,cells+2), L2(:,:,cells+2),  &
-                             RHS(:,cells+2) )
-!      call set_outflow_prim( n, prim_cc(:,cells+1), prim_cc(:,cells),         &
-!                             prim_cc(:,cells-1),                              &
-!                             D(:,:,cells+1), L(:,:,cells+1), L2(:,:,cells+1), &
-!                             RHS(:,cells+1) )
+      call set_outflow_prim( n, prim_cc(:,cells+1), prim_cc(:,cells),          &
+                             prim_cc(:,cells-1),                               &
+                             D(:,:,cells+1), L(:,:,cells+1), L2(:,:,cells+1),  &
+                             RHS(:,cells+1) )
 
 ! Solve the system of equations
       if ( n < firstorder .or. lhs_order == 1 ) then
@@ -258,7 +235,7 @@ module solvers
       prim_cc = prim_cc + delta_prim_cc
 
 ! Floor variables for stability
-      do cell = 1, cells+2!0, cells+1
+      do cell = 0, cells+1
         if ( prim_cc(1,cell) <= zero .or. prim_cc(3,cell) <= zero ) then
           prim_cc(1,cell) = 0.01_dp
           prim_cc(2,cell) = 1.0_dp
@@ -296,13 +273,10 @@ module solvers
     use set_precision, only : dp
     use set_constants, only : large
 
-    integer,                         intent(in)  :: cells
-    real(dp), dimension(cells+2),    intent(in)  :: dx
-    real(dp), dimension(3, cells+2), intent(in)  :: prim_cc
-    real(dp), dimension(cells+2)                 :: dt
-!    real(dp), dimension(0:cells+1),    intent(in)  :: dx
-!    real(dp), dimension(3, 0:cells+1), intent(in)  :: prim_cc
-!    real(dp), dimension(0:cells+1)                 :: dt
+    integer,                          intent(in)  :: cells
+    real(dp), dimension(0:cells+1),   intent(in)  :: dx
+    real(dp), dimension(3,0:cells+1), intent(in)  :: prim_cc
+    real(dp), dimension(0:cells+1)                :: dt
 
     integer  :: cell
     real(dp) :: a, dt_global
@@ -311,7 +285,7 @@ module solvers
 
     dt_global = large
 
-    do cell = 1, cells+2!0, cells+1
+    do cell = 0, cells+1
       a = speed_of_sound( prim_cc(3,cell), prim_cc(1,cell) )
       dt(cell) = cfl*dx(cell) / ( abs(prim_cc(2,cell)) + a )
       dt_global = min(dt_global, dt(cell))
@@ -338,12 +312,12 @@ module solvers
     use initialize_soln, only : restart, L1_init, L2_init, Linf_init
 
     integer,                          intent(in)  :: cells, iteration
-    real(dp), dimension(3,cells+2),   intent(in)  :: residuals
-!    real(dp), dimension(3,0:cells+1),   intent(in)  :: residuals
+    real(dp), dimension(3,0:cells+1), intent(in)  :: residuals
     logical,                          intent(out) :: convergence_flag
     real(dp), dimension(3), optional, intent(out) :: l2out
 
     integer :: cell
+
     real(dp), dimension(3) :: L1, L2, Linf
 
     continue
@@ -352,7 +326,7 @@ module solvers
     L2 = zero
     Linf = zero
 
-    do cell = 2, cells+1!1, cells
+    do cell = 1, cells
       L1(:) = L1(:) + abs(residuals(:,cell))
       L2(:) = L2(:) + residuals(:,cell)**2
       Linf(:) = max(Linf(:), abs(residuals(:,cell)))

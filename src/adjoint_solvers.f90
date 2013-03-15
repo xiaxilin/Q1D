@@ -28,20 +28,18 @@ contains
     use matrix_manip,    only : pentablocksolve
     use write_soln,      only : write_soln_line
 
-    implicit none
-
-    integer,                        intent(in) :: cells, faces
-    real(dp), dimension(3,cells+2), intent(in) :: prim_cc, cons_cc
-    real(dp), dimension(cells+2),   intent(in) :: cell_vol
-    real(dp), dimension(faces),     intent(in) :: area_f
-    real(dp), dimension(cells+2),   intent(in) :: dx, dadx_cc, x_cc
+    integer,                          intent(in) :: cells, faces
+    real(dp), dimension(3,0:cells+1), intent(in) :: prim_cc, cons_cc
+    real(dp), dimension(0:cells+1),   intent(in) :: cell_vol
+    real(dp), dimension(faces),       intent(in) :: area_f
+    real(dp), dimension(0:cells+1),   intent(in) :: dx, dadx_cc, x_cc
 
     integer  :: n, cell
 
-    real(dp), dimension(3,3)         :: ident3x3
-    real(dp), dimension(cells+2)     :: dt
-    real(dp), dimension(3,cells+2)   :: psi, dfdq, RHS, delta_psi
-    real(dp), dimension(3,3,cells+2) :: rL2, rL, rD, rU, rU2, L2, L, D, U, U2
+    real(dp), dimension(3,3)           :: ident3x3
+    real(dp), dimension(0:cells+1)     :: dt
+    real(dp), dimension(3,0:cells+1)   :: psi, dfdq, RHS, delta_psi
+    real(dp), dimension(3,3,0:cells+1) :: rL2, rL, rD, rU, rU2, L2, L, D, U, U2
 
     logical :: convergence_flag = .false.
 
@@ -106,7 +104,7 @@ contains
       dt = set_time_step( cells, dx, prim_cc )
 
 ! Add volume/timestep
-      do cell = 2, cells+1
+      do cell = 1, cells
         D(:,:,cell) = D(:,:,cell) + ident3x3*cell_vol(cell)/dt(cell)
       end do
 
@@ -146,11 +144,9 @@ contains
     use set_precision,   only : dp
     use set_constants,   only : zero
 
-    implicit none
-
-    integer,                        intent(in)  :: cells
-    real(dp), dimension(cells+2),   intent(in)  :: dx
-    real(dp), dimension(3,cells+2), intent(out) :: dfdq
+    integer,                          intent(in)  :: cells
+    real(dp), dimension(0:cells+1),   intent(in)  :: dx
+    real(dp), dimension(3,0:cells+1), intent(out) :: dfdq
 
     integer  :: cell
 
@@ -158,10 +154,8 @@ contains
 
     dfdq = zero
 
-    do cell = 2,cells+1
+    do cell = 1,cells
 
-!      dfdq(1,cell) = zero
-!      dfdq(2,cell) = zero
       dfdq(3,cell) = dx(cell)
 
     end do
@@ -177,29 +171,27 @@ contains
 
     use set_precision, only : dp
 
-    implicit none
-
-    integer,                          intent(in)  :: cells
-    real(dp), dimension(3,cells+2),   intent(in)  :: psi, dfdq
-    real(dp), dimension(3,3,cells+2), intent(in)  :: L2, L, D, U, U2
-    real(dp), dimension(3,cells+2),   intent(out) :: RHS
+    integer,                            intent(in)  :: cells
+    real(dp), dimension(3,0:cells+1),   intent(in)  :: psi, dfdq
+    real(dp), dimension(3,3,0:cells+1), intent(in)  :: L2, L, D, U, U2
+    real(dp), dimension(3,0:cells+1),   intent(out) :: RHS
 
     integer :: cell
 
     continue
 
-    cell = 1
+    cell = 0
     rhs(:,cell) = matmul(D(:,:,cell),  psi(:,cell))   + &
                   matmul(U(:,:,cell),  psi(:,cell+1)) + &
                   matmul(U2(:,:,cell), psi(:,cell+2)) - dfdq(:,cell)
 
-    cell = 2
+    cell = 1
     rhs(:,cell) = matmul(L(:,:,cell),  psi(:,cell-1)) + &
                   matmul(D(:,:,cell),  psi(:,cell))   + &
                   matmul(U(:,:,cell),  psi(:,cell+1)) + &
                   matmul(U2(:,:,cell), psi(:,cell+2)) - dfdq(:,cell)
 
-    do cell = 3, cells
+    do cell = 2, cells-1
       rhs(:,cell) = matmul(L2(:,:,cell), psi(:,cell-2)) + &
                     matmul(L(:,:,cell),  psi(:,cell-1)) + &
                     matmul(D(:,:,cell),  psi(:,cell))   + &
@@ -207,13 +199,13 @@ contains
                     matmul(U2(:,:,cell), psi(:,cell+2)) - dfdq(:,cell)
     end do
 
-    cell = cells+1
+    cell = cells
     rhs(:,cell) = matmul(L2(:,:,cell), psi(:,cell-2)) + &
                   matmul(L(:,:,cell),  psi(:,cell-1)) + &
                   matmul(D(:,:,cell),  psi(:,cell))   + &
                   matmul(U(:,:,cell),  psi(:,cell+1)) - dfdq(:,cell)
 
-    cell = cells+2
+    cell = cells+1
     rhs(:,cell) = matmul(L2(:,:,cell), psi(:,cell-2)) + &
                   matmul(L(:,:,cell),  psi(:,cell-1)) + &
                   matmul(D(:,:,cell),  psi(:,cell)) - dfdq(:,cell)

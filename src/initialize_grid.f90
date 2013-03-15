@@ -64,25 +64,15 @@ contains
 
     close(grid_unit)
 
-    do cell = 2, cells+1
-      dx(cell)        = x_f(cell) - x_f(cell-1)
-      x_cc(cell)      = x_f(cell-1) + half*dx(cell)
+    do cell = 1, cells
+      dx(cell)        = x_f(cell+1) - x_f(cell)
+      x_cc(cell)      = x_f(cell) + half*dx(cell)
       cell_vol(cell)  = dx(cell)*area_cc(cell)
     end do
-    dx(1)       = dx(2)
-    dx(cells+2) = dx(cells+1)
-    cell_vol(1)       = cell_vol(2)
-    cell_vol(cells+1) = cell_vol(cells+1) !FIXME: review this!
-
-!    do cell = 1, cells
-!      dx(cell)        = x_f(cell+1) - x_f(cell)
-!      x_cc(cell)      = x_f(cell) + half*dx(cell)
-!      cell_vol(cell)  = dx(cell)*area_cc(cell)
-!    end do
-!    dx(0)       = dx(1)
-!    dx(cells+1) = dx(cells)
-!    cell_vol(0)       = cell_vol(1)
-!    cell_vol(cells+1) = cell_vol(cell)
+    dx(0)       = dx(1)
+    dx(cells+1) = dx(cells)
+    cell_vol(0)       = cell_vol(1)
+    cell_vol(cells+1) = cell_vol(cell)
 
   end subroutine read_grid
 
@@ -98,10 +88,8 @@ contains
     continue
 
     allocate( area_f(faces), x_f(faces) )
-    allocate( area_cc(cells+2), x_cc(cells+2) )
-    allocate( dadx_cc(cells+2), dx(cells+2), cell_vol(cells+2) )
-!    allocate( area_cc(0:cells+1), x_cc(0:cells+1) )
-!    allocate( dadx_cc(0:cells+1), dx(0:cells+1), cell_vol(0:cells+1) )
+    allocate( area_cc(0:cells+1), x_cc(0:cells+1) )
+    allocate( dadx_cc(0:cells+1), dx(0:cells+1), cell_vol(0:cells+1) )
 
     area_f   = zero
     x_f      = zero

@@ -22,7 +22,6 @@ contains
 ! Calculates the exact solution for a converging-diverging quasi-1D nozzle
 !
 !=============================================================================80
-
   subroutine calculate_exact_soln( cells, x_cc, area_cc, a_star, a_e, cons_cc, &
                                    cons_cc_ex)
 
@@ -31,13 +30,11 @@ contains
     use fluid_constants, only : gamma, gm1, xgm1, xgp1, gxgm1, gp1xgm1, r
     use initialize_soln, only : to, po, pback
 
-    integer,                                  intent(in)  :: cells
-    real(dp), dimension(cells+2),             intent(in)  :: x_cc, area_cc
-!    real(dp), dimension(0:cells+1),           intent(in)  :: x_cc, area_cc
-    real(dp),                                 intent(in)  :: a_star, a_e
-    real(dp), dimension(3,cells+2),           intent(in)  :: cons_cc
-    real(dp), optional, dimension(3,cells+2), intent(out) :: cons_cc_ex
-!    real(dp), optional, dimension(3,0:cells+1), intent(out) :: cons_cc_ex
+    integer,                                    intent(in)  :: cells
+    real(dp), dimension(0:cells+1),             intent(in)  :: x_cc, area_cc
+    real(dp),                                   intent(in)  :: a_star, a_e
+    real(dp), dimension(3,cells+2),             intent(in)  :: cons_cc
+    real(dp), optional, dimension(3,0:cells+1), intent(out) :: cons_cc_ex
 
     integer               :: i, i_throat, i_shock, unit
     integer, dimension(1) :: i_min      ! needed for minloc function
@@ -48,30 +45,25 @@ contains
     real(dp) :: ratio, M_e, M_1, po_e, a_star_new
     real(dp) :: derho, derhou, derhoet
     real(dp), dimension(3)         :: cons_exact
-    real(dp), dimension(cells+2)   :: mach_exact
-    real(dp), dimension(3,cells+2) :: soln_exact
-!    real(dp), dimension(0:cells+1)   :: mach_exact
-!    real(dp), dimension(3,0:cells+1) :: soln_exact
+    real(dp), dimension(0:cells+1)   :: mach_exact
+    real(dp), dimension(3,0:cells+1) :: soln_exact
 
     continue
 
-    i_min = minloc(area_cc(2:cells+1))
-    i_throat = i_min(1) + 1
-!    i_min = minloc( area_cc(1:cells) )
-!    i_throat = i_min(1)
-!    if ( i_throat == 0 .or. i_throat == 1 ) i_throat = -1
-    if ( i_throat == 1 .or. i_throat == 2 ) i_throat = 0
+    i_min = minloc( area_cc(1:cells) )
+    i_throat = i_min(1)
+    if ( i_throat == 0 .or. i_throat == 1 ) i_throat = -1
 
 ! calculate exact mach/area solution
     mach_init = 0.1_dp
 ! subsonic section to throat
-    do i = 2, i_throat!1, i_throat
+    do i = 1, i_throat
       mach_exact(i) = mach_from_area(area_cc(i)/a_star, mach_init, 0)
       mach_init = mach_exact(i)
     end do
 ! sub/supersonic section after throat
     mach_init = mach_init + 0.01
-    do i = i_throat+1, cells+1!cells
+    do i = i_throat+1, cells
       mach_exact(i) = mach_from_area(area_cc(i)/a_star, mach_init, 1)
       mach_init = mach_exact(i)
     end do
@@ -90,7 +82,7 @@ contains
 
       M_1 = pre_shock_mach(ratio)
 
-      shock_location : do i = cells+1, i_throat+1, -1!cells, i_throat+1, -1
+      shock_location : do i = cells, i_throat+1, -1
         if (mach_exact(i) <= M_1) then
           i_shock = i+1 ! Go upstream one cell to be post shock
           exit
@@ -99,7 +91,7 @@ contains
 
       mach_init = (one + half*gm1*M_1**2)/(gamma*M_1**2-half*gm1)
 
-      do i = i_shock, cells+1!cells
+      do i = i_shock, cells
         mach_exact(i) = mach_from_area(area_cc(i)/a_star_new, mach_init, 0)
         mach_init = mach_exact(i)
       end do
@@ -107,7 +99,7 @@ contains
     end if nonisentropic
 
 ! once the mach/area solution has been found, calculate the primitive variables
-    do i = 2, cells+1!1, cells
+    do i = 1, cells
       psi = one + half*gm1*mach_exact(i)**2
       temp = to / psi
       soln_exact(3,i) = po / ( psi**gxgm1 )
@@ -137,7 +129,7 @@ contains
       derhou  = zero
       derhoet = zero
 
-      do i = 2, cells+1!1, cells
+      do i = 1, cells
         cons_exact = primitive_to_conserved_1D(soln_exact(:,i))
 
         if ( present(cons_cc_ex) ) then
@@ -158,7 +150,7 @@ contains
       close(unit)
 
     else
-      do i = 2, cells+1!1, cells
+      do i = 1, cells
         cons_cc_ex(:,i) = primitive_to_conserved_1D(soln_exact(:,i))
       end do
     end if
@@ -332,25 +324,19 @@ contains
     use SAM,             only : SAM_Set_Problem, SAM_Make_Positive_NonZero,    &
                                 SAM_Write_Data, SAM_Adapt_Mesh
 
-    integer,                      intent(in) :: cells, faces
-    real(dp),                     intent(in) :: a_star
-    real(dp), dimension(faces),   intent(in) :: area_f, x_f
-    real(dp), dimension(cells+2), intent(in) :: dadx_cc, dx
-!    real(dp), dimension(0:cells+1), intent(in) :: dadx_cc, dx
+    integer,                        intent(in) :: cells, faces
+    real(dp),                       intent(in) :: a_star
+    real(dp), dimension(faces),     intent(in) :: area_f, x_f
+    real(dp), dimension(0:cells+1), intent(in) :: dadx_cc, dx
 
-    integer  :: grid_te_unit, faces_te, cells_te, face, cell, i, j
+    integer  :: new_grid, grid_te_unit, faces_te, cells_te, face, cell, i, j
     real(dp) :: psi, p, t
 
-    real(dp), dimension(2+3*cells)    :: x_te, area_te, soln_te
-    real(dp), dimension(3, 2+cells)   :: cons_cc, prim_cc, te
-    real(dp), dimension(3, 2+3*cells) :: cons_gq_te, cons_dummy
-!    real(dp), dimension(0:1+3*cells)    :: x_te, area_te, soln_te
-!    real(dp), dimension(3, 0:1+cells)   :: cons_cc, prim_cc, te
-!    real(dp), dimension(3, 0:1+3*cells) :: cons_gq_te, cons_dummy
-
-    integer :: new_grid
-    real(dp), dimension(faces) :: xout
-    real(dp), dimension(cells) :: ind_in, ind_out
+    real(dp), dimension(faces)         :: xout
+    real(dp), dimension(cells)         :: ind_in, ind_out
+    real(dp), dimension(0:1+3*cells)   :: x_te, area_te, soln_te
+    real(dp), dimension(3,0:1+cells)   :: cons_cc, prim_cc, te
+    real(dp), dimension(3,0:1+3*cells) :: cons_gq_te, cons_dummy
 
     continue
 
@@ -373,7 +359,7 @@ contains
     call calculate_exact_soln( cells_te, x_te, area_te, a_star, x_te(faces_te),&
                                cons_dummy, cons_gq_te )
 
-    do i = 2, cells+1!1, cells
+    do i = 1, cells
       j = 3*i - 3
 
       cons_cc(:,i) = (5.0_dp/9.0_dp)*cons_gq_te(:,j-1) &
@@ -387,31 +373,21 @@ contains
     t   = to/psi
     p   = po/(psi**gxgm1)
 
-    prim_cc(1,1) = p/(r*t)
-    prim_cc(2,1) = mref*sqrt(gamma*r*t)
-    prim_cc(3,1) = p
+    prim_cc(1,0) = p/(r*t)
+    prim_cc(2,0) = mref*sqrt(gamma*r*t)
+    prim_cc(3,0) = p
 
-    cons_cc(:,1) = primitive_to_conserved_1D(prim_cc(:,1))
-!    prim_cc(1,0) = p/(r*t)
-!    prim_cc(2,0) = mref*sqrt(gamma*r*t)
-!    prim_cc(3,0) = p
+    cons_cc(:,0) = primitive_to_conserved_1D(prim_cc(:,1))
 
-!    cons_cc(:,0) = primitive_to_conserved_1D(prim_cc(:,1))
-
-!    call subsonic_inflow_explicit(prim_cc(:,0), prim_cc(:,1), prim_cc(:,2))
-!    call outflow_explicit( prim_cc(:,cells+1),                                &
-!                           prim_cc(:,cells), prim_cc(:,cells-1) )
-!    cons_cc(:,cells+1) = primitive_to_conserved_1D(prim_cc(:,cells+1))
-
-    call subsonic_inflow_explicit(prim_cc(:,1), prim_cc(:,2), prim_cc(:,3))
-    call outflow_explicit( prim_cc(:,cells+2),                                 &
-                           prim_cc(:,cells+1), prim_cc(:,cells) )
-    cons_cc(:,cells+2) = primitive_to_conserved_1D(prim_cc(:,cells+2))
+    call subsonic_inflow_explicit(prim_cc(:,0), prim_cc(:,1), prim_cc(:,2))
+    call outflow_explicit( prim_cc(:,cells+1),                                 &
+                           prim_cc(:,cells), prim_cc(:,cells-1) )
+    cons_cc(:,cells+1) = primitive_to_conserved_1D(prim_cc(:,cells+1))
 
     call create_residual( cells, faces, iterations, prim_cc, area_f, dadx_cc,  &
                           dx, te )
 
-    write(*,*) te(1, 2)!tec(0,2)
+    write(*,*) te(0,2)
 
     grid_te_unit = find_available_unit()
 
@@ -421,12 +397,12 @@ contains
     write(grid_te_unit,*) 'ZONE T="TE From Exact Nozzle Solution"'
     write(grid_te_unit,*) 'DT=(DOUBLE DOUBLE DOUBLE DOUBLE )'
 
-    do cell = 2, cells+1!1, cells
+    do cell = 1, cells
       write(grid_te_unit, *) x_te(3*(cell-1)), te(1, cell), te(2, cell), te(3, cell)
     end do
     close(grid_te_unit)
 
-    ind_in = te(1, 2:cells+1)!te(1, 1:cells)
+    ind_in = te(1, 1:cells)
 
     ! Set problem for SAM
     call SAM_Set_Problem(faces)

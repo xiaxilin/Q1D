@@ -40,23 +40,17 @@ contains
     use set_precision, only : dp
     use set_constants, only : zero
 
-    integer,                        intent(in)  :: cells, faces, iteration
-    real(dp), dimension(3,cells+2), intent(in)  :: prim_cc
-    real(dp), dimension(faces),     intent(in)  :: area_f
-    real(dp), dimension(cells+2),   intent(in)  :: dadx_cc
-    real(dp), dimension(cells+2),   intent(in)  :: dx
-    real(dp), dimension(3,cells+2), intent(out) :: residual
-!    real(dp), dimension(3,0:cells+1), intent(in)  :: prim_cc
-!    real(dp), dimension(faces),       intent(in)  :: area_f
-!    real(dp), dimension(0:cells+1),   intent(in)  :: dadx_cc
-!    real(dp), dimension(0:cells+1),   intent(in)  :: dx
-!    real(dp), dimension(3,0:cells+1), intent(out) :: residual
+    integer,                          intent(in)  :: cells, faces, iteration
+    real(dp), dimension(3,0:cells+1), intent(in)  :: prim_cc
+    real(dp), dimension(faces),       intent(in)  :: area_f
+    real(dp), dimension(0:cells+1),   intent(in)  :: dadx_cc
+    real(dp), dimension(0:cells+1),   intent(in)  :: dx
+    real(dp), dimension(3,0:cells+1), intent(out) :: residual
 
     integer :: cell
 
-    real(dp), dimension(3,faces)   :: F
-    real(dp), dimension(3,cells+2) :: S
-!    real(dp), dimension(3,0:cells+1) :: S
+    real(dp), dimension(3,faces)     :: F
+    real(dp), dimension(3,0:cells+1) :: S
 
     continue
 
@@ -65,7 +59,7 @@ contains
     call create_fluxes( cells, faces, iteration, prim_cc, F )
     call create_source( cells, prim_cc(3,:), dadx_cc, S )
 
-    do cell = 2, cells+1!1, cells
+    do cell = 1, cells
       residual(:,cell) = area_f(cell)*F(:,cell) - area_f(cell-1)*F(:,cell-1)   &
                        - S(:,cell)*dx(cell)
     end do
@@ -81,10 +75,9 @@ contains
 
     use set_precision, only : dp
 
-    integer,                         intent(in)  :: cells, faces, iteration
-    real(dp), dimension(3, cells+2), intent(in)  :: prim_cc
-!    real(dp), dimension(3, 0:cells+1), intent(in)  :: prim_cc
-    real(dp), dimension(3, faces),   intent(out) :: flux
+    integer,                           intent(in)  :: cells, faces, iteration
+    real(dp), dimension(3, 0:cells+1), intent(in)  :: prim_cc
+    real(dp), dimension(3, faces),     intent(out) :: flux
 
     integer :: i
 
@@ -102,13 +95,11 @@ contains
     select case(trim(flux_type))
     case ('central')
       do i = 1, faces
-        flux(:,i) = flux_central( prim_cc(:,i), prim_cc(:,i+1) )
-!        flux(:,i) = flux_central( prim_cc(:,i-1), prim_cc(:,i) )
+        flux(:,i) = flux_central( prim_cc(:,i-1), prim_cc(:,i) )
       end do
     case ('jst')
       do i = 1, faces
-        flux(:,i) = flux_central( prim_cc(:,i), prim_cc(:,i+1) )
-!        flux(:,i) = flux_central( prim_cc(:,i-1), prim_cc(:,i) )
+        flux(:,i) = flux_central( prim_cc(:,i-1), prim_cc(:,i) )
       end do
       call add_jst_damping( cells, faces, prim_cc, flux )
     case('vanleer')
@@ -149,11 +140,9 @@ contains
     use set_precision, only : dp
     use set_constants, only : zero
 
-    integer,                         intent(in)  :: cells
-    real(dp), dimension(cells+2),    intent(in)  :: pressure, dadx_cc
-    real(dp), dimension(3, cells+2), intent(out) :: source
-!    real(dp), dimension(0:cells+1),    intent(in)  :: pressure, dadx_cc
-!    real(dp), dimension(3, 0:cells+1), intent(out) :: source
+    integer,                           intent(in)  :: cells
+    real(dp), dimension(0:cells+1),    intent(in)  :: pressure, dadx_cc
+    real(dp), dimension(3, 0:cells+1), intent(out) :: source
 
     integer :: i
 
@@ -161,7 +150,7 @@ contains
 
     source = zero
 
-    do i = 2, cells+1!1, cells
+    do i = 1, cells
       source(2,i) = pressure(i)*dadx_cc(i)
     end do
 
@@ -177,45 +166,41 @@ contains
     use set_precision, only : dp
     use set_constants, only : zero, half, two, three
 
-    integer,                         intent(in)    :: cells, faces
-    real(dp), dimension(3, cells+2), intent(in)    :: prim_cc
-!    real(dp), dimension(3, 0:cells+1), intent(in)    :: prim_cc
-    real(dp), dimension(3, faces),   intent(inout) :: central_flux
+    integer,                           intent(in)    :: cells, faces
+    real(dp), dimension(3, 0:cells+1), intent(in)    :: prim_cc
+    real(dp), dimension(3, faces),     intent(inout) :: central_flux
 
     integer                      :: i
     real(dp)                     :: lambda, epstwo, epsfour
 
-    real(dp), dimension(cells+2) :: nu, a
-!    real(dp), dimension(0:cells+1) :: nu, a
-    real(dp), dimension(3)       :: cons_L2, cons_L1, cons_R1, cons_R2
-    real(dp), dimension(3)       :: dissipation
+    real(dp), dimension(3)         :: cons_L2, cons_L1, cons_R1, cons_R2
+    real(dp), dimension(3)         :: dissipation
+    real(dp), dimension(0:cells+1) :: nu, a
 
     continue
 
 ! calculate pressure switch
-    do i = 2, cells+1!1, cells
+    do i = 1, cells
       nu(i) = abs((prim_cc(3,i-1) - two*prim_cc(3,i) + prim_cc(3,i+1))         &
             /     (prim_cc(3,i-1) + two*prim_cc(3,i) + prim_cc(3,i+1)))
     end do
-    nu(1)       = two*nu(2) - nu(3)
-    nu(cells+2) = zero
-!    nu(0)       = two*nu(1) - nu(2)
-!    nu(cells+1) = zero
+    nu(0)       = two*nu(1) - nu(2)
+    nu(cells+1) = zero
 
-    do i = 1, cells+2!0, cells+1
+    do i = 0, cells+1
       a(i) = speed_of_sound(prim_cc(3,i), prim_cc(1,i))
     end do
 
 ! calculate smoothing terms and dissipation vector, add to flux
     i = 1
-    epstwo  = k2*max(nu(i), nu(i+1), nu(i+2))
+    epstwo  = k2*max(nu(i-1), nu(i), nu(i+1))
     epsfour = max(zero, k4-epstwo)
 
-    lambda  = half*(abs(prim_cc(2,i+1))+a(i+1) + abs(prim_cc(2,i))+a(i))
+    lambda  = half*(abs(prim_cc(2,i-1))+a(i-1) + abs(prim_cc(2,i))+a(i))
 
-    cons_L1 = primitive_to_conserved_1D(prim_cc(:,i))
-    cons_R1 = primitive_to_conserved_1D(prim_cc(:,i+1))
-    cons_R2 = primitive_to_conserved_1D(prim_cc(:,i+2))
+    cons_L1 = primitive_to_conserved_1D(prim_cc(:,i-1))
+    cons_R1 = primitive_to_conserved_1D(prim_cc(:,i))
+    cons_R2 = primitive_to_conserved_1D(prim_cc(:,i+1))
 
     dissipation = -lambda* (epstwo*(cons_R1 - cons_L1)                        &
                 - epsfour*(cons_R2 - three*cons_R1 + two*cons_L1))
@@ -226,12 +211,12 @@ contains
       cons_L2 = cons_L1
       cons_L1 = cons_R1
       cons_R1 = cons_R2
-      cons_R2 = primitive_to_conserved_1D(prim_cc(:,i+2))
+      cons_R2 = primitive_to_conserved_1D(prim_cc(:,i+1))
 
-      epstwo  = k2*max(nu(i-1), nu(i), nu(i+1), nu(i+2))
+      epstwo  = k2*max(nu(i-2), nu(i-1), nu(i), nu(i+1))
       epsfour = max(zero, k4-epstwo)
 
-      lambda  = half*(abs(prim_cc(2,i+1))+a(i+1) + abs(prim_cc(2,i))+a(i))
+      lambda  = half*(abs(prim_cc(2,i-1))+a(i-1) + abs(prim_cc(2,i))+a(i))
 
       dissipation = -lambda*(epstwo*(cons_R1-cons_L1)                         &
                   - epsfour*(cons_R2 - three*cons_R1 + three*cons_L1 - cons_L2))
@@ -244,10 +229,10 @@ contains
     cons_L1 = cons_R1
     cons_R1 = cons_R2
 
-    epstwo  = k2*max(nu(i-1), nu(i), nu(i+1))
+    epstwo  = k2*max(nu(i-2), nu(i-1), nu(i))
     epsfour = max(zero, k4-epstwo)
 
-    lambda  = half*(abs(prim_cc(2,i+1))+a(i+1) + abs(prim_cc(2,i))+a(i))
+    lambda  = half*(abs(prim_cc(2,i-1))+a(i-1) + abs(prim_cc(2,i))+a(i))
 
     dissipation = -lambda*(epstwo*(cons_R1 - cons_L1)                         &
                 - epsfour*(-two*cons_R1 + three*cons_L1 - cons_L2))
@@ -261,6 +246,7 @@ contains
 ! Calculates divided differences and variable limiters, then performs
 ! MUSCL extrapolation for either primitive or conserved variables.
 ! It is highly recommended to use primitive variables, see FIXME: citation!
+! FIXME: need to shift the limiters and muscl so that it's like SENSEI!
 !
 !=============================================================================80
   subroutine muscl_extrapolation( cells, faces, iteration, vars_cc,           &
@@ -269,13 +255,10 @@ contains
     use set_precision, only : dp
     use set_constants, only : zero, fourth, one, onep5, two
 
-    integer,                        intent(in)  :: cells, faces, iteration
-    real(dp), dimension(3,cells+2), intent(in)  :: vars_cc
-    real(dp), dimension(3,faces),   intent(out) :: vars_left, vars_right
-    real(dp), optional, dimension(3,cells+2), intent(out) :: limL, limR
-!    real(dp), dimension(3,0:cells+1), intent(in)  :: vars_cc
-!    real(dp), dimension(3,faces),     intent(out) :: vars_left, vars_right
-!    real(dp), optional, dimension(3,0:cells+1), intent(out) :: limL, limR
+    integer,                          intent(in)  :: cells, faces, iteration
+    real(dp), dimension(3,0:cells+1), intent(in)  :: vars_cc
+    real(dp), dimension(3,faces),     intent(out) :: vars_left, vars_right
+    real(dp), optional, dimension(3,0:cells+1), intent(out) :: limL, limR
 
     real(dp), parameter :: small_factor = 0.0000001_dp
 
@@ -302,7 +285,7 @@ contains
 
 ! calculate right side variations, r>=0
 
-      r_R(:,1)     = zero
+      r_R(:,1)   = zero
       do i = 2, faces
         r_R(:,i) = max( zero, (vars_cc(:,i) - vars_cc(:,i-1))                  &
                             / (vars_cc(:,i+1) - vars_cc(:,i) + small_factor) )
