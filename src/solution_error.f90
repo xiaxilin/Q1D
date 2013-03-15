@@ -31,15 +31,13 @@ contains
     use fluid_constants, only : gamma, gm1, xgm1, xgp1, gxgm1, gp1xgm1, r
     use initialize_soln, only : to, po, pback
 
-    implicit none
-
-    integer,                        intent(in) :: cells
-    real(dp), dimension(cells+2),   intent(in) :: x_cc
-    real(dp), dimension(cells+2),   intent(in) :: area_cc
-    real(dp),                       intent(in) :: a_star
-    real(dp),                       intent(in) :: a_e
-    real(dp), dimension(3,cells+2), intent(in) :: cons_cc
+    integer,                                  intent(in)  :: cells
+    real(dp), dimension(cells+2),             intent(in)  :: x_cc, area_cc
+!    real(dp), dimension(0:cells+1),           intent(in)  :: x_cc, area_cc
+    real(dp),                                 intent(in)  :: a_star, a_e
+    real(dp), dimension(3,cells+2),           intent(in)  :: cons_cc
     real(dp), optional, dimension(3,cells+2), intent(out) :: cons_cc_ex
+!    real(dp), optional, dimension(3,0:cells+1), intent(out) :: cons_cc_ex
 
     integer               :: i, i_throat, i_shock, unit
     integer, dimension(1) :: i_min      ! needed for minloc function
@@ -52,24 +50,28 @@ contains
     real(dp), dimension(3)         :: cons_exact
     real(dp), dimension(cells+2)   :: mach_exact
     real(dp), dimension(3,cells+2) :: soln_exact
+!    real(dp), dimension(0:cells+1)   :: mach_exact
+!    real(dp), dimension(3,0:cells+1) :: soln_exact
 
     continue
 
     i_min = minloc(area_cc(2:cells+1))
     i_throat = i_min(1) + 1
-
+!    i_min = minloc( area_cc(1:cells) )
+!    i_throat = i_min(1)
+!    if ( i_throat == 0 .or. i_throat == 1 ) i_throat = -1
     if ( i_throat == 1 .or. i_throat == 2 ) i_throat = 0
 
 ! calculate exact mach/area solution
     mach_init = 0.1_dp
 ! subsonic section to throat
-    do i = 2, i_throat
+    do i = 2, i_throat!1, i_throat
       mach_exact(i) = mach_from_area(area_cc(i)/a_star, mach_init, 0)
       mach_init = mach_exact(i)
     end do
 ! sub/supersonic section after throat
     mach_init = mach_init + 0.01
-    do i = i_throat+1, cells+1
+    do i = i_throat+1, cells+1!cells
       mach_exact(i) = mach_from_area(area_cc(i)/a_star, mach_init, 1)
       mach_init = mach_exact(i)
     end do
@@ -88,7 +90,7 @@ contains
 
       M_1 = pre_shock_mach(ratio)
 
-      shock_location : do i = cells+1,i_throat+1,-1
+      shock_location : do i = cells+1, i_throat+1, -1!cells, i_throat+1, -1
         if (mach_exact(i) <= M_1) then
           i_shock = i+1 ! Go upstream one cell to be post shock
           exit
@@ -97,7 +99,7 @@ contains
 
       mach_init = (one + half*gm1*M_1**2)/(gamma*M_1**2-half*gm1)
 
-      do i = i_shock, cells+1
+      do i = i_shock, cells+1!cells
         mach_exact(i) = mach_from_area(area_cc(i)/a_star_new, mach_init, 0)
         mach_init = mach_exact(i)
       end do
@@ -105,61 +107,60 @@ contains
     end if nonisentropic
 
 ! once the mach/area solution has been found, calculate the primitive variables
-    do i = 2, cells+1
+    do i = 2, cells+1!1, cells
       psi = one + half*gm1*mach_exact(i)**2
       temp = to / psi
       soln_exact(3,i) = po / ( psi**gxgm1 )
-      if (pback > zero) then
-        if (i >= i_shock) then
+      if ( pback > zero ) then
+        if ( i >= i_shock ) then
           soln_exact(3,i) = po_e / ( psi**gxgm1 )
         end if
       end if
       soln_exact(1,i) = soln_exact(3,i)/( r*temp )
       soln_exact(2,i) = mach_exact(i) &
                       * speed_of_sound(soln_exact(3,i), soln_exact(1,i))
-
     end do
 
     if ( .not. present(cons_cc_ex) ) then
-    unit = find_available_unit()
+      unit = find_available_unit()
 
 ! set up output file for exact solution
-    open(unit,file='q1d_exact_soln.dat',status='replace')
-    write(unit,*) 'TITLE = "Quasi-1D Nozzle: Exact Solution"'
-    write(unit,*) 'variables="x(m)""Area(m^2)""rho(kg/m^3)""u(m/s)"&
-                  &"P(N/m^2)""U1""U2""U3""DE1""DE2""DE3"'
-    write(unit,*) 'ZONE T="Exact Isentropic Nozzle Solution"'
-    write(unit,*) 'DT=(DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE&
-                  & DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE)'
+      open(unit,file='q1d_exact_soln.dat',status='replace')
+      write(unit,*) 'TITLE = "Quasi-1D Nozzle: Exact Solution"'
+      write(unit,*) 'variables="x(m)""Area(m^2)""rho(kg/m^3)""u(m/s)"&
+                    &"P(N/m^2)""U1""U2""U3""DE1""DE2""DE3"'
+      write(unit,*) 'ZONE T="Exact Isentropic Nozzle Solution"'
+      write(unit,*) 'DT=(DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE&
+                    & DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE)'
 
-    derho   = zero
-    derhou  = zero
-    derhoet = zero
+      derho   = zero
+      derhou  = zero
+      derhoet = zero
 
-    do i = 2, cells+1
-      cons_exact = primitive_to_conserved_1D(soln_exact(:,i))
+      do i = 2, cells+1!1, cells
+        cons_exact = primitive_to_conserved_1D(soln_exact(:,i))
 
-      if (present(cons_cc_ex)) then
-        cons_cc_ex(:,i) = cons_exact
-      end if
+        if ( present(cons_cc_ex) ) then
+          cons_cc_ex(:,i) = cons_exact
+        end if
 
-      derho   = derho   + abs(cons_cc(1,i)-cons_exact(1))
-      derhou  = derhou  + abs(cons_cc(2,i)-cons_exact(2))
-      derhoet = derhoet + abs(cons_cc(3,i)-cons_exact(3))
+        derho   = derho   + abs(cons_cc(1,i)-cons_exact(1))
+        derhou  = derhou  + abs(cons_cc(2,i)-cons_exact(2))
+        derhoet = derhoet + abs(cons_cc(3,i)-cons_exact(3))
 
-      write(unit,*) x_cc(i), area_cc(i),                                       &
-                    soln_exact(1,i), soln_exact(2,i), soln_exact(3,i),         &
-                    cons_exact(1), cons_exact(2), cons_exact(3),               &
-                    cons_cc(1,i)-cons_exact(1), cons_cc(2,i)-cons_exact(2),    &
-                    cons_cc(3,i)-cons_exact(3)
-    end do
+        write(unit,*) x_cc(i), area_cc(i),                                     &
+                      soln_exact(1,i), soln_exact(2,i), soln_exact(3,i),       &
+                      cons_exact(1), cons_exact(2), cons_exact(3),             &
+                      cons_cc(1,i)-cons_exact(1), cons_cc(2,i)-cons_exact(2),  &
+                      cons_cc(3,i)-cons_exact(3)
+      end do
 
-    close(unit)
+      close(unit)
 
     else
-    do i = 2, cells+1
-      cons_cc_ex(:,i) = primitive_to_conserved_1D(soln_exact(:,i))
-    end do
+      do i = 2, cells+1!1, cells
+        cons_cc_ex(:,i) = primitive_to_conserved_1D(soln_exact(:,i))
+      end do
     end if
 
 
@@ -182,8 +183,6 @@ contains
     use set_precision,   only : dp
     use set_constants,   only : half, one, two
     use fluid_constants, only : xgm1, xgp1, gm1, gp1
-
-    implicit none
 
     real(dp), intent(in)    :: A_over_A_star !Ratio of local area to throat area
     real(dp), intent(inout) :: mach_init  ! Initial Mach number
@@ -246,8 +245,6 @@ contains
     use set_constants,   only : half, one, two
     use fluid_constants, only : xgp1, gp1xgm1, gm1
 
-    implicit none
-
     real(dp), intent(in) :: ratio
     real(dp)             :: mach
 
@@ -284,8 +281,6 @@ contains
     use set_precision,   only : dp
     use set_constants,   only : half, one, two, four
     use fluid_constants, only : gamma, xgp1, xgm1, gxgm1, gp1xgm1, gm1, gp1
-
-    implicit none
 
     real(dp), intent(in) :: ratio
     real(dp)             :: mach
@@ -337,12 +332,11 @@ contains
     use SAM,             only : SAM_Set_Problem, SAM_Make_Positive_NonZero,    &
                                 SAM_Write_Data, SAM_Adapt_Mesh
 
-    implicit none
-
     integer,                      intent(in) :: cells, faces
     real(dp),                     intent(in) :: a_star
     real(dp), dimension(faces),   intent(in) :: area_f, x_f
     real(dp), dimension(cells+2), intent(in) :: dadx_cc, dx
+!    real(dp), dimension(0:cells+1), intent(in) :: dadx_cc, dx
 
     integer  :: grid_te_unit, faces_te, cells_te, face, cell, i, j
     real(dp) :: psi, p, t
@@ -350,6 +344,9 @@ contains
     real(dp), dimension(2+3*cells)    :: x_te, area_te, soln_te
     real(dp), dimension(3, 2+cells)   :: cons_cc, prim_cc, te
     real(dp), dimension(3, 2+3*cells) :: cons_gq_te, cons_dummy
+!    real(dp), dimension(0:1+3*cells)    :: x_te, area_te, soln_te
+!    real(dp), dimension(3, 0:1+cells)   :: cons_cc, prim_cc, te
+!    real(dp), dimension(3, 0:1+3*cells) :: cons_gq_te, cons_dummy
 
     integer :: new_grid
     real(dp), dimension(faces) :: xout
@@ -376,7 +373,7 @@ contains
     call calculate_exact_soln( cells_te, x_te, area_te, a_star, x_te(faces_te),&
                                cons_dummy, cons_gq_te )
 
-    do i = 2, cells+1
+    do i = 2, cells+1!1, cells
       j = 3*i - 3
 
       cons_cc(:,i) = (5.0_dp/9.0_dp)*cons_gq_te(:,j-1) &
@@ -395,6 +392,16 @@ contains
     prim_cc(3,1) = p
 
     cons_cc(:,1) = primitive_to_conserved_1D(prim_cc(:,1))
+!    prim_cc(1,0) = p/(r*t)
+!    prim_cc(2,0) = mref*sqrt(gamma*r*t)
+!    prim_cc(3,0) = p
+
+!    cons_cc(:,0) = primitive_to_conserved_1D(prim_cc(:,1))
+
+!    call subsonic_inflow_explicit(prim_cc(:,0), prim_cc(:,1), prim_cc(:,2))
+!    call outflow_explicit( prim_cc(:,cells+1),                                &
+!                           prim_cc(:,cells), prim_cc(:,cells-1) )
+!    cons_cc(:,cells+1) = primitive_to_conserved_1D(prim_cc(:,cells+1))
 
     call subsonic_inflow_explicit(prim_cc(:,1), prim_cc(:,2), prim_cc(:,3))
     call outflow_explicit( prim_cc(:,cells+2),                                 &
@@ -404,7 +411,7 @@ contains
     call create_residual( cells, faces, iterations, prim_cc, area_f, dadx_cc,  &
                           dx, te )
 
-    write(*,*) te(1, 2)
+    write(*,*) te(1, 2)!tec(0,2)
 
     grid_te_unit = find_available_unit()
 
@@ -414,12 +421,12 @@ contains
     write(grid_te_unit,*) 'ZONE T="TE From Exact Nozzle Solution"'
     write(grid_te_unit,*) 'DT=(DOUBLE DOUBLE DOUBLE DOUBLE )'
 
-    do cell = 2, cells+1
+    do cell = 2, cells+1!1, cells
       write(grid_te_unit, *) x_te(3*(cell-1)), te(1, cell), te(2, cell), te(3, cell)
     end do
     close(grid_te_unit)
 
-    ind_in = te(1, 2:cells+1)
+    ind_in = te(1, 2:cells+1)!te(1, 1:cells)
 
     ! Set problem for SAM
     call SAM_Set_Problem(faces)

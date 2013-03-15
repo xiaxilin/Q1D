@@ -21,10 +21,9 @@ contains
     use set_precision,   only : dp
     use initialize_soln, only : L1_init, L2_init, Linf_init
 
-    implicit none
-
     integer,                        intent(in) :: cells
     real(dp), dimension(3,cells+2), intent(in) :: prim_cc
+!    real(dp), dimension(3,0:cells+1), intent(in) :: prim_cc
 
     integer :: restart_unit, cell
 
@@ -37,7 +36,7 @@ contains
     write(restart_unit,*) L2_init(1), L2_init(2), L2_init(3)
     write(restart_unit,*) Linf_init(1), Linf_init(2), Linf_init(3)
 
-    do cell = 1, cells+2
+    do cell = 1, cells+2!0, cells+1
       write(restart_unit,*) prim_cc(1, cell), prim_cc(2, cell), prim_cc(3,cell)
     end do
 
@@ -51,8 +50,6 @@ contains
 !
 !=============================================================================80
   subroutine init_write_files()
-
-    implicit none
 
     integer :: line_unit
 
@@ -73,11 +70,11 @@ contains
 
     use set_precision, only : dp
 
-    implicit none
-
     integer,                        intent(in) :: iteration, cells
     real(dp), dimension(cells+2),   intent(in) :: x_cc
     real(dp), dimension(3,cells+2), intent(in) :: prim_cc, cons_cc
+!    real(dp), dimension(0:cells+1),   intent(in) :: x_cc
+!    real(dp), dimension(3,0:cells+1), intent(in) :: prim_cc, cons_cc
 
     integer :: i, var, line_unit
 
@@ -90,16 +87,16 @@ contains
     write(line_unit,*) 'VARIABLES = "X_cc", "rho", "U", "P", "rho*U", "rho*E"'
     write(line_unit,*) 'ZONE DATAPACKING=BLOCK, I=', cells
     write(line_unit,*) 'T="', iteration,'" '
-    do i = 2, cells+1
+    do i = 2, cells+1!1, cells
       write(line_unit,*) x_cc(i)
     end do
     do var = 1,3
-      do i = 2, cells+1
+      do i = 2, cells+1!1, cells
         write(line_unit,*) prim_cc(var,i)
       end do
     end do
     do var = 2,3
-      do i = 2, cells+1
+      do i = 2, cells+1!1, cells
         write(line_unit,*) cons_cc(var,i)
 !        write(line_unit,*) conserved_to_primitive_1D(prim_cc(var,i))
       end do
@@ -120,15 +117,17 @@ contains
     use set_constants,   only : half
     use fluid_constants, only : gamma, xgm1
 
-    implicit none
-
     integer,                        intent(in) :: cells
     real(dp), dimension(cells+2),   intent(in) :: x_cc
     real(dp), dimension(3,cells+2), intent(in) :: prim_cc
+!    real(dp), dimension(0:cells+1),   intent(in) :: x_cc
+!    real(dp), dimension(3,0:cells+1), intent(in) :: prim_cc
 
     integer :: i, var, entropy_unit
     real(dp), dimension(cells+2)    :: entropy
     real(dp), dimension(3, cells+2) :: ent_var
+!    real(dp), dimension(0:cells+1)    :: entropy
+!    real(dp), dimension(3, 0:cells+1) :: ent_var
 
     continue
 
@@ -139,11 +138,11 @@ contains
     write(entropy_unit,*) 'VARIABLES = "X_cc", "entropy", "S1", "S2", "S3"'
     write(entropy_unit,*) 'ZONE DATAPACKING=BLOCK, I=', cells
 
-    do i = 2, cells+1
+    do i = 2, cells+1!1, cells
       write(entropy_unit,*) x_cc(i)
     end do
 
-    do i = 2, cells+1
+    do i = 2, cells+1!1, cells
       entropy(i) = log(prim_cc(3,i)/prim_cc(1,i)**gamma)
 
       ent_var(1,i) = (gamma - entropy(i))*xgm1                                &
@@ -155,7 +154,7 @@ contains
     end do
 
     do var = 1,3
-      do i = 2, cells+1
+      do i = 2, cells+1!1, cells
         write(entropy_unit,*) ent_var(var,i)
       end do
     end do

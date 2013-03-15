@@ -46,11 +46,17 @@ contains
     real(dp), dimension(cells+2),   intent(in)  :: dadx_cc
     real(dp), dimension(cells+2),   intent(in)  :: dx
     real(dp), dimension(3,cells+2), intent(out) :: residual
+!    real(dp), dimension(3,0:cells+1), intent(in)  :: prim_cc
+!    real(dp), dimension(faces),       intent(in)  :: area_f
+!    real(dp), dimension(0:cells+1),   intent(in)  :: dadx_cc
+!    real(dp), dimension(0:cells+1),   intent(in)  :: dx
+!    real(dp), dimension(3,0:cells+1), intent(out) :: residual
 
     integer :: cell
 
     real(dp), dimension(3,faces)   :: F
     real(dp), dimension(3,cells+2) :: S
+!    real(dp), dimension(3,0:cells+1) :: S
 
     continue
 
@@ -59,7 +65,7 @@ contains
     call create_fluxes( cells, faces, iteration, prim_cc, F )
     call create_source( cells, prim_cc(3,:), dadx_cc, S )
 
-    do cell = 2, cells+1
+    do cell = 2, cells+1!1, cells
       residual(:,cell) = area_f(cell)*F(:,cell) - area_f(cell-1)*F(:,cell-1)   &
                        - S(:,cell)*dx(cell)
     end do
@@ -77,6 +83,7 @@ contains
 
     integer,                         intent(in)  :: cells, faces, iteration
     real(dp), dimension(3, cells+2), intent(in)  :: prim_cc
+!    real(dp), dimension(3, 0:cells+1), intent(in)  :: prim_cc
     real(dp), dimension(3, faces),   intent(out) :: flux
 
     integer :: i
@@ -86,9 +93,9 @@ contains
     continue
 
 ! call muscl extrapolation only where appropriate
-    if (trim(flux_type) /= 'jst' .or. trim(flux_type) /= 'central') then
-      call muscl_extrapolation(cells, faces, iteration, &
-                               prim_cc, prim_left, prim_right)
+    if ( trim(flux_type) /= 'jst' .or. trim(flux_type) /= 'central' ) then
+      call muscl_extrapolation( cells, faces, iteration, prim_cc,              &
+                                prim_left, prim_right )
     end if
 
 ! create flux vectors
@@ -96,10 +103,12 @@ contains
     case ('central')
       do i = 1, faces
         flux(:,i) = flux_central( prim_cc(:,i), prim_cc(:,i+1) )
+!        flux(:,i) = flux_central( prim_cc(:,i-1), prim_cc(:,i) )
       end do
     case ('jst')
       do i = 1, faces
         flux(:,i) = flux_central( prim_cc(:,i), prim_cc(:,i+1) )
+!        flux(:,i) = flux_central( prim_cc(:,i-1), prim_cc(:,i) )
       end do
       call add_jst_damping( cells, faces, prim_cc, flux )
     case('vanleer')
@@ -143,6 +152,8 @@ contains
     integer,                         intent(in)  :: cells
     real(dp), dimension(cells+2),    intent(in)  :: pressure, dadx_cc
     real(dp), dimension(3, cells+2), intent(out) :: source
+!    real(dp), dimension(0:cells+1),    intent(in)  :: pressure, dadx_cc
+!    real(dp), dimension(3, 0:cells+1), intent(out) :: source
 
     integer :: i
 
@@ -150,7 +161,7 @@ contains
 
     source = zero
 
-    do i = 2, cells+1
+    do i = 2, cells+1!1, cells
       source(2,i) = pressure(i)*dadx_cc(i)
     end do
 
@@ -168,26 +179,30 @@ contains
 
     integer,                         intent(in)    :: cells, faces
     real(dp), dimension(3, cells+2), intent(in)    :: prim_cc
+!    real(dp), dimension(3, 0:cells+1), intent(in)    :: prim_cc
     real(dp), dimension(3, faces),   intent(inout) :: central_flux
 
     integer                      :: i
     real(dp)                     :: lambda, epstwo, epsfour
 
     real(dp), dimension(cells+2) :: nu, a
+!    real(dp), dimension(0:cells+1) :: nu, a
     real(dp), dimension(3)       :: cons_L2, cons_L1, cons_R1, cons_R2
     real(dp), dimension(3)       :: dissipation
 
     continue
 
 ! calculate pressure switch
-    do i = 2, cells+1
+    do i = 2, cells+1!1, cells
       nu(i) = abs((prim_cc(3,i-1) - two*prim_cc(3,i) + prim_cc(3,i+1))         &
             /     (prim_cc(3,i-1) + two*prim_cc(3,i) + prim_cc(3,i+1)))
     end do
     nu(1)       = two*nu(2) - nu(3)
     nu(cells+2) = zero
+!    nu(0)       = two*nu(1) - nu(2)
+!    nu(cells+1) = zero
 
-    do i = 1, cells+2
+    do i = 1, cells+2!0, cells+1
       a(i) = speed_of_sound(prim_cc(3,i), prim_cc(1,i))
     end do
 
@@ -258,6 +273,9 @@ contains
     real(dp), dimension(3,cells+2), intent(in)  :: vars_cc
     real(dp), dimension(3,faces),   intent(out) :: vars_left, vars_right
     real(dp), optional, dimension(3,cells+2), intent(out) :: limL, limR
+!    real(dp), dimension(3,0:cells+1), intent(in)  :: vars_cc
+!    real(dp), dimension(3,faces),     intent(out) :: vars_left, vars_right
+!    real(dp), optional, dimension(3,0:cells+1), intent(out) :: limL, limR
 
     real(dp), parameter :: small_factor = 0.0000001_dp
 
@@ -270,8 +288,8 @@ contains
     second_order : if ( iteration <= firstorder .or. .not. muscl ) then
 ! skip excess computations if only first order
       do i = 1, faces
-        vars_left(:,i)  = vars_cc(:,i)
-        vars_right(:,i) = vars_cc(:,i+1)
+        vars_left(:,i)  = vars_cc(:,i)!i-1
+        vars_right(:,i) = vars_cc(:,i+1)!i
       end do
     else
 
