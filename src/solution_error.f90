@@ -33,7 +33,7 @@ contains
     integer,                                    intent(in)  :: cells
     real(dp), dimension(0:cells+1),             intent(in)  :: x_cc, area_cc
     real(dp),                                   intent(in)  :: a_star, a_e
-    real(dp), dimension(3,cells+2),             intent(in)  :: cons_cc
+    real(dp), dimension(3,0:cells+1),           intent(in)  :: cons_cc
     real(dp), optional, dimension(3,0:cells+1), intent(out) :: cons_cc_ex
 
     integer               :: i, i_throat, i_shock, unit
