@@ -287,8 +287,8 @@ contains
 
       r_R(:,1)   = zero
       do i = 2, faces
-        r_R(:,i) = max( zero, (vars_cc(:,i) - vars_cc(:,i-1))                  &
-                            / (vars_cc(:,i+1) - vars_cc(:,i) + small_factor) )
+        r_R(:,i) = max( zero, (vars_cc(:,i-1) - vars_cc(:,i-2))                &
+                            / (vars_cc(:,i) - vars_cc(:,i-1) + small_factor) )
       end do
 
 ! apply appropriate limiter
