@@ -60,7 +60,7 @@ contains
     call create_source( cells, prim_cc(3,:), dadx_cc, S )
 
     do cell = 1, cells
-      residual(:,cell) = area_f(cell)*F(:,cell) - area_f(cell-1)*F(:,cell-1)   &
+      residual(:,cell) = area_f(cell+1)*F(:,cell+1) - area_f(cell)*F(:,cell)   &
                        - S(:,cell)*dx(cell)
     end do
 
@@ -264,22 +264,22 @@ contains
 
     integer :: i
 
-    real(dp), dimension(3, faces) :: r_L, r_R, psi_L, psi_R
+    real(dp), dimension(3, 0:faces+1) :: r_L, r_R, psi_L, psi_R
 
     continue
 
     second_order : if ( iteration <= firstorder .or. .not. muscl ) then
 ! skip excess computations if only first order
       do i = 1, faces
-        vars_left(:,i)  = vars_cc(:,i)!i-1
-        vars_right(:,i) = vars_cc(:,i+1)!i
+        vars_left(:,i)  = vars_cc(:,i-1)
+        vars_right(:,i) = vars_cc(:,i)
       end do
     else
 
 ! calculate left side variations, r>=0
       do i = 1, faces-1
-        r_L(:,i)  = max( zero, (vars_cc(:,i+2) - vars_cc (:,i+1))              &
-                             / (vars_cc(:,i+1) - vars_cc(:,i) + small_factor) )
+        r_L(:,i)  = max( zero, (vars_cc(:,i+1) - vars_cc (:,i))                &
+                             / (vars_cc(:,i) - vars_cc(:,i-1) + small_factor) )
       end do
       r_L(:,faces) = zero
 
@@ -331,26 +331,26 @@ contains
 ! perform MUSCL extrapolation... note that there is no limiting at in/outflow
 ! the commented out portions of code are old versions
       i = 1
-      vars_left(:,i) = vars_cc(:,i)
-!     vars_left(:,i) = vars_cc(:,i) + fourth                                   &
-!               * ((one+kappa)*(vars_cc(:,i+1) - vars_cc(:,i)))
+      vars_left(:,i) = vars_cc(:,i-1)
+!     vars_left(:,i) = vars_cc(:,i-1) + fourth                                 &
+!               * ((one+kappa)*(vars_cc(:,i) - vars_cc(:,i-1)))
 
       do i = 2, faces
-        vars_left(:,i)  = vars_cc(:,i) + fourth                                &
-                * ((one+kappa)*psi_R(:,i)   * (vars_cc(:,i+1) - vars_cc(:,i))  &
-                +  (one-kappa)*psi_L(:,i-1) * (vars_cc(:,i)   - vars_cc(:,i-1)))
+        vars_left(:,i)  = vars_cc(:,i-1) + fourth                              &
+                * ((one+kappa)*psi_R(:,i)   * (vars_cc(:,i)   - vars_cc(:,i-1))&
+                +  (one-kappa)*psi_L(:,i-1) * (vars_cc(:,i-1) - vars_cc(:,i-2)))
       end do
 
       do i = 1, faces-1
-        vars_right(:,i) = vars_cc(:,i+1) - fourth                              &
-                * ((one-kappa)*psi_R(:,i+1) * (vars_cc(:,i+2) - vars_cc(:,i+1))&
-                +  (one+kappa)*psi_L(:,i)   * (vars_cc(:,i+1) - vars_cc(:,i)))
+        vars_right(:,i) = vars_cc(:,i) - fourth                                &
+                * ((one-kappa)*psi_R(:,i+1) * (vars_cc(:,i+1) - vars_cc(:,i))  &
+                +  (one+kappa)*psi_L(:,i)   * (vars_cc(:,i)   - vars_cc(:,i-1)))
       end do
 
       i = faces
-      vars_right(:,i) = vars_cc(:,i+1)
-!     vars_right(:,i) = vars_cc(:,i+1) - fourth                                &
-!               * ((one+kappa)*(vars_cc(:,i+1) - vars_cc(:,i)))
+      vars_right(:,i) = vars_cc(:,i)
+!      vars_right(:,i) = vars_cc(:,i) - fourth                                 &
+!                * ((one+kappa)*(vars_cc(:,i) - vars_cc(:,i-1)))
 
 ! If extrapolated density or pressure/energy is < 0 then
 ! cancel the extrapolation and go first order
