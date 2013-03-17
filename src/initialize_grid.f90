@@ -59,7 +59,8 @@ contains
     call allocate_grid()
 
     do face = 1, faces
-      read(grid_unit, *) x_f(face), area_f(face), area_cc(face), dadx_cc(face)
+      read(grid_unit, *) x_f(face), area_f(face),                              &
+                         area_cc(face-1), dadx_cc(face-1)
     end do
 
     close(grid_unit)
