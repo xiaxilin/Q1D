@@ -1,4 +1,6 @@
 !FIXME: make adding the time and source term its own subroutine?
+!FIXME: review the full 2nd order LHS and copy it over to the adjoint
+!       may want a face based indexing as well
 
 module lhs
 
@@ -25,11 +27,10 @@ contains
     use set_constants, only : zero
     use jacobians,     only : jac_source_q_1D, jac_vanleer_q_1D,               &
                               dconserved_dprimitive
-    implicit none
 
-    integer,                          intent(in)  :: cells
-    real(dp), dimension(0:cells+1),     intent(in)  :: cell_vol, area_f
-    real(dp), dimension(0:cells+1),     intent(in)  :: dadx_cc, dt
+    integer,                            intent(in)  :: cells
+    real(dp), dimension(cells+1),       intent(in)  :: area_f
+    real(dp), dimension(0:cells+1),     intent(in)  :: cell_vol, dadx_cc, dt
     real(dp), dimension(3,0:cells+1),   intent(in)  :: prim_cc
     real(dp), dimension(3,3,0:cells+1), intent(out) :: L, D, U
 
@@ -48,14 +49,14 @@ contains
 
     do cell = 1, cells
 ! subtract contribution from left hand face
-      L(:,:,cell) = L(:,:,cell) - jac_L*area_f(cell-1)
-      D(:,:,cell) = D(:,:,cell) - jac_R*area_f(cell-1)
+      L(:,:,cell) = L(:,:,cell) - jac_L*area_f(cell)
+      D(:,:,cell) = D(:,:,cell) - jac_R*area_f(cell)
 
 ! now add contribution from right side face
       call jac_vanleer_q_1D( prim_cc(:,cell), prim_cc(:,cell+1), jac_L, jac_R )
 
-      D(:,:,cell) = D(:,:,cell) + jac_L*area_f(cell)
-      U(:,:,cell) = U(:,:,cell) + jac_R*area_f(cell)
+      D(:,:,cell) = D(:,:,cell) + jac_L*area_f(cell+1)
+      U(:,:,cell) = U(:,:,cell) + jac_R*area_f(cell+1)
     end do
 
 ! Add contributions from cell volume/area and the wall pressure/source jacobian
@@ -81,11 +82,9 @@ contains
     use jacobians,     only : jac_source_q_1D, jac_vanleer_q_1D,               &
                               dconserved_dprimitive
 
-    implicit none
-
-    integer,                          intent(in)  :: cells
-    real(dp), dimension(0:cells+1),     intent(in)  :: cell_vol, area_f
-    real(dp), dimension(0:cells+1),     intent(in)  :: dadx_cc, dt
+    integer,                            intent(in)  :: cells
+    real(dp), dimension(cells+1)  ,     intent(in)  :: area_f
+    real(dp), dimension(0:cells+1),     intent(in)  :: cell_vol, dadx_cc, dt
     real(dp), dimension(3,0:cells+1),   intent(in)  :: prim_cc
     real(dp), dimension(3,3,0:cells+1), intent(out) :: L2, L, D, U, U2
 
@@ -106,18 +105,18 @@ contains
 
 ! Inflow face
     cell = 0
-    call jac_vanleer_q_1D( prim_L(:,cell), prim_R(:,cell), jac_L, jac_R )
+    call jac_vanleer_q_1D( prim_L(:,cell+1), prim_R(:,cell+1), jac_L, jac_R )
 
 ! Subtract from cell to the right
 
 ! First the Jacobian on the left side of the face...
 ! no MUSCL extrapolation for the inflow ghost cell
-    L(:,:,cell+1) = L(:,:,cell+1) - jac_L*area_f(cell)
+    L(:,:,cell+1) = L(:,:,cell+1) - jac_L*area_f(cell+1)
 
 ! and now the right side.
-    L(:,:,cell+1) = L(:,:,cell+1) - jac_R*area_f(cell)*fourth*(kappa+one)
-    D(:,:,cell+1) = D(:,:,cell+1) - jac_R*area_f(cell)*(one-half*kappa)
-    U(:,:,cell+1) = U(:,:,cell+1) - jac_R*area_f(cell)*fourth*(kappa-one)
+    L(:,:,cell+1) = L(:,:,cell+1) - jac_R*area_f(cell+1)*fourth*(kappa+one)
+    D(:,:,cell+1) = D(:,:,cell+1) - jac_R*area_f(cell+1)*(one-half*kappa)
+    U(:,:,cell+1) = U(:,:,cell+1) - jac_R*area_f(cell+1)*fourth*(kappa-one)
 
 ! Take care of all interior faces
     do cell = 1, cells-1
@@ -181,9 +180,7 @@ contains
     use set_precision, only : dp
     use matrix_manip,  only : mat_inv_3x3, matrix_inv
 
-    implicit none
-
-    integer,                             intent(in) :: neq, dof
+    integer,                          intent(in)    :: neq, dof
     real(dp), dimension(neq,neq,dof), intent(inout) :: lower, diag, upper
     real(dp), dimension(neq,dof),     intent(inout) :: rhs
 
