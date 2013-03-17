@@ -173,7 +173,7 @@ module solvers
     logical :: convergence_flag = .false.
     integer :: n, eq, cell
 
-    real(dp), dimension(3)           :: l2out
+    real(dp), dimension(3)             :: l2out
     real(dp), dimension(0:cells+1)     :: dt
     real(dp), dimension(3,0:cells+1)   :: RHS, delta_prim_cc
     real(dp), dimension(3,3,0:cells+1) :: L2, L, D, U, U2
