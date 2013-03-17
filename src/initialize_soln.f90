@@ -136,7 +136,7 @@ contains
 !      end do
 
 ! Linear ramp from mref to Mach = 1 at the throat
-      do cell = 0 cells+1
+      do cell = 0, cells+1
         m = mref + (one-mref)*real(cell,dp)/real(cells/2+1,dp)
         psi = one + half*gm1*m**2
         t   = to/psi
@@ -149,7 +149,7 @@ contains
 
     endif
 
-    do cell = 0 cells+1
+    do cell = 0, cells+1
       cons_cc(:,cell) = primitive_to_conserved_1D( prim_cc(:,cell) )
     end do
 
