@@ -137,7 +137,7 @@ contains
 
 ! Linear ramp from mref to Mach = 1 at the throat
       do cell = 0, cells+1
-        m = mref + (one-mref)*real(cell,dp)/real(cells/2+1,dp)
+        m = mref + (one-mref)*real(cell+1,dp)/real(cells/2+1,dp)
         psi = one + half*gm1*m**2
         t   = to/psi
         p   = po/(psi**gxgm1)
