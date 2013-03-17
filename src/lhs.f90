@@ -28,14 +28,10 @@ contains
     implicit none
 
     integer,                          intent(in)  :: cells
-    real(dp), dimension(cells+2),     intent(in)  :: cell_vol, area_f
-    real(dp), dimension(cells+2),     intent(in)  :: dadx_cc, dt
-    real(dp), dimension(3,cells+2),   intent(in)  :: prim_cc
-    real(dp), dimension(3,3,cells+2), intent(out) :: L, D, U
-!    real(dp), dimension(0:cells+1),     intent(in)  :: cell_vol, area_f
-!    real(dp), dimension(0:cells+1),     intent(in)  :: dadx_cc, dt
-!    real(dp), dimension(3,0:cells+1),   intent(in)  :: prim_cc
-!    real(dp), dimension(3,3,0:cells+1), intent(out) :: L, D, U
+    real(dp), dimension(0:cells+1),     intent(in)  :: cell_vol, area_f
+    real(dp), dimension(0:cells+1),     intent(in)  :: dadx_cc, dt
+    real(dp), dimension(3,0:cells+1),   intent(in)  :: prim_cc
+    real(dp), dimension(3,3,0:cells+1), intent(out) :: L, D, U
 
     integer                  :: cell
     real(dp), dimension(3,3) :: jac_L, jac_R, source_jac, dc_dp
@@ -47,10 +43,10 @@ contains
     U = zero
 
 ! Inflow face
-    cell = 1!0
+    cell = 0
     call jac_vanleer_q_1D( prim_cc(:,cell), prim_cc(:,cell+1), jac_L, jac_R )
 
-    do cell = 2, cells+1!1,cells
+    do cell = 1, cells
 ! subtract contribution from left hand face
       L(:,:,cell) = L(:,:,cell) - jac_L*area_f(cell-1)
       D(:,:,cell) = D(:,:,cell) - jac_R*area_f(cell-1)
@@ -63,7 +59,7 @@ contains
     end do
 
 ! Add contributions from cell volume/area and the wall pressure/source jacobian
-    do cell = 2, cells+1!1,cells
+    do cell = 1, cells
       call jac_source_q_1D( dadx_cc(cell), cell_vol(cell), source_jac )
       call dconserved_dprimitive( prim_cc(:,cell), dc_dp )
       D(:,:,cell) = D(:,:,cell) + dc_dp*cell_vol(cell)/dt(cell) - source_jac
@@ -88,19 +84,14 @@ contains
     implicit none
 
     integer,                          intent(in)  :: cells
-    real(dp), dimension(cells+2),     intent(in)  :: cell_vol, area_f
-    real(dp), dimension(cells+2),     intent(in)  :: dadx_cc, dt
-    real(dp), dimension(3,cells+2),   intent(in)  :: prim_cc
-    real(dp), dimension(3,3,cells+2), intent(out) :: L2, L, D, U, U2
-!    real(dp), dimension(0:cells+1),     intent(in)  :: cell_vol, area_f
-!    real(dp), dimension(0:cells+1),     intent(in)  :: dadx_cc, dt
-!    real(dp), dimension(3,0:cells+1),   intent(in)  :: prim_cc
-!    real(dp), dimension(3,3,0:cells+1), intent(out) :: L2, L, D, U, U2
+    real(dp), dimension(0:cells+1),     intent(in)  :: cell_vol, area_f
+    real(dp), dimension(0:cells+1),     intent(in)  :: dadx_cc, dt
+    real(dp), dimension(3,0:cells+1),   intent(in)  :: prim_cc
+    real(dp), dimension(3,3,0:cells+1), intent(out) :: L2, L, D, U, U2
 
     integer                        :: cell
     real(dp), dimension(3,3)       :: jac_L, jac_R, source_jac, dc_dp
-    real(dp), dimension(3,cells+2) :: prim_L, prim_R
-!    real(dp), dimension(3,0:cells+1) :: prim_L, prim_R!, limL, limR
+    real(dp), dimension(3,0:cells+1) :: prim_L, prim_R!, limL, limR
 
     continue
 
@@ -114,7 +105,7 @@ contains
                               prim_L, prim_R )
 
 ! Inflow face
-    cell = 1!0
+    cell = 0
     call jac_vanleer_q_1D( prim_L(:,cell), prim_R(:,cell), jac_L, jac_R )
 
 ! Subtract from cell to the right
@@ -129,7 +120,7 @@ contains
     U(:,:,cell+1) = U(:,:,cell+1) - jac_R*area_f(cell)*fourth*(kappa-one)
 
 ! Take care of all interior faces
-    do cell = 2, cells!1, cells-1
+    do cell = 1, cells-1
 
     call jac_vanleer_q_1D( prim_L(:,cell), prim_R(:,cell), jac_L, jac_R )
 ! Add to cell on the left of the face
@@ -158,7 +149,7 @@ contains
     end do
 
 ! Outflow face
-    cell = cells+1!cells
+    cell = cells
     call jac_vanleer_q_1D( prim_L(:,cell), prim_R(:,cell), jac_L, jac_R )
 
 ! Add to cell
@@ -172,7 +163,7 @@ contains
       U(:,:,cell) = U(:,:,cell) + jac_R*area_f(cell)
 
 ! Add time term and source Jacobian
-    do cell = 2, cells+1!1, cells
+    do cell = 1, cells
       call jac_source_q_1D( dadx_cc(cell), cell_vol(cell), source_jac )
       call dconserved_dprimitive( prim_cc(:,cell), dc_dp )
       D(:,:,cell) = D(:,:,cell) + dc_dp*cell_vol(cell)/dt(cell) - source_jac
