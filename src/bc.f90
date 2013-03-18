@@ -31,8 +31,6 @@ contains
     use fluid_constants, only : r, gamma, gm1, xgm1, gxgm1!, gm1xgp1, gp1
     use initialize_soln, only : po, to
 
-    implicit none
-
     real(dp), dimension(3), intent(in)  :: cc_1, cc_2
     real(dp), dimension(3), intent(out) :: cc_in
 
@@ -93,8 +91,6 @@ contains
     use fluid_constants, only : r, gm1, xgm1, gxgm1, gm1xgp1, gp1
     use initialize_soln, only : po, to
 
-    implicit none
-
     real(dp), dimension(3), intent(in)  :: cc_1
     real(dp), dimension(3), intent(out) :: cc_in
 
@@ -135,8 +131,6 @@ contains
     use set_constants,   only : two
     use initialize_soln, only : pback
 
-    implicit none
-
     real(dp), dimension(3), intent(in)  :: cc_1, cc_2
     real(dp), dimension(3), intent(out) :: cc_out
 
@@ -159,7 +153,7 @@ contains
 ! FIXME: Check directions on extrapolations, could account for adjoint wiggles
 !
 !=============================================================================80
-  subroutine subsonic_inflow(iter, cc_in, cc_1, cc_2, DD, DU1, DU2, RHS)
+  subroutine subsonic_inflow(i ter, cc_in, cc_1, cc_2, DD, DU1, DU2, RHS )
 
     use set_precision,   only : dp
     use set_constants,   only : zero, half, one, two, three, four
@@ -167,8 +161,6 @@ contains
     use initialize_soln, only : po, to
     use residual,        only : firstorder
     use lhs,             only : lhs_order
-
-    implicit none
 
     integer,                  intent(in)  :: iter
     real(dp), dimension(3),   intent(in)  :: cc_in, cc_1, cc_2
@@ -251,7 +243,7 @@ contains
 ! FIXME: Check directions on extrapolations, could account for adjoint wiggles
 !
 !=============================================================================80
-  subroutine subsonic_inflow_prim(iter, cc_in, cc_1, cc_2, DD, DU1, DU2, RHS)
+  subroutine subsonic_inflow_prim( iter, cc_in, cc_1, cc_2, DD, DU1, DU2, RHS )
 
     use set_precision,   only : dp
     use set_constants,   only : zero, half, one, two, three, four
@@ -259,8 +251,6 @@ contains
     use initialize_soln, only : po, to
     use residual,        only : firstorder
     use lhs,             only : lhs_order
-
-    implicit none
 
     integer,                  intent(in)  :: iter
     real(dp), dimension(3),   intent(in)  :: cc_in, cc_1, cc_2
@@ -332,7 +322,7 @@ contains
 ! Creates matrices for variable extrapolation
 !
 !=============================================================================80
-  subroutine set_outflow(iter, cc_out, cc_1, cc_2, DD, DL1, DL2, RHS)
+  subroutine set_outflow( iter, cc_out, cc_1, cc_2, DD, DL1, DL2, RHS )
 
     use set_precision,   only : dp
     use set_constants,   only : zero, half, one, three, four
@@ -340,8 +330,6 @@ contains
     use initialize_soln, only : pback
     use residual,        only : firstorder
     use lhs,             only : lhs_order
-
-    implicit none
 
     integer,                  intent(in)  :: iter
     real(dp), dimension(3),   intent(in)  :: cc_out, cc_1, cc_2
@@ -419,18 +407,15 @@ contains
 !============================== set_outflow_prim =============================80
 !
 ! Creates matrices for variable extrapolation wrt primitive variables
-! FIXME: review DL1 and DL2 when pback > 0
 !
 !=============================================================================80
-  subroutine set_outflow_prim(iter, cc_out, cc_1, cc_2, DD, DL1, DL2, RHS)
+  subroutine set_outflow_prim( iter, cc_out, cc_1, cc_2, DD, DL1, DL2, RHS )
 
     use set_precision,   only : dp
     use set_constants,   only : zero, one, three, four
     use initialize_soln, only : pback
     use residual,        only : firstorder
     use lhs,             only : lhs_order
-
-    implicit none
 
     integer,                  intent(in)  :: iter
     real(dp), dimension(3),   intent(in)  :: cc_out, cc_1, cc_2
@@ -457,7 +442,7 @@ contains
     end if
 
     if ( pback > zero ) then
-      if ( iter >= firstorder .and. lhs_order /= 1 ) DD(3,:) = DD(3,:)/three
+      if ( iter >= firstorder .and. lhs_order /= 1 ) DD(3,3) = one
       DL1(3,3) = zero
       DL2(3,3) = zero
 
