@@ -83,14 +83,15 @@ contains
                               dconserved_dprimitive
 
     integer,                            intent(in)  :: cells
-    real(dp), dimension(cells+1)  ,     intent(in)  :: area_f
+    real(dp), dimension(cells+1),       intent(in)  :: area_f
     real(dp), dimension(0:cells+1),     intent(in)  :: cell_vol, dadx_cc, dt
     real(dp), dimension(3,0:cells+1),   intent(in)  :: prim_cc
     real(dp), dimension(3,3,0:cells+1), intent(out) :: L2, L, D, U, U2
 
     integer                        :: cell
+
     real(dp), dimension(3,3)       :: jac_L, jac_R, source_jac, dc_dp
-    real(dp), dimension(3,0:cells+1) :: prim_L, prim_R!, limL, limR
+    real(dp), dimension(3,cells+1) :: prim_L, prim_R!, limL, limR
 
     continue
 
@@ -121,45 +122,45 @@ contains
 ! Take care of all interior faces
     do cell = 1, cells-1
 
-    call jac_vanleer_q_1D( prim_L(:,cell), prim_R(:,cell), jac_L, jac_R )
+    call jac_vanleer_q_1D( prim_L(:,cell+1), prim_R(:,cell+1), jac_L, jac_R )
 ! Add to cell on the left of the face
 
 ! First the Jacobian on the left side of the face...
-      L(:,:,cell) = L(:,:,cell) + jac_L*area_f(cell)*fourth*(kappa-one)
-      D(:,:,cell) = D(:,:,cell) + jac_L*area_f(cell)*(one-half*kappa)
-      U(:,:,cell) = U(:,:,cell) + jac_L*area_f(cell)*fourth*(kappa+one)
+      L(:,:,cell) = L(:,:,cell) + jac_L*area_f(cell+1)*fourth*(kappa-one)
+      D(:,:,cell) = D(:,:,cell) + jac_L*area_f(cell+1)*(one-half*kappa)
+      U(:,:,cell) = U(:,:,cell) + jac_L*area_f(cell+1)*fourth*(kappa+one)
 ! and now the right side.
-      D(:,:,cell)  = D(:,:,cell)  + jac_R*area_f(cell)*fourth*(kappa+one)
-      U(:,:,cell)  = U(:,:,cell)  + jac_R*area_f(cell)*(one-half*kappa)
-      U2(:,:,cell) = U2(:,:,cell) + jac_R*area_f(cell)*fourth*(kappa-one)
+      D(:,:,cell)  = D(:,:,cell)  + jac_R*area_f(cell+1)*fourth*(kappa+one)
+      U(:,:,cell)  = U(:,:,cell)  + jac_R*area_f(cell+1)*(one-half*kappa)
+      U2(:,:,cell) = U2(:,:,cell) + jac_R*area_f(cell+1)*fourth*(kappa-one)
 
 ! Subtract from cell to the right
 
 ! First the Jacobian on the left side of the face...
-      L2(:,:,cell+1) = L2(:,:,cell+1) - jac_L*area_f(cell)*fourth*(kappa-one)
-      L(:,:,cell+1)  = L(:,:,cell+1)  - jac_L*area_f(cell)*(one-half*kappa)
-      D(:,:,cell+1)  = D(:,:,cell+1)  - jac_L*area_f(cell)*fourth*(kappa+one)
+      L2(:,:,cell+1) = L2(:,:,cell+1) - jac_L*area_f(cell+1)*fourth*(kappa-one)
+      L(:,:,cell+1)  = L(:,:,cell+1)  - jac_L*area_f(cell+1)*(one-half*kappa)
+      D(:,:,cell+1)  = D(:,:,cell+1)  - jac_L*area_f(cell+1)*fourth*(kappa+one)
 
 ! and now the right side.
-      L(:,:,cell+1) = L(:,:,cell+1) - jac_R*area_f(cell)*fourth*(kappa+one)
-      D(:,:,cell+1) = D(:,:,cell+1) - jac_R*area_f(cell)*(one-half*kappa)
-      U(:,:,cell+1) = U(:,:,cell+1) - jac_R*area_f(cell)*fourth*(kappa-one)
+      L(:,:,cell+1) = L(:,:,cell+1) - jac_R*area_f(cell+1)*fourth*(kappa+one)
+      D(:,:,cell+1) = D(:,:,cell+1) - jac_R*area_f(cell+1)*(one-half*kappa)
+      U(:,:,cell+1) = U(:,:,cell+1) - jac_R*area_f(cell+1)*fourth*(kappa-one)
 
     end do
 
 ! Outflow face
     cell = cells
-    call jac_vanleer_q_1D( prim_L(:,cell), prim_R(:,cell), jac_L, jac_R )
+    call jac_vanleer_q_1D( prim_L(:,cell+1), prim_R(:,cell+1), jac_L, jac_R )
 
 ! Add to cell
 
 ! First the Jacobian on the left side of the face...
-      L(:,:,cell) = L(:,:,cell) + jac_L*area_f(cell)*fourth*(kappa-one)
-      D(:,:,cell) = D(:,:,cell) + jac_L*area_f(cell)*(one-half*kappa)
-      U(:,:,cell) = U(:,:,cell) + jac_L*area_f(cell)*fourth*(kappa+one)
+      L(:,:,cell) = L(:,:,cell) + jac_L*area_f(cell+1)*fourth*(kappa-one)
+      D(:,:,cell) = D(:,:,cell) + jac_L*area_f(cell+1)*(one-half*kappa)
+      U(:,:,cell) = U(:,:,cell) + jac_L*area_f(cell+1)*fourth*(kappa+one)
 ! and now the right side.
 ! no MUSCL extrapolation for the outflow ghost cell
-      U(:,:,cell) = U(:,:,cell) + jac_R*area_f(cell)
+      U(:,:,cell) = U(:,:,cell) + jac_R*area_f(cell+1)
 
 ! Add time term and source Jacobian
     do cell = 1, cells
