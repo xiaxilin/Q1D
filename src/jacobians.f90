@@ -23,8 +23,6 @@ contains
     use set_constants,   only : zero, fourth, half, one, two
     use fluid_constants, only : gamma, gm1, xg, xg2m1
 
-    implicit none
-
     real(dp), dimension(3),   intent(in)  :: ql, qr
     real(dp), dimension(3,3), intent(out) :: jac_l, jac_r
 
@@ -178,8 +176,6 @@ contains
     use set_constants,   only : zero, half, one, two
     use fluid_constants, only : gm1
 
-    implicit none
-
     real(dp), dimension(3),   intent(in)  :: ql, qr
     real(dp), dimension(3,3), intent(out) :: jac_l, jac_r
 
@@ -255,8 +251,6 @@ contains
     use set_precision,   only : dp
     use set_constants,   only : zero, fourth, half, one, two
     use fluid_constants, only : gamma, gm1, xg, xg2m1
-
-    implicit none
 
     real(dp), dimension(3),   intent(in)  :: ql, qr
     real(dp), dimension(3,3), intent(out) :: jac_l, jac_r
@@ -442,8 +436,6 @@ contains
     use set_precision,   only : dp
     use set_constants,   only : zero, fourth, half, one, two
     use fluid_constants, only : gamma, gm1, xg, xgm1, xg2m1
-
-    implicit none
 
     real(dp), dimension(3),   intent(in)  :: ql, qr
     real(dp), dimension(3,3), intent(out) :: jac_l, jac_r

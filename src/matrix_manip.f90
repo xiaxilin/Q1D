@@ -23,8 +23,6 @@ contains
 
     use set_precision, only : dp
 
-    implicit none
-
     integer,                          intent(in)    :: neq, dof
     real(dp), dimension(neq,neq,dof), intent(inout) :: LD, DD, UD
     real(dp), dimension(neq,dof),     intent(inout) :: RHS
@@ -74,8 +72,6 @@ contains
   subroutine pentablocksolve(neq, dof, LD2, LD, DD, UD, UD2, RHS, soln)
 
     use set_precision, only : dp
-
-    implicit none
 
     integer,                          intent(in)    :: neq, dof
     real(dp), dimension(neq,neq,dof), intent(inout) :: LD2, LD, DD, UD, UD2
@@ -160,8 +156,6 @@ contains
     use set_precision, only : dp
     use set_constants, only : zero, one
 
-    implicit none
-
     integer,                      intent(in)  :: neq
     real(dp), dimension(neq,neq), intent(in)  :: matrix
     real(dp), dimension(neq,neq), intent(out) :: upper, lower
@@ -228,8 +222,6 @@ contains
     use set_precision, only : dp
     use set_constants, only : zero
 
-    implicit none
-
     integer,                      intent(in)  :: neq
     real(dp), dimension(neq,neq), intent(in)  :: lower, upper
     real(dp), dimension(neq),     intent(in)  :: b
@@ -274,8 +266,6 @@ contains
     use set_precision, only : dp
     use set_constants, only : zero, one
 
-    implicit none
-
     integer,                      intent(in)  :: neq
     real(dp), dimension(neq,neq), intent(in)  :: matrix
     real(dp), dimension(neq,neq), intent(out) :: inv
@@ -308,8 +298,6 @@ contains
 
     use set_precision, only : dp
     use set_constants, only : zero, one
-
-    implicit none
 
     real(dp), dimension(3,3), intent(in)  :: mat
     real(dp), dimension(3,3), intent(out) :: inv
