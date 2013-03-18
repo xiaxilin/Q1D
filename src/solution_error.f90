@@ -377,7 +377,7 @@ contains
     prim_cc(2,0) = mref*sqrt(gamma*r*t)
     prim_cc(3,0) = p
 
-    cons_cc(:,0) = primitive_to_conserved_1D(prim_cc(:,1))
+    cons_cc(:,0) = primitive_to_conserved_1D(prim_cc(:,0))
 
     call subsonic_inflow_explicit(prim_cc(:,0), prim_cc(:,1), prim_cc(:,2))
     call outflow_explicit( prim_cc(:,cells+1),                                 &
@@ -387,7 +387,7 @@ contains
     call create_residual( cells, faces, iterations, prim_cc, area_f, dadx_cc,  &
                           dx, te )
 
-    write(*,*) te(0,2)
+    write(*,*) te(1,2)
 
     grid_te_unit = find_available_unit()
 
