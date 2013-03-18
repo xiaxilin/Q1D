@@ -153,7 +153,7 @@ contains
 ! FIXME: Check directions on extrapolations, could account for adjoint wiggles
 !
 !=============================================================================80
-  subroutine subsonic_inflow(i ter, cc_in, cc_1, cc_2, DD, DU1, DU2, RHS )
+  subroutine subsonic_inflow( iter, cc_in, cc_1, cc_2, DD, DU1, DU2, RHS )
 
     use set_precision,   only : dp
     use set_constants,   only : zero, half, one, two, three, four
