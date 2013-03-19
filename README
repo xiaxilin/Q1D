@@ -8,6 +8,7 @@ q1da     : dual solver... not fully hooked up for shocked cases
 
 Written in Fortran 9X/0X by Joe Derlaga
 
+Checked with Valgrind to ensure no memory leaks
 This code is under development!
 The implicit path is still in testing...
 The lack of nondimensionalization is causing matrix structure problems and
@@ -16,9 +17,9 @@ Adjoint code to follow!
 
 This directory includes a suite of codes to study the Quasi-1D Nozzle problem.
 
-The heart of the suite, q1d, 
+The heart of the suite, q1d,
 is a FVM code with multistep Runge-Kutta explicit and Euler implicit solvers.
-Currently the RK scheme uses global time stepping 
+Currently the RK scheme uses global time stepping
 while the implicit scheme uses local time stepping.
 
 The code defaults to a first order mode, but second order is reach via
@@ -48,19 +49,19 @@ Due to the modularity of the code, it is a simple matter to add additional
 flux schemes or variable limiters
 
 The code requires that the number of interior cells, N, be specified,
-however, two additional cells, cell(1) and cell(N+2), are ghost cells,
-while the interior domain is contained by cell(2,N+1).
+however, two additional cells, cell(0) and cell(N+1), are ghost cells,
+while the interior domain is contained by cell(1,N).
 Since there are N interior cells, there are N+1 faces.
 Hopefully the below diagram explains this:
 
 DOMAIN: inflow |        interior        | outflow
        -----------------------------------------
-CELLS:     1   |   2   | ...... |  N+1  |  N+2
+CELLS:     0   |   1   | ...... |   N   |  N+1
        -----------------------------------------
 FACES:         1       2        N      N+1
 
-Where appropriate, the code will loop over faces, 
-such as when it is calculating fluxes, or over cells, 
+Where appropriate, the code will loop over faces,
+such as when it is calculating fluxes, or over cells,
 such as when the explicit iteration is being performed.
 
 To build, execute the following (insert appropriate compiler and options):
@@ -97,9 +98,9 @@ Coding standard:
 80 column line limit for readability
 No tabs, only spaces for indentation, run untabify in emacs
 No trailing whitespace
-Remember that Fortran ignores capitalization so ql, qL, Ql, and QL 
+Remember that Fortran ignores capitalization so ql, qL, Ql, and QL
 all refer to the same variable.
-Therefore, use CAPS sparingly, i.e., 
+Therefore, use CAPS sparingly, i.e.,
 where differentiating between 1, l, I, L are important,
 and where it helps readability.
 Additionally, no one wants to be yelled at while reading code.
