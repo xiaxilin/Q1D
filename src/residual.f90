@@ -54,15 +54,15 @@ contains
 
     continue
 
-    residual = zero
+    F = create_fluxes( cells, faces, iteration, prim_cc )
+    S = create_source( cells, prim_cc, dadx_cc )
 
-    call create_fluxes( cells, faces, iteration, prim_cc, F )
-    call create_source( cells, prim_cc(3,:), dadx_cc, S )
-
+    residual(:,0) = zero
     do cell = 1, cells
       residual(:,cell) = area_f(cell+1)*F(:,cell+1) - area_f(cell)*F(:,cell)   &
                        - S(:,cell)*dx(cell)
     end do
+    residual(:,cells+1) = zero
 
   end subroutine create_residual
 
@@ -71,13 +71,13 @@ contains
 ! Fills the flux array
 !
 !=============================================================================80
-  subroutine create_fluxes( cells, faces, iteration, prim_cc, flux )
+  function create_fluxes( cells, faces, iteration, prim_cc ) result( flux )
 
     use set_precision, only : dp
 
     integer,                           intent(in)  :: cells, faces, iteration
     real(dp), dimension(3, 0:cells+1), intent(in)  :: prim_cc
-    real(dp), dimension(3, faces),     intent(out) :: flux
+    real(dp), dimension(3, faces)                  :: flux
 
     integer :: i
 
@@ -128,21 +128,22 @@ contains
 ! FIXME: not implemented yet
     end select
 
-  end subroutine create_fluxes
+  end function create_fluxes
 
 !=============================== create_source ===============================80
 !
 ! Calculates the source term
 !
 !=============================================================================80
-  subroutine create_source( cells, pressure, dadx_cc, source )
+  pure function create_source( cells, prim_cc, dadx_cc ) result( source )
 
     use set_precision, only : dp
     use set_constants, only : zero
 
-    integer,                           intent(in)  :: cells
-    real(dp), dimension(0:cells+1),    intent(in)  :: pressure, dadx_cc
-    real(dp), dimension(3, 0:cells+1), intent(out) :: source
+    integer,                          intent(in)  :: cells
+    real(dp), dimension(3,0:cells+1), intent(in)  :: prim_cc
+    real(dp), dimension(0:cells+1),   intent(in)  :: dadx_cc
+    real(dp), dimension(3,0:cells+1)              :: source
 
     integer :: i
 
@@ -151,10 +152,10 @@ contains
     source = zero
 
     do i = 1, cells
-      source(2,i) = pressure(i)*dadx_cc(i)
+      source(2,i) = prim_cc(3,i)*dadx_cc(i)
     end do
 
-  end subroutine create_source
+  end function create_source
 
 !============================== add_jst_damping ==============================80
 !

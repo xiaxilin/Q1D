@@ -179,7 +179,7 @@ contains
   subroutine modify_lhs_for_bc(neq, dof, lower, diag, upper, rhs)
 
     use set_precision, only : dp
-    use matrix_manip,  only : mat_inv_3x3, matrix_inv
+    use matrix_manip,  only : mat_inv_3x3!, matrix_inv
 
     integer,                          intent(in)    :: neq, dof
     real(dp), dimension(neq,neq,dof), intent(inout) :: lower, diag, upper
@@ -191,7 +191,7 @@ contains
 
 ! Inflow
 !    call matrix_inv(3,upper(:,:,2),inv)
-    call mat_inv_3x3(upper(:,:,2),inv)
+    inv = mat_inv_3x3(upper(:,:,2))
     inv = matmul(lower(:,:,1), inv)
 
     diag(:,:,1)  = diag(:,:,1)  - matmul(inv, lower(:,:,2))
@@ -200,7 +200,7 @@ contains
 
 ! Outflow
 !    call matrix_inv(3,lower(:,:,dof-1),inv)
-    call mat_inv_3x3(lower(:,:,dof-1),inv)
+    inv = mat_inv_3x3(lower(:,:,dof-1))
     inv = matmul(upper(:,:,dof), inv)
 
     lower(:,:,dof) = lower(:,:,dof) - matmul(inv, diag(:,:,dof-1))

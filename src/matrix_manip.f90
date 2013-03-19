@@ -35,7 +35,7 @@ contains
 
 ! Normalize the first row...
 !    call matrix_inv(neq, DD(:,:,1), temp)
-    call mat_inv_3x3(DD(:,:,1), temp)
+    temp = mat_inv_3x3( DD(:,:,1) )
 
     DD(:,:,1) = matmul(temp,DD(:,:,1))
     UD(:,:,1) = matmul(temp,UD(:,:,1))
@@ -47,7 +47,7 @@ contains
       RHS(:,i)  = RHS(:,i)  - matmul(LD(:,:,i), RHS(:,i-1))
 
 !      call matrix_inv(neq, DD(:,:,i), temp)
-      call mat_inv_3x3(DD(:,:,i), temp)
+      temp = mat_inv_3x3( DD(:,:,i) )
 
       DD(:,:,i) = matmul(temp,DD(:,:,i))
       UD(:,:,i) = matmul(temp,UD(:,:,i))
@@ -86,7 +86,7 @@ contains
 ! Eliminate the LD2 diagonal
     do i = 3, dof-1
 !      call matrix_inv(neq, LD(:,:,i-1), temp)
-      call mat_inv_3x3(LD(:,:,i-1), temp)
+      temp = mat_inv_3x3( LD(:,:,i-1) )
       temp2 = matmul(LD2(:,:,i), temp)
 
       LD(:,:,i) = LD(:,:,i) - matmul(temp2, DD(:,:,i-1))
@@ -97,7 +97,7 @@ contains
 
     i = dof
 !    call matrix_inv(neq, LD(:,:,i-1), temp)
-    call mat_inv_3x3(LD(:,:,i-1), temp)
+    temp = mat_inv_3x3( LD(:,:,i-1) )
     temp2 = matmul(LD2(:,:,i), temp)
 
     LD(:,:,i) = LD(:,:,i) - matmul(temp2, DD(:,:,i-1))
@@ -107,7 +107,7 @@ contains
 ! Eliminate the LD diagonal
     do i = 2, dof-1
 !      call matrix_inv(neq, DD(:,:,i-1), temp)
-      call mat_inv_3x3(DD(:,:,i-1), temp)
+      temp = mat_inv_3x3( DD(:,:,i-1) )
       temp2 = matmul(LD(:,:,i), temp )
 
       DD(:,:,i) = DD(:,:,i) - matmul(temp2, UD(:,:,i-1))
@@ -118,7 +118,7 @@ contains
 
     i = dof
 !    call matrix_inv(neq, DD(:,:,i-1), temp)
-    call mat_inv_3x3(DD(:,:,i-1), temp)
+    temp = mat_inv_3x3( DD(:,:,i-1) )
     temp2 = matmul(LD(:,:,i), temp )
 
     DD(:,:,i) = DD(:,:,i) - matmul(temp2, UD(:,:,i-1))
@@ -126,18 +126,18 @@ contains
 
 ! Back solve
 !    call matrix_inv(neq, DD(:,:,dof), temp)
-    call mat_inv_3x3(DD(:,:,dof), temp)
+    temp = mat_inv_3x3( DD(:,:,dof) )
     soln(:,dof)   = matmul(temp, RHS(:,dof))
 
 !    call matrix_inv(neq, DD(:,:,dof-1), temp)
-    call mat_inv_3x3(DD(:,:,dof-1), temp)
+    temp = mat_inv_3x3( DD(:,:,dof-1) )
 
     soln(:,dof-1) = matmul(temp, &
       RHS(:,dof-1) - matmul(UD(:,:,dof-1), soln(:,dof)))
 
     do i = dof-2,1,-1
 !      call matrix_inv(neq, DD(:,:,i), temp)
-      call mat_inv_3x3(DD(:,:,i), temp)
+      temp = mat_inv_3x3( DD(:,:,i) )
       soln(:,i) = matmul(temp, RHS(:,i)                                        &
         - matmul(UD(:,:,i), soln(:,i+1)) - matmul(UD2(:,:,i), soln(:,i+2)))
     end do
@@ -216,8 +216,7 @@ contains
 ! Peforms the LU back solve
 !
 !=============================================================================80
-
-  subroutine lubkslv(neq, lower, upper, b, x)
+  pure function lubkslv( neq, lower, upper, b ) result(x)
 
     use set_precision, only : dp
     use set_constants, only : zero
@@ -225,7 +224,7 @@ contains
     integer,                      intent(in)  :: neq
     real(dp), dimension(neq,neq), intent(in)  :: lower, upper
     real(dp), dimension(neq),     intent(in)  :: b
-    real(dp), dimension(neq),     intent(out) :: x
+    real(dp), dimension(neq)                  :: x
 
     integer  :: i, j
     real(dp) :: factor
@@ -253,14 +252,14 @@ contains
       x(i) = (y(i) - factor)/upper(i,i)
     end do
 
-  end subroutine lubkslv
+  end function lubkslv
 
 !================================= matrix_inv ================================80
 !
 ! Calculates a general matrix inverse using LU decomposition
+! FIXME: incomplete!
 !
 !=============================================================================80
-
   subroutine matrix_inv(neq, matrix, inv)
 
     use set_precision, only : dp
@@ -271,7 +270,8 @@ contains
     real(dp), dimension(neq,neq), intent(out) :: inv
 
     integer :: i
-    real(dp), dimension(neq) :: b, soln
+
+    real(dp), dimension(neq)     :: b
     real(dp), dimension(neq,neq) :: l,u
 
     continue
@@ -279,28 +279,27 @@ contains
 ! perform LU decomposition
     call ludcmp(neq, matrix, l, u)
 
-! perfrom backsolve to get inverse
+! perform backsolve to get inverse
     do i = 1, neq
       b    = zero
       b(i) = one
-      call lubkslv(neq, l, u, b, soln)
-      inv(:,i) = soln
+      inv(:,i) = lubkslv(neq, matrix, u, b)
     end do
 
   end subroutine matrix_inv
+
 !================================ mat_inv_3x3 ================================80
 !
 ! Calculates inverse of 3x3 matrix for speed!!!!
 !
 !=============================================================================80
-
-  subroutine mat_inv_3x3(mat, inv)
+  pure function mat_inv_3x3( mat ) result(inv)
 
     use set_precision, only : dp
     use set_constants, only : zero, one
 
-    real(dp), dimension(3,3), intent(in)  :: mat
-    real(dp), dimension(3,3), intent(out) :: inv
+    real(dp), dimension(3,3), intent(in) :: mat
+    real(dp), dimension(3,3)             :: inv
 
     real(dp) :: det
 
@@ -320,11 +319,11 @@ contains
 
     det = det_3x3(mat)
 
-    if (det == zero) det = one
+    if ( det == zero ) det = one
 
     inv = inv/det
 
-  end subroutine mat_inv_3x3
+  end function mat_inv_3x3
 
   include 'det_3x3.f90'
 
