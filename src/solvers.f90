@@ -346,7 +346,7 @@ module solvers
     Linf(:) = Linf(:)/Linf_init(:)
 
     write(*,300) iteration, L2(1), L2(2), L2(3)
-300 format(1X,i8,2(e15.6),3(e15.6),4(e15.6))
+300 format(1X,i8,3e15.6)
 
     convergence_flag = .false.
     if ( L2(1) <= toler .and. L2(2) <= toler .and. L2(3) <= toler ) then
