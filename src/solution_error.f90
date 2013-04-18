@@ -344,31 +344,33 @@ contains
 
     grid_te_unit = find_available_unit()
 
-    open(grid_te_unit, file='q1d_te.grd', status='old')
+    open( grid_te_unit, file='q1d_te.grd', status='old' )
 
     read(grid_te_unit,*) faces_te
 
-    do face = 1, faces_te
+    do face = 0, faces_te-1
       read(grid_te_unit, *) x_te(face), area_te(face)
     end do
 
-    close(grid_te_unit)
+    close( grid_te_unit )
 
     cells_te = 3*cells
 
-    call calculate_exact_soln( cells_te, x_te, area_te, a_star, x_te(faces_te),&
-                               cons_dummy, cons_gq_te )
+    call calculate_exact_soln( cells_te, x_te, area_te, a_star,                &
+                               x_te(faces_te-1), cons_dummy, cons_gq_te )
 
     do i = 1, cells
-      j = 3*i - 3
+      j = 3*(i-1)
 
-      cons_cc(:,i) = (5.0_dp/9.0_dp)*cons_gq_te(:,j-1) &
-                   + (8.0_dp/9.0_dp)*cons_gq_te(:,j)   &
-                   + (5.0_dp/9.0_dp)*cons_gq_te(:,j+1)
+      cons_cc(:,i) = (5.0_dp/9.0_dp)*cons_gq_te(:,j+1)                         &
+                   + (8.0_dp/9.0_dp)*cons_gq_te(:,j+2)                         &
+                   + (5.0_dp/9.0_dp)*cons_gq_te(:,j+3)
+
       cons_cc(:,i) = 0.5_dp*cons_cc(:,i)
       prim_cc(:,i) = conserved_to_primitive_1D( cons_cc(:,i) )
     end do
 
+! FIXME: I don't think the following 9 lines are needed
     psi = one + half*gm1*mref**2
     t   = to/psi
     p   = po/(psi**gxgm1)
@@ -381,13 +383,13 @@ contains
 
     call subsonic_inflow_explicit(prim_cc(:,0), prim_cc(:,1), prim_cc(:,2))
     call outflow_explicit( prim_cc(:,cells+1),                                 &
-                           prim_cc(:,cells), prim_cc(:,cells-1) )
+                           prim_cc(:,cells),                                   &
+                           prim_cc(:,cells-1) )
+
     cons_cc(:,cells+1) = primitive_to_conserved_1D(prim_cc(:,cells+1))
 
     call create_residual( cells, faces, iterations, prim_cc, area_f, dadx_cc,  &
                           dx, te )
-
-    write(*,*) te(1,2)
 
     grid_te_unit = find_available_unit()
 
@@ -398,7 +400,8 @@ contains
     write(grid_te_unit,*) 'DT=(DOUBLE DOUBLE DOUBLE DOUBLE )'
 
     do cell = 1, cells
-      write(grid_te_unit, *) x_te(3*(cell-1)), te(1, cell), te(2, cell), te(3, cell)
+      write(grid_te_unit, *) x_te(3*cell-1), te(1, cell), te(2, cell),         &
+                             te(3, cell)
     end do
     close(grid_te_unit)
 
