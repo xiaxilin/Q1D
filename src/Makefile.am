@@ -1,4 +1,3 @@
-
 bin_PROGRAMS =
 
 bin_PROGRAMS += q1d q1da q1d_grid
