@@ -1,7 +1,8 @@
 module namelist
 
   use residual,        only : muscl, kappa, limiter, firstorder,               &
-                              flux_type, k2, k4
+                              flux_type, k2, k4, inflow_gc, inflow_face,       &
+                              outflow_gc, outflow_face
   use lhs,             only : lhs_order
   use solvers,         only : iterations, itercheck, iter_out, solver,         &
                               rkorder, cfl, toler, cfl_end, cfl_ramp
@@ -20,7 +21,7 @@ module namelist
                           iter_out, rkorder, cfl, limiter, muscl, kappa, toler,&
                           cfl_end, cfl_ramp
 
-!  namelist /bc/ inflowbc, outflowbc
+  namelist /bc/ inflow_gc, inflow_face, outflow_gc, outflow_face
 
   namelist /flux/ flux_type, k2, k4
 
@@ -42,7 +43,7 @@ contains
 
     use set_precision, only : dp
 
-    integer :: nml_unit
+    integer :: nml_unit, err, err_tot
 
     continue
 
@@ -95,16 +96,34 @@ contains
     !sets the type of variable limiter, only needed with MUSCLE = .true.
 
     rewind(nml_unit)
-    read(nml_unit, nml=code_control)
+    read(nml_unit, nml=code_control, iostat=err)
+
+    if ( err < 0 ) then
+      write(*,*) "NML CODE_CONTROL not found, using defaults."
+    else if ( err > 0 ) then
+      write(*,*) "WARNING: Error in CODE_CONTROL inputs!"
+      err_tot = err_tot + err
+    end if
 
 ! set defaults and read&bc
 
-!    inflowbc = 'nozzle_central' !'nozzle_oneside', 'riemann'
+    inflow_gc    = 0
 
-!    outflowbc = 'extrap' !'riemann'
+    inflow_face  = 0
 
-!    rewind(nml_unit)
-!    read(nml_unit, nml=bc)
+    outflow_gc   = 0
+
+    outflow_face = 0
+
+    rewind(nml_unit)
+    read(nml_unit, nml=bc, iostat=err)
+
+    if ( err < 0 ) then
+      write(*,*) "NML BC not found, using defaults."
+    else if ( err > 0 ) then
+      write(*,*) "WARNING: Error in BC inputs!"
+      err_tot = err_tot + err
+    end if
 
 ! set defaults and read &flux
 
@@ -118,7 +137,14 @@ contains
     !sets the adaptive dissipation for central difference flux
 
     rewind(nml_unit)
-    read(nml_unit, nml=flux)
+    read(nml_unit, nml=flux, iostat=err)
+
+    if ( err < 0 ) then
+      write(*,*) "NML FLUX not found, using defaults."
+    else if ( err > 0 ) then
+      write(*,*) "WARNING: Error in FLUX inputs!"
+      err_tot = err_tot + err
+    end if
 
 ! set defaults and read &conditions
 
@@ -140,7 +166,14 @@ contains
     !back pressure, Pa.  set less than 0 for supersonic extrapolation
 
     rewind(nml_unit)
-    read(nml_unit, nml=conditions)
+    read(nml_unit, nml=conditions, iostat=err)
+
+    if ( err < 0 ) then
+      write(*,*) "NML CONDITIONS not found, using defaults."
+    else if ( err > 0 ) then
+      write(*,*) "WARNING: Error in CONDITIONS inputs!"
+      err_tot = err_tot + err
+    end if
 
 ! set defaults and read &gas_properties
 
@@ -167,7 +200,14 @@ contains
     !reference pressure... p_ref = rho*a**2 = gamma*p, at STP p_ref = 141855 Pa
 
     rewind(nml_unit)
-    read(nml_unit, nml=gas_properties)
+    read(nml_unit, nml=gas_properties, iostat=err)
+
+    if ( err < 0 ) then
+      write(*,*) "NML GAS_PROPERTIES not found, using defaults."
+    else if ( err > 0 ) then
+      write(*,*) "WARNING: Error in GAS_PROPERTIES inputs!"
+      err_tot = err_tot + err
+    end if
 
     close(nml_unit)
 

@@ -18,10 +18,13 @@ module residual
   public :: k2         ! JST damping coefficient, only for flux_type = 'jst'
   public :: k4         ! JST damping coefficient, only for flux_type = 'jst'
 
+  public :: inflow_gc, inflow_face, outflow_gc, outflow_face
+
   logical       :: muscl
   real(dp)      :: kappa
   character(10) :: limiter
   integer       :: firstorder
+  integer       :: inflow_gc, inflow_face, outflow_gc, outflow_face
 
   character(10) :: flux_type
   real(dp)      :: k2
@@ -254,7 +257,7 @@ contains
                                   vars_left, vars_right, limL, limR )
 
     use set_precision, only : dp
-    use set_constants, only : zero, fourth, one, onep5, two
+    use set_constants, only : zero, fourth, half, one, onep5, two, six
 
     integer,                          intent(in)  :: cells, faces, iteration
     real(dp), dimension(3,0:cells+1), intent(in)  :: vars_cc
@@ -332,9 +335,18 @@ contains
 ! perform MUSCL extrapolation... note that there is no limiting at in/outflow
 ! the commented out portions of code are old versions
       i = 1
-      vars_left(:,i) = vars_cc(:,i-1)
-!     vars_left(:,i) = vars_cc(:,i-1) + fourth                                 &
-!               * ((one+kappa)*(vars_cc(:,i) - vars_cc(:,i-1)))
+      select case( inflow_face )
+      case( 0,1 )
+        vars_left(:,i) = vars_cc(:,i-1)
+      case( 2 ) ! 2nd
+        vars_left(:,i) = onep5*vars_cc(:,i) - half*vars_cc(:,i+1)
+      case( 3 ) ! 3rd
+        vars_left(:,i) = ( 11._dp*vars_cc(:,i) - 7._dp*vars_cc(:,i+1)  &
+                       + two*vars_cc(:,i+2) ) / six
+      case default ! truncated MUSCL
+        vars_left(:,i) = vars_cc(:,i-1) + fourth                               &
+                * ((one+kappa)*(vars_cc(:,i) - vars_cc(:,i-1)))
+      end select
 
       do i = 2, faces
         vars_left(:,i)  = vars_cc(:,i-1) + fourth                              &
@@ -349,9 +361,18 @@ contains
       end do
 
       i = faces
-      vars_right(:,i) = vars_cc(:,i)
-!      vars_right(:,i) = vars_cc(:,i) - fourth                                 &
-!                * ((one+kappa)*(vars_cc(:,i) - vars_cc(:,i-1)))
+      select case( outflow_face )
+        case( 0,1 )
+          vars_right(:,i) = vars_cc(:,i)
+        case( 2 )  ! 2nd
+          vars_right(:,i) = onep5*vars_cc(:,i-1) - half*vars_cc(:,i-2)
+        case( 3 ) ! 3rd
+          vars_right(:,i) = ( 11._dp*vars_cc(:,i-1) - 7._dp*vars_cc(:,i-2)     &
+                          + two*vars_cc(:,i-3) ) / six
+        case default ! truncated MUSCL
+          vars_right(:,i) = vars_cc(:,i) - fourth                              &
+                  * ((one+kappa)*(vars_cc(:,i) - vars_cc(:,i-1)))
+        end select
 
 ! If extrapolated density or pressure/energy is < 0 then
 ! cancel the extrapolation and go first order
