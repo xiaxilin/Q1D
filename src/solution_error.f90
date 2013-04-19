@@ -371,22 +371,23 @@ contains
     end do
 
 ! FIXME: I don't think the following 9 lines are needed
-    psi = one + half*gm1*mref**2
-    t   = to/psi
-    p   = po/(psi**gxgm1)
+!    psi = one + half*gm1*mref**2
+!    t   = to/psi
+!    p   = po/(psi**gxgm1)
 
-    prim_cc(1,0) = p/(r*t)
-    prim_cc(2,0) = mref*sqrt(gamma*r*t)
-    prim_cc(3,0) = p
+!    prim_cc(1,0) = p/(r*t)
+!    prim_cc(2,0) = mref*sqrt(gamma*r*t)
+!    prim_cc(3,0) = p
 
-    cons_cc(:,0) = primitive_to_conserved_1D(prim_cc(:,0))
+!    cons_cc(:,0) = primitive_to_conserved_1D(prim_cc(:,0))
 
-    call subsonic_inflow_explicit(prim_cc(:,0), prim_cc(:,1), prim_cc(:,2))
+    call subsonic_inflow_explicit( prim_cc(:,0), prim_cc(:,1),                 &
+                                   prim_cc(:,2), prim_cc(:,3) )
     call outflow_explicit( prim_cc(:,cells+1),                                 &
                            prim_cc(:,cells),                                   &
                            prim_cc(:,cells-1) )
 
-    cons_cc(:,cells+1) = primitive_to_conserved_1D(prim_cc(:,cells+1))
+!    cons_cc(:,cells+1) = primitive_to_conserved_1D(prim_cc(:,cells+1))
 
     call create_residual( cells, faces, iterations, prim_cc, area_f, dadx_cc,  &
                           dx, te )

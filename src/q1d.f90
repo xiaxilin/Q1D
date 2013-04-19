@@ -70,7 +70,7 @@ program q1d_primal
 
 !  call estimate_te( cells, faces, 1.49779_dp, area_f, dadx_cc, dx )
 !  call estimate_te( cells, faces, 1.0_dp - exp(-1.0_dp), area_f, dadx_cc, dx )
-!  call estimate_te( cells, faces, 0.2_dp, area_f, dadx_cc, dx, x_f )
+  call estimate_te( cells, faces, 0.2_dp, area_f, dadx_cc, dx, x_f )
 ! free memory
 
   print *, 'Deallocating Memory'

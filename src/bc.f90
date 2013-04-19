@@ -24,17 +24,18 @@ contains
 ! Uses primitive variables
 !
 !=============================================================================80
-  subroutine subsonic_inflow_explicit( cc_in, cc_1, cc_2 )
+  subroutine subsonic_inflow_explicit( cc_in, cc_1, cc_2, cc_3 )
 
     use set_precision,   only : dp
-    use set_constants,   only : one, two
+    use set_constants,   only : third, half, one, onep5, two, three, four, six
     use fluid_constants, only : r, gamma, gm1, xgm1, gxgm1!, gm1xgp1, gp1
     use initialize_soln, only : po, to
+    use residual,        only : inflow_gc
 
-    real(dp), dimension(3), intent(in)  :: cc_1, cc_2
+    real(dp), dimension(3), intent(in)  :: cc_1, cc_2, cc_3
     real(dp), dimension(3), intent(out) :: cc_in
 
-    real(dp) :: vel_max, psi
+    real(dp) :: vel_max, u_extrap, psi
 
 ! testing
 !    real(dp) :: rho0, h0, s0, p, u, temp, a2, ao2
@@ -45,7 +46,22 @@ contains
     vel_max = sqrt(two*gamma*r*to*xgm1)-one
 
 ! extrapolate velocity and limit
-    cc_in(2) = max(-vel_max, min(two*cc_1(2)-cc_2(2), vel_max))
+    select case( inflow_gc )
+    case( 1 ) ! extrapolate to ghost cell (zero grad)
+      u_extrap = third*( four*cc_1(2) - cc_2(2) )
+    case( 2 ) ! extrapolate to ghost cell (zero curv)
+      u_extrap = two*cc_1(2) - cc_2(2)
+    case( 3 )
+      u_extrap = ( three*cc_1(2) - three*cc_2(2) + cc_3(2) )
+    case ( -1 ) ! extrapolate to face
+      u_extrap = onep5*cc_1(2) - half*cc_2(2)
+    case ( -2 ) ! zero grad at face
+      u_extrap = ( 7._dp*cc_1(2) - cc_2(2) ) / six
+    case ( -3 ) !extrap to face
+      u_extrap = ( 11._dp*cc_1(2) - 7._dp*cc_2(2) + two*cc_3(2) ) / six
+    end select
+
+    cc_in(2) = max(-vel_max, min(u_extrap, vel_max))
 
 ! now calculate inflow
     psi = to/(to-(gm1*cc_in(2)**2/(two*gamma*r)))

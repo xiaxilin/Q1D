@@ -17,14 +17,14 @@ module residual
   public :: flux_type  ! 'central', 'jst', 'sw', 'vanleer', 'roe', 'ausm'
   public :: k2         ! JST damping coefficient, only for flux_type = 'jst'
   public :: k4         ! JST damping coefficient, only for flux_type = 'jst'
-
   public :: inflow_gc, inflow_face, outflow_gc, outflow_face
+
+  integer       :: inflow_gc, inflow_face, outflow_gc, outflow_face
 
   logical       :: muscl
   real(dp)      :: kappa
   character(10) :: limiter
   integer       :: firstorder
-  integer       :: inflow_gc, inflow_face, outflow_gc, outflow_face
 
   character(10) :: flux_type
   real(dp)      :: k2
@@ -333,7 +333,6 @@ contains
       end select
 
 ! perform MUSCL extrapolation... note that there is no limiting at in/outflow
-! the commented out portions of code are old versions
       i = 1
       select case( inflow_face )
       case( 0,1 )
@@ -343,6 +342,8 @@ contains
       case( 3 ) ! 3rd
         vars_left(:,i) = ( 11._dp*vars_cc(:,i) - 7._dp*vars_cc(:,i+1)  &
                        + two*vars_cc(:,i+2) ) / six
+      case ( -2 ) ! zero grad at face
+        vars_left(:,i) = ( 7._dp*vars_cc(:,i) - vars_cc(:,i+1) ) / six
       case default ! truncated MUSCL
         vars_left(:,i) = vars_cc(:,i-1) + fourth                               &
                 * ((one+kappa)*(vars_cc(:,i) - vars_cc(:,i-1)))

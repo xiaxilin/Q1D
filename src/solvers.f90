@@ -100,7 +100,8 @@ module solvers
 ! Enforce BC's
 !        select case(inflow)
 !        case('sub')
-        call subsonic_inflow_explicit(prim_cc(:,0), prim_cc(:,1), prim_cc(:,2))
+        call subsonic_inflow_explicit( prim_cc(:,0), prim_cc(:,1),             &
+                                       prim_cc(:,2), prim_cc(:,3) )
 !          call set_sub_sonic_inflow_r(prim_cc(:,0), prim_cc(:,1) )
 !        case('ss')
           ! don't need to do anything... they're already set
