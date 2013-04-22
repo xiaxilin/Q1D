@@ -141,19 +141,33 @@ contains
 ! Uses primitive variables
 !
 !=============================================================================80
-  subroutine outflow_explicit( cc_out, cc_1, cc_2 )
+  subroutine outflow_explicit( cc_out, cc_1, cc_2, cc_3 )
 
     use set_precision,   only : dp
-    use set_constants,   only : two
+    use set_constants,   only : third, half, onep5, two, three, four, six
     use initialize_soln, only : pback
+    use residual,        only : outflow_gc
 
-    real(dp), dimension(3), intent(in)  :: cc_1, cc_2
+    real(dp), dimension(3), intent(in)  :: cc_1, cc_2, cc_3
     real(dp), dimension(3), intent(out) :: cc_out
 
     continue
 
 ! extrapolate all variables
-    cc_out(:) = two*cc_1(:) - cc_2(:)
+    select case( outflow_gc )
+    case( 1 ) ! extrapolate to ghost cell (zero grad)
+      cc_out = third*( four*cc_1 - cc_2 )
+    case( 2 ) ! extrapolate to ghost cell (zero curv)
+      cc_out = two*cc_1 - cc_2
+    case( 3 )
+      cc_out = ( three*cc_1 - three*cc_2 + cc_3 )
+    case ( -1 ) ! extrapolate to face
+      cc_out = onep5*cc_1 - half*cc_2
+    case ( -2 ) ! zero grad at face
+      cc_out = ( 7._dp*cc_1 - cc_2 ) / six
+    case ( -3 ) !extrap to face
+      cc_out = ( 11._dp*cc_1 - 7._dp*cc_2 + two*cc_3 ) / six
+    end select
 
 ! set back pressure if appropriate
     if ( pback >= 0.0_dp ) cc_out(3) = pback

@@ -61,8 +61,8 @@ module solvers
     logical :: convergence_flag = .false.
     integer :: n, rk, cell
 
-    real(dp), dimension(3)         :: cons
-    real(dp), dimension(4)         :: rk_const
+    real(dp), dimension(3)           :: cons
+    real(dp), dimension(4)           :: rk_const
     real(dp), dimension(0:cells+1)   :: dt
     real(dp), dimension(3,0:cells+1) :: resid
 
@@ -76,7 +76,7 @@ module solvers
 ! Make sure that the primitive variables are saved off for the RK loop.
 ! Other updates are handled further down
     do cell = 0, cells+1
-      cons_cc(:,cell) = primitive_to_conserved_1D(prim_cc(:,cell))
+      cons_cc(:,cell) = primitive_to_conserved_1D( prim_cc(:,cell) )
     end do
 
     iteration_loop : do n = 0, iterations
@@ -109,22 +109,25 @@ module solvers
 
 ! This routine handles both sub and supersonic outflow
         call outflow_explicit( prim_cc(:,cells+1),                             &
-                               prim_cc(:,cells), prim_cc(:,cells-1) )
+                               prim_cc(:,cells),                               &
+                               prim_cc(:,cells-1),                             &
+                               prim_cc(:,cells-2) )
 
       end do rk_loop
 
-! Store solution before RK loop. Wouldn't be necessary for pure Euler explicit
+! Store solution before next RK loop.
+! Wouldn't be necessary for pure Euler explicit
 
       do cell = 0, cells+1
-        cons_cc(:,cell) = primitive_to_conserved_1D(prim_cc(:,cell))
+        cons_cc(:,cell) = primitive_to_conserved_1D( prim_cc(:,cell) )
       end do
 
       if ( iter_out >= 0 .and. mod(n,iter_out) == 0 ) then
-        call write_soln_line(n, cells, x_cc, prim_cc, cons_cc)
+        call write_soln_line( n, cells, x_cc, prim_cc, cons_cc )
       end if
 
       if ( mod(n,itercheck) == 0 ) then
-        call check_convergence(cells, n, resid, convergence_flag)
+        call check_convergence( cells, n, resid, convergence_flag )
 
         if ( convergence_flag ) then
           write(*,*) 'Solution has converged!'
@@ -133,7 +136,7 @@ module solvers
       end if
 
 !      if ( iter_restar >= 0 .and. mod(n,iter_restart) == 0 ) then
-!        call write_restart(cells, prim_cc)
+!        call write_restart( cells, prim_cc )
 !      end if
 
     end do iteration_loop
