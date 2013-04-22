@@ -277,17 +277,18 @@ contains
 ! FIXME: Check directions on extrapolations, could account for adjoint wiggles
 !
 !=============================================================================80
-  subroutine subsonic_inflow_prim( iter, cc_in, cc_1, cc_2, DD, DU1, DU2, RHS )
+  subroutine subsonic_inflow_prim( iter, cc_in, cc_1, cc_2, cc_3,              &
+                                   DD, DU1, DU2, RHS )
 
     use set_precision,   only : dp
-    use set_constants,   only : zero, half, one, two, three, four
+    use set_constants,   only : zero, half, one, onep5, two, three, four, six
     use fluid_constants, only : gamma, gm1, gxgm1, xgm1, R
     use initialize_soln, only : po, to
-    use residual,        only : firstorder
+    use residual,        only : firstorder, inflow_gc
     use lhs,             only : lhs_order
 
     integer,                  intent(in)  :: iter
-    real(dp), dimension(3),   intent(in)  :: cc_in, cc_1, cc_2
+    real(dp), dimension(3),   intent(in)  :: cc_in, cc_1, cc_2, cc_3
     real(dp), dimension(3,3), intent(out) :: DD, DU1, DU2
     real(dp), dimension(3),   intent(out) :: RHS
 
@@ -303,10 +304,8 @@ contains
 
 ! Extrapolate velocity from interior
     DD(2,2)  = one
-
     DU1(2,2) = -one
-
-    DU2(2,2) = one
+    DU2(2,2) = zero
 
 ! Now need to account for delta Po = delta To = 0 at inflow... DD matrix
 
@@ -343,10 +342,54 @@ contains
     RHS(3) = po - p*factor**gxgm1
 
     if ( iter >= firstorder .and. lhs_order /= 1 ) then
-      DD(2,2)  = three
-      DU1(2,2) = -four
 
-      RHS(2) = -three*cc_in(2) + four*cc_1(2) - cc_2(2)
+      select case( inflow_gc )
+      case ( 0 ) ! zeroth order extrapolation
+        DD(2,2)  = one
+        DU1(2,2) = -one
+        DU2(2,2) = zero
+
+        RHS = -cc_in(2) + cc_1(2)
+      case ( 1 ) ! zero gradient extrapolation to ghost cell
+        DD(2,2)  = three
+        DU1(2,2) = -four
+        DU2(2,2) = one
+
+        RHS(2) = -three*cc_in(2) + four*cc_1(2) - cc_2(2)
+      case ( 2 ) ! zero curvature extrapolation to ghost cell
+        DD(2,2)  = one
+        DU1(2,2) = -two
+        DU2(2,2) = one
+
+        RHS(2) = -cc_in(2) + two*cc_1(2) - cc_2(2)
+      case ( 3 ) ! third order extrapolation to ghost cell
+        DD(2,2)  = one
+        DU1(2,2) = -three
+        DU2(2,2) = three
+!        DU3(2,2) = -one
+
+        RHS(2) = -cc_in(2) + three*cc_1(2) - three*cc_2(2) + cc_3(2)
+      case ( -1 ) ! zero gradient extrapolation to face
+        DD(2,2)  = three
+        DU1(2,2) = -four
+        DU2(2,2) = one
+
+        RHS(2) = -six*cc_in(2) + 7.0_dp*cc_1(2) - cc_2(2)
+      case ( -2 ) ! zero curvature extrapolation to face
+        DD(2,2)  = three
+        DU1(2,2) = -four
+        DU2(2,2) = one
+
+        RHS(2) = -cc_in(2) + onep5*cc_1(2) - half*cc_2(2)
+      case ( -3 ) ! third order extrapolation to face
+        DD(2,2)  = three
+        DU1(2,2) = -four
+        DU2(2,2) = one
+!        DU3(2,2) = -two*ident3x3
+
+        RHS(2) = -six*cc_in(2) + 11.0_dp*cc_1(2) - 7.0_dp*cc_2(2) + two*cc_3(2)
+      end select
+
     end if
 
   end subroutine subsonic_inflow_prim
@@ -443,16 +486,17 @@ contains
 ! Creates matrices for variable extrapolation wrt primitive variables
 !
 !=============================================================================80
-  subroutine set_outflow_prim( iter, cc_out, cc_1, cc_2, DD, DL1, DL2, RHS )
+  subroutine set_outflow_prim( iter, cc_out, cc_1, cc_2, cc_3,                 &
+                               DD, DL1, DL2, RHS )
 
     use set_precision,   only : dp
-    use set_constants,   only : zero, one, three, four
+    use set_constants,   only : zero, half, one, onep5, two, three, four, six
     use initialize_soln, only : pback
-    use residual,        only : firstorder
+    use residual,        only : firstorder, outflow_gc
     use lhs,             only : lhs_order
 
     integer,                  intent(in)  :: iter
-    real(dp), dimension(3),   intent(in)  :: cc_out, cc_1, cc_2
+    real(dp), dimension(3),   intent(in)  :: cc_out, cc_1, cc_2, cc_3
     real(dp), dimension(3,3), intent(out) :: DD, DL1, DL2
     real(dp), dimension(3),   intent(out) :: RHS
 
@@ -462,23 +506,70 @@ contains
 
     ident3x3 = reshape( [one, zero, zero, zero, one, zero, zero, zero, one],   &
                         [3,3] )
+
+! First order default is zeroth order extrapolation
     DD  = ident3x3
     DL1 = -ident3x3
-    DL2 = ident3x3
+    DL2 = zero
 
     RHS = -cc_out + cc_1! - cc_2
 
     if ( iter >= firstorder .and. lhs_order /= 1 ) then
-      DD  = three*DD
-      DL1 = four*DL1
 
-      RHS = -three*cc_out + four*cc_1 - cc_2
+      select case( outflow_gc )
+      case ( 0 ) ! zeroth order extrapolation
+        DD  = ident3x3
+        DL1 = -ident3x3
+        DL2 = zero
+
+        RHS = -cc_out + cc_1
+      case ( 1 ) ! zero gradient extrapolation to ghost cell
+        DD  = three*ident3x3
+        DL1 = -four*ident3x3
+        DL2 = ident3x3
+
+        RHS = -three*cc_out + four*cc_1 - cc_2
+      case ( 2 ) ! zero curvature extrapolation to ghost cell
+        DD  = ident3x3
+        DL1 = -two*ident3x3
+        DL2 = ident3x3
+
+        RHS = -cc_out + two*cc_1 - cc_2
+      case ( 3 ) ! third order extrapolation to ghost cell
+        DD  = ident3x3
+        DL1 = -three*ident3x3
+        DL2 = three*ident3x3
+!        DL3 = -ident3x3
+
+        RHS = -cc_out + three*cc_1 - three*cc_2 + cc_3
+      case ( -1 ) ! zero gradient extrapolation to face
+        DD  = six*ident3x3
+        DL1 = -7.0_dp*ident3x3
+        DL2 = ident3x3
+
+        RHS = -six*cc_out + 7.0_dp*cc_1 - cc_2
+      case ( -2 ) ! zero curvature extrapolation to face
+        DD  = ident3x3
+        DL1 = -onep5*ident3x3
+        DL2 = half*ident3x3
+
+        RHS = -cc_out + onep5*cc_1 - half*cc_2
+      case ( -3 ) ! third order extrapolation to face
+        DD  = six*ident3x3
+        DL1 = -11.0_dp*ident3x3
+        DL2 = 7.0_dp*ident3x3
+!        DL3 = -two*ident3x3
+
+        RHS = -six*cc_out + 11.0_dp*cc_1 - 7.0_dp*cc_2 + two*cc_3
+      end select
+
     end if
 
     if ( pback > zero ) then
-      if ( iter >= firstorder .and. lhs_order /= 1 ) DD(3,3) = one
+      DD(3,3)  = one
       DL1(3,3) = zero
       DL2(3,3) = zero
+!      DL3(3,3) = zero
 
       RHS(3)   = pback - cc_out(3)
     end if

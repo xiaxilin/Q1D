@@ -217,12 +217,13 @@ module solvers
 
 ! Take care of BC's
 ! Inflow, modify according to bc
-      call subsonic_inflow_prim( n, prim_cc(:,0), prim_cc(:,1), prim_cc(:,2),  &
+      call subsonic_inflow_prim( n, prim_cc(:,0), prim_cc(:,1),                &
+                                 prim_cc(:,2),  prim_cc(:,3),                  &
                                  D(:,:,0), U(:,:,0), U2(:,:,0), RHS(:,0) )
 
 ! Outflow
       call set_outflow_prim( n, prim_cc(:,cells+1), prim_cc(:,cells),          &
-                             prim_cc(:,cells-1),                               &
+                             prim_cc(:,cells-1), prim_cc(:,cells-2),           &
                              D(:,:,cells+1), L(:,:,cells+1), L2(:,:,cells+1),  &
                              RHS(:,cells+1) )
 

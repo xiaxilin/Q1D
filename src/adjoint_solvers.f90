@@ -64,13 +64,13 @@ contains
                         rL2, rL, rD, rU, rU2 )
 
 ! Inflow, modify according to bc
-    call subsonic_inflow_prim( firstorder+1,                                   &
-                               prim_cc(:,0), prim_cc(:,1), prim_cc(:,2),       &
+    call subsonic_inflow_prim( firstorder+1, prim_cc(:,0), prim_cc(:,1),       &
+                               prim_cc(:,2), prim_cc(:,3),                     &
                                rD(:,:,0), rU(:,:,0), rU2(:,:,0), RHS(:,0) )
 
 ! Outflow
-    call set_outflow_prim( firstorder+1, prim_cc(:,cells+1),                   &
-                           prim_cc(:,cells), prim_cc(:,cells-1),               &
+    call set_outflow_prim( firstorder+1, prim_cc(:,cells+1), prim_cc(:,cells), &
+                           prim_cc(:,cells-1), prim_cc(:,cells-2),             &
                            rD(:,:,cells+1), rL(:,:,cells+1), rL2(:,:,cells+1), &
                            RHS(:,cells+1) )
 
