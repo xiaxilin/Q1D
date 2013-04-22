@@ -206,7 +206,7 @@ contains
     cons_R1 = primitive_to_conserved_1D(prim_cc(:,i))
     cons_R2 = primitive_to_conserved_1D(prim_cc(:,i+1))
 
-    dissipation = -lambda* (epstwo*(cons_R1 - cons_L1)                        &
+    dissipation = -lambda* (epstwo*(cons_R1 - cons_L1)                         &
                 - epsfour*(cons_R2 - three*cons_R1 + two*cons_L1))
 
     central_flux(:,i) = central_flux(:,i) + dissipation(:)
@@ -253,11 +253,12 @@ contains
 ! FIXME: need to shift the limiters and muscl so that it's like SENSEI!
 !
 !=============================================================================80
-  subroutine muscl_extrapolation( cells, faces, iteration, vars_cc,           &
+  subroutine muscl_extrapolation( cells, faces, iteration, vars_cc,            &
                                   vars_left, vars_right, limL, limR )
 
     use set_precision, only : dp
-    use set_constants, only : zero, fourth, half, one, onep5, two, six
+    use set_constants, only : zero, fourth, third, half, one, onep5, two,      &
+                              three, four, six
 
     integer,                          intent(in)  :: cells, faces, iteration
     real(dp), dimension(3,0:cells+1), intent(in)  :: vars_cc
@@ -335,18 +336,25 @@ contains
 ! perform MUSCL extrapolation... note that there is no limiting at in/outflow
       i = 1
       select case( inflow_face )
-      case( 0,1 )
+      case( 0 ) ! zeroth order extrapolation
         vars_left(:,i) = vars_cc(:,i-1)
-      case( 2 ) ! 2nd
-        vars_left(:,i) = onep5*vars_cc(:,i) - half*vars_cc(:,i+1)
-      case( 3 ) ! 3rd
-        vars_left(:,i) = ( 11._dp*vars_cc(:,i) - 7._dp*vars_cc(:,i+1)  &
-                       + two*vars_cc(:,i+2) ) / six
-      case ( -2 ) ! zero grad at face
+      case ( 1 ) ! zero gradient extrapolation to ghost cell
+        vars_left(:,i) = third*( four*vars_cc(:,i) - vars_cc(:,i+1) )
+      case ( 2 ) ! zero curvature extrapolation to ghost cell
+        vars_left(:,i) = two*vars_cc(:,i) - vars_cc(:,i+1)
+      case ( 3 ) ! third order extrapolation to ghost cell
+        vars_left(:,i) = three*vars_cc(:,i) - three*vars_cc(:,i+1)             &
+                       + vars_cc(:,i+2)
+      case ( -1 ) ! zero gradient extrapolation to face
         vars_left(:,i) = ( 7._dp*vars_cc(:,i) - vars_cc(:,i+1) ) / six
+      case ( -2 ) ! zero curvature extrapolation to face
+        vars_left(:,i) = onep5*vars_cc(:,i) - half*vars_cc(:,i+1)
+      case ( -3 ) ! third order extrapolation to face
+        vars_left(:,i) = ( 11._dp*vars_cc(:,i) - 7._dp*vars_cc(:,i+1)          &
+                        + two*vars_cc(:,i+2) ) / six
       case default ! truncated MUSCL
         vars_left(:,i) = vars_cc(:,i-1) + fourth                               &
-                * ((one+kappa)*(vars_cc(:,i) - vars_cc(:,i-1)))
+                       * ((one+kappa)*(vars_cc(:,i) - vars_cc(:,i-1)))
       end select
 
       do i = 2, faces
@@ -362,28 +370,38 @@ contains
       end do
 
       i = faces
+
       select case( outflow_face )
-        case( 0,1 )
-          vars_right(:,i) = vars_cc(:,i)
-        case( 2 )  ! 2nd
-          vars_right(:,i) = onep5*vars_cc(:,i-1) - half*vars_cc(:,i-2)
-        case( 3 ) ! 3rd
-          vars_right(:,i) = ( 11._dp*vars_cc(:,i-1) - 7._dp*vars_cc(:,i-2)     &
-                          + two*vars_cc(:,i-3) ) / six
-        case default ! truncated MUSCL
-          vars_right(:,i) = vars_cc(:,i) - fourth                              &
-                  * ((one+kappa)*(vars_cc(:,i) - vars_cc(:,i-1)))
-        end select
+      case( 0 ) ! zeroth order extrapolation
+        vars_right(:,i) = vars_cc(:,i)
+      case ( 1 ) ! zero gradient extrapolation to ghost cell
+        vars_right(:,i) = third*( four*vars_cc(:,i-1) - vars_cc(:,i-2) )
+      case ( 2 ) ! zero curvature extrapolation to ghost cell
+        vars_right(:,i) = two*vars_cc(:,i-1) - vars_cc(:,i-2)
+      case ( 3 ) ! third order extrapolation to ghost cell
+        vars_right(:,i) = three*vars_cc(:,i-1) - three*vars_cc(:,i-2)          &
+                        + vars_cc(:,i-3)
+      case ( -1 ) ! zero gradient extrapolation to face
+        vars_right(:,i) = ( 7._dp*vars_cc(:,i-1) - vars_cc(:,i-2) ) / six
+      case ( -2 ) ! zero curvature extrapolation to face
+        vars_right(:,i) = onep5*vars_cc(:,i-1) - half*vars_cc(:,i-2)
+      case ( -3 ) ! third order extrapolation to face
+        vars_right(:,i) = ( 11._dp*vars_cc(:,i-1) - 7._dp*vars_cc(:,i-2)       &
+                        + two*vars_cc(:,i-3) ) / six
+      case default ! truncated MUSCL
+        vars_right(:,i) = vars_cc(:,i) - fourth                                &
+                        * ((one+kappa)*(vars_cc(:,i) - vars_cc(:,i-1)))
+      end select
 
 ! If extrapolated density or pressure/energy is < 0 then
 ! cancel the extrapolation and go first order
 
       do i = 1, faces
         if (vars_left(1,i) <= zero .or. vars_left(3,i) <= zero) then
-          vars_left(:,i) = vars_cc(:,i)
+          vars_left(:,i) = vars_cc(:,i-1)
         end if
         if (vars_right(1,i) <= zero .or. vars_right(3,i) <= zero) then
-          vars_right(:,i) = vars_cc(:,i+1)
+          vars_right(:,i) = vars_cc(:,i)
         end if
       end do
 
