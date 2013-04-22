@@ -2,8 +2,8 @@ bin_PROGRAMS =
 
 bin_PROGRAMS += q1d q1da q1d_grid
 
-SAM_INCLUDE := -I ~/SAM/examples/Example_Tanh/build
-SAM_LIB := ~/SAM/examples/Example_Tanh/build/sam.o
+SAM_INCLUDE = -I ~/SAM/examples/Example_Tanh/build
+SAM_LIB = ~/SAM/examples/Example_Tanh/build/sam.o
 
 q1d_SOURCES = \
          initialize_grid.f90 \
