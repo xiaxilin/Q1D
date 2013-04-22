@@ -108,10 +108,8 @@ module solvers
 !        end select
 
 ! This routine handles both sub and supersonic outflow
-        call outflow_explicit( prim_cc(:,cells+1),                             &
-                               prim_cc(:,cells),                               &
-                               prim_cc(:,cells-1),                             &
-                               prim_cc(:,cells-2) )
+        call outflow_explicit( prim_cc(:,cells+1), prim_cc(:,cells),           &
+                               prim_cc(:,cells-1), prim_cc(:,cells-2) )
 
       end do rk_loop
 
