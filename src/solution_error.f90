@@ -383,9 +383,8 @@ contains
 
     call subsonic_inflow_explicit( prim_cc(:,0), prim_cc(:,1),                 &
                                    prim_cc(:,2), prim_cc(:,3) )
-    call outflow_explicit( prim_cc(:,cells+1),                                 &
-                           prim_cc(:,cells),                                   &
-                           prim_cc(:,cells-1) )
+    call outflow_explicit( prim_cc(:,cells+1), prim_cc(:,cells),               &
+                           prim_cc(:,cells-1), prim_cc(:,cells-2) )
 
 !    cons_cc(:,cells+1) = primitive_to_conserved_1D(prim_cc(:,cells+1))
 
