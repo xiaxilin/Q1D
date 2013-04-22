@@ -47,17 +47,19 @@ contains
 
 ! extrapolate velocity and limit
     select case( inflow_gc )
-    case( 1 ) ! extrapolate to ghost cell (zero grad)
+    case ( 0 ) ! zeroth order extrapolation
+      u_extrap = cc_1(2)
+    case ( 1 ) ! zero gradient extrapolation to ghost cell
       u_extrap = third*( four*cc_1(2) - cc_2(2) )
-    case( 2 ) ! extrapolate to ghost cell (zero curv)
+    case ( 2 ) ! zero curvature extrapolation to ghost cell
       u_extrap = two*cc_1(2) - cc_2(2)
-    case( 3 )
+    case ( 3 ) ! third order extrapolation to ghost cell
       u_extrap = ( three*cc_1(2) - three*cc_2(2) + cc_3(2) )
-    case ( -1 ) ! extrapolate to face
-      u_extrap = onep5*cc_1(2) - half*cc_2(2)
-    case ( -2 ) ! zero grad at face
+    case ( -1 ) ! zero gradient extrapolation to face
       u_extrap = ( 7._dp*cc_1(2) - cc_2(2) ) / six
-    case ( -3 ) !extrap to face
+    case ( -2 ) ! zero curvature extrapolation to face
+      u_extrap = onep5*cc_1(2) - half*cc_2(2)
+    case ( -3 ) ! third order extrapolation to face
       u_extrap = ( 11._dp*cc_1(2) - 7._dp*cc_2(2) + two*cc_3(2) ) / six
     end select
 
@@ -155,17 +157,19 @@ contains
 
 ! extrapolate all variables
     select case( outflow_gc )
-    case( 1 ) ! extrapolate to ghost cell (zero grad)
+    case ( 0 ) ! zeroth order extrapolation
+      cc_out = cc_1
+    case ( 1 ) ! zero gradient extrapolation to ghost cell
       cc_out = third*( four*cc_1 - cc_2 )
-    case( 2 ) ! extrapolate to ghost cell (zero curv)
+    case ( 2 ) ! zero curvature extrapolation to ghost cell
       cc_out = two*cc_1 - cc_2
-    case( 3 )
+    case ( 3 ) ! third order extrapolation to ghost cell
       cc_out = ( three*cc_1 - three*cc_2 + cc_3 )
-    case ( -1 ) ! extrapolate to face
-      cc_out = onep5*cc_1 - half*cc_2
-    case ( -2 ) ! zero grad at face
+    case ( -1 ) ! zero gradient extrapolation to face
       cc_out = ( 7._dp*cc_1 - cc_2 ) / six
-    case ( -3 ) !extrap to face
+    case ( -2 ) ! zero curvature extrapolation to face
+      cc_out = onep5*cc_1 - half*cc_2
+    case ( -3 ) ! third order extrapolation to face
       cc_out = ( 11._dp*cc_1 - 7._dp*cc_2 + two*cc_3 ) / six
     end select
 
