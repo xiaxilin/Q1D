@@ -77,8 +77,10 @@ contains
                             prim_cc, L2, L, D, U, U2 )
 
     use set_precision, only : dp
-    use set_constants, only : zero, fourth, half, one
-    use residual,      only : muscl_extrapolation, firstorder, kappa
+    use set_constants, only : zero, fourth, third, half, one, onep5, two,      &
+                              three, four, six
+    use residual,      only : muscl_extrapolation, firstorder, kappa,          &
+                              inflow_face, outflow_face
     use jacobians,     only : jac_source_q_1D, jac_vanleer_q_1D,               &
                               dconserved_dprimitive
 
@@ -105,14 +107,40 @@ contains
                               prim_L, prim_R )
 
 ! Inflow face
-    cell = 0
+    cell = 0 !face = 1
     call jac_vanleer_q_1D( prim_L(:,cell+1), prim_R(:,cell+1), jac_L, jac_R )
 
 ! Subtract from cell to the right
 
 ! First the Jacobian on the left side of the face...
-! no MUSCL extrapolation for the inflow ghost cell
-    L(:,:,cell+1) = L(:,:,cell+1) - jac_L*area_f(cell+1)
+    select case( inflow_face )
+    case( 0 ) ! zeroth order extrapolation
+      L(:,:,cell+1) = L(:,:,cell+1) - jac_L*area_f(cell+1)
+    case ( 1 ) ! zero gradient extrapolation to ghost cell
+      D(:,:,cell+1) = D(:,:,cell+1) - jac_L*area_f(cell+1)*third*four
+      U(:,:,cell+1) = U(:,:,cell+1) + jac_L*area_f(cell+1)*third
+    case ( 2 ) ! zero curvature extrapolation to ghost cell
+      D(:,:,cell+1) = D(:,:,cell+1) - jac_L*area_f(cell+1)*two
+      U(:,:,cell+1) = U(:,:,cell+1) + jac_L*area_f(cell+1)
+    case ( 3 ) ! third order extrapolation to ghost cell
+      D(:,:,cell+1)  = D(:,:,cell+1)  - jac_L*area_f(cell+1)*three
+      U(:,:,cell+1)  = U(:,:,cell+1)  + jac_L*area_f(cell+1)*three
+      U2(:,:,cell+1) = U2(:,:,cell+1) - jac_L*area_f(cell+1)
+    case ( -1 ) ! zero gradient extrapolation to face
+      D(:,:,cell+1) = D(:,:,cell+1) - jac_L*area_f(cell+1)*7.0_dp/six
+      U(:,:,cell+1) = U(:,:,cell+1) + jac_L*area_f(cell+1)/six
+    case ( -2 ) ! zero curvature extrapolation to face
+      D(:,:,cell+1) = D(:,:,cell+1) - jac_L*area_f(cell+1)*onep5
+      U(:,:,cell+1) = U(:,:,cell+1) + jac_L*area_f(cell+1)*half
+    case ( -3 ) ! third order extrapolation to face
+      D(:,:,cell+1)  = D(:,:,cell+1)  - jac_L*area_f(cell+1)*11.0_dp/six
+      U(:,:,cell+1)  = U(:,:,cell+1)  + jac_L*area_f(cell+1)*7.0_dp/six
+      U2(:,:,cell+1) = U2(:,:,cell+1) - jac_L*area_f(cell+1)*third
+    case default ! truncated MUSCL
+      L(:,:,cell+1) = L(:,:,cell+1)                                            &
+                    - jac_L*area_f(cell+1)*(one+fourth*(kappa+one))
+      D(:,:,cell+1) = D(:,:,cell+1) - jac_L*area_f(cell+1)*fourth*(kappa+one)
+    end select
 
 ! and now the right side.
     L(:,:,cell+1) = L(:,:,cell+1) - jac_R*area_f(cell+1)*fourth*(kappa+one)
