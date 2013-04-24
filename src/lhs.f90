@@ -183,12 +183,38 @@ contains
 ! Add to cell
 
 ! First the Jacobian on the left side of the face...
-      L(:,:,cell) = L(:,:,cell) + jac_L*area_f(cell+1)*fourth*(kappa-one)
-      D(:,:,cell) = D(:,:,cell) + jac_L*area_f(cell+1)*(one-half*kappa)
-      U(:,:,cell) = U(:,:,cell) + jac_L*area_f(cell+1)*fourth*(kappa+one)
+    L(:,:,cell) = L(:,:,cell) + jac_L*area_f(cell+1)*fourth*(kappa-one)
+    D(:,:,cell) = D(:,:,cell) + jac_L*area_f(cell+1)*(one-half*kappa)
+    U(:,:,cell) = U(:,:,cell) + jac_L*area_f(cell+1)*fourth*(kappa+one)
+
 ! and now the right side.
-! no MUSCL extrapolation for the outflow ghost cell
+    select case( outflow_face )
+    case( 0 ) ! zeroth order extrapolation
       U(:,:,cell) = U(:,:,cell) + jac_R*area_f(cell+1)
+    case ( 1 ) ! zero gradient extrapolation to ghost cell
+      D(:,:,cell) = D(:,:,cell) + jac_R*area_f(cell+1)*four*third
+      L(:,:,cell) = L(:,:,cell) - jac_R*area_f(cell+1)*third
+    case ( 2 ) ! zero curvature extrapolation to ghost cell
+      D(:,:,cell) = D(:,:,cell) + jac_R*area_f(cell+1)*two
+      L(:,:,cell) = L(:,:,cell) - jac_R*area_f(cell+1)
+    case ( 3 ) ! third order extrapolation to ghost cell
+      D(:,:,cell)  = D(:,:,cell)  + jac_R*area_f(cell+1)*three
+      L(:,:,cell)  = L(:,:,cell)  - jac_R*area_f(cell+1)*three
+      L2(:,:,cell) = L2(:,:,cell) + jac_R*area_f(cell+1)
+    case ( -1 ) ! zero gradient extrapolation to face
+      D(:,:,cell) = D(:,:,cell) + jac_R*area_f(cell+1)*7.0_dp/six
+      L(:,:,cell) = L(:,:,cell) - jac_R*area_f(cell+1)/six
+    case ( -2 ) ! zero curvature extrapolation to face
+      D(:,:,cell) = D(:,:,cell) + jac_R*area_f(cell+1)*onep5
+      L(:,:,cell) = L(:,:,cell) - jac_R*area_f(cell+1)*half
+    case ( -3 ) ! third order extrapolation to face
+      D(:,:,cell)  = D(:,:,cell)  + jac_R*area_f(cell+1)*11.0_dp/six
+      L(:,:,cell)  = L(:,:,cell)  - jac_R*area_f(cell+1)*7.0_dp/six
+      L2(:,:,cell) = L2(:,:,cell) + jac_R*area_f(cell+1)*third
+    case default ! truncated MUSCL
+      U(:,:,cell) = U(:,:,cell) + jac_R*area_f(cell+1)*(one-fourth*(one+kappa))
+      D(:,:,cell) = D(:,:,cell) + jac_R*area_f(cell+1)*fourth*(kappa+one)
+    end select
 
 ! Add time term and source Jacobian
     do cell = 1, cells
