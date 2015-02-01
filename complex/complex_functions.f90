@@ -231,36 +231,36 @@ contains
 !=============================================================================80
 
   subroutine ccrandom_number_r( harvest_r )
-    use set_precision, only : dbl
-    real(dbl), intent(out) :: harvest_r
-    real(dbl) :: harvest
+    use set_precision, only : r8
+    real(r8), intent(out) :: harvest_r
+    real(r8) :: harvest
    continue
     call random_number(harvest)
     harvest_r = harvest
   end subroutine ccrandom_number_r
 
   subroutine ccrandom_number_r4( harvest_r4 )
-    use set_precision, only : sngl
-    real(sngl), intent(out) :: harvest_r4
-    real(sngl) :: harvest
+    use set_precision, only : r4
+    real(r4), intent(out) :: harvest_r4
+    real(r4) :: harvest
    continue
     call random_number(harvest)
     harvest_r4 = harvest
   end subroutine ccrandom_number_r4
 
   subroutine ccrandom_number_c( harvest_c )
-    use set_precision, only : dbl
-    complex(dbl), intent(out) :: harvest_c
-    real(dbl) :: harvest
+    use set_precision, only : r8
+    complex(r8), intent(out) :: harvest_c
+    real(r8) :: harvest
    continue
     call random_number(harvest)
     harvest_c = harvest
   end subroutine ccrandom_number_c
 
   subroutine ccrandom_number_c4( harvest_c4 )
-    use set_precision, only : sngl
-    complex(sngl), intent(out) :: harvest_c4
-    real(sngl) :: harvest
+    use set_precision, only : r4
+    complex(r4), intent(out) :: harvest_c4
+    real(r4) :: harvest
    continue
     call random_number(harvest)
     harvest_c4 = harvest
@@ -273,64 +273,64 @@ contains
 !=============================================================================80
 
   pure function lt_ca_c(a,b)
-    use set_precision, only : dbl
-    complex(dbl), dimension(:), intent(in) :: a
-    complex(dbl),               intent(in) :: b
+    use set_precision, only : r8
+    complex(r8), dimension(:), intent(in) :: a
+    complex(r8),               intent(in) :: b
     logical, dimension(size(a))                  :: lt_ca_c
    continue
-    lt_ca_c(:) = (real(a(:),dbl) < real(b,dbl))
+    lt_ca_c(:) = (real(a(:),r8) < real(b,r8))
   end function lt_ca_c
 
   pure function lt_c_c(a,b)
-    use set_precision, only : dbl
-    complex(dbl), intent(in) :: a, b
+    use set_precision, only : r8
+    complex(r8), intent(in) :: a, b
     logical                        :: lt_c_c
    continue
-    lt_c_c = ( real(a,dbl) < real(b,dbl) )
+    lt_c_c = ( real(a,r8) < real(b,r8) )
   end function lt_c_c
 
   pure function lt_c4_c4(c4p1,c4p2)
-    use set_precision, only : sngl
-    complex(sngl), intent(in) :: c4p1, c4p2
+    use set_precision, only : r4
+    complex(r4), intent(in) :: c4p1, c4p2
     logical                        :: lt_c4_c4
    continue
-    lt_c4_c4 = ( real(c4p1,sngl) < real(c4p2,sngl) )
+    lt_c4_c4 = ( real(c4p1,r4) < real(c4p2,r4) )
   end function lt_c4_c4
 
   pure function lt_r_c(a,b)
-    use set_precision, only : dbl
-    real(dbl),    intent(in) :: a
-    complex(dbl), intent(in) :: b
+    use set_precision, only : r8
+    real(r8),    intent(in) :: a
+    complex(r8), intent(in) :: b
     logical                        :: lt_r_c
    continue
-    lt_r_c = ( a < real(b,dbl) )
+    lt_r_c = ( a < real(b,r8) )
   end function lt_r_c
 
   pure function lt_r4_c(a,b)
-    use set_precision, only : sngl, dbl
-    real(sngl),    intent(in) :: a
-    complex(dbl), intent(in) :: b
+    use set_precision, only : r4, r8
+    real(r4),    intent(in) :: a
+    complex(r8), intent(in) :: b
     logical                        :: lt_r4_c
    continue
-    lt_r4_c = ( a < real(b,sngl) )
+    lt_r4_c = ( a < real(b,r4) )
   end function lt_r4_c
 
   pure function lt_r4_c4(a,b)
-    use set_precision, only : sngl
-    real(sngl),    intent(in) :: a
-    complex(sngl), intent(in) :: b
+    use set_precision, only : r4
+    real(r4),    intent(in) :: a
+    complex(r4), intent(in) :: b
     logical                        :: lt_r4_c4
    continue
-    lt_r4_c4 = ( a < real(b,sngl) )
+    lt_r4_c4 = ( a < real(b,r4) )
   end function lt_r4_c4
 
   pure function lt_c_r(a,b)
-    use set_precision, only : dbl
-    real(dbl),    intent(in) :: b
-    complex(dbl), intent(in) :: a
+    use set_precision, only : r8
+    real(r8),    intent(in) :: b
+    complex(r8), intent(in) :: a
     logical                        :: lt_c_r
    continue
-    lt_c_r = ( real(a,dbl) < b )
+    lt_c_r = ( real(a,r8) < b )
   end function lt_c_r
 
 !===================================== GT_* ==================================80
@@ -340,82 +340,82 @@ contains
 !=============================================================================80
 
   pure function gt_ca_c(a,b)
-    use set_precision, only : dbl
-    complex(dbl), dimension(:), intent(in) :: a
-    complex(dbl),               intent(in) :: b
+    use set_precision, only : r8
+    complex(r8), dimension(:), intent(in) :: a
+    complex(r8),               intent(in) :: b
     logical, dimension(size(a))                  :: gt_ca_c
    continue
-    gt_ca_c(:) = ( real(a(:),dbl) > real(b,dbl) )
+    gt_ca_c(:) = ( real(a(:),r8) > real(b,r8) )
   end function gt_ca_c
 
   pure function gt_ca_r(a,b)
-    use set_precision, only : dbl
-    complex(dbl), dimension(:), intent(in) :: a
-    real(dbl),                  intent(in) :: b
+    use set_precision, only : r8
+    complex(r8), dimension(:), intent(in) :: a
+    real(r8),                  intent(in) :: b
     logical, dimension(size(a))                  :: gt_ca_r
    continue
-    gt_ca_r(:) = ( real(a(:),dbl) > b )
+    gt_ca_r(:) = ( real(a(:),r8) > b )
   end function gt_ca_r
 
   pure elemental function gt_c_c(a,b)
-    use set_precision, only : dbl
-    complex(dbl), intent(in) :: a, b
+    use set_precision, only : r8
+    complex(r8), intent(in) :: a, b
     logical                        :: gt_c_c
    continue
-    gt_c_c = ( real(a,dbl) > real(b,dbl) )
+    gt_c_c = ( real(a,r8) > real(b,r8) )
   end function gt_c_c
 
   pure elemental function gt_c4_c4(a,b)
-    use set_precision, only : sngl
-    complex(sngl), intent(in) :: a, b
+    use set_precision, only : r4
+    complex(r4), intent(in) :: a, b
     logical                        :: gt_c4_c4
    continue
-    gt_c4_c4 = ( real(a,sngl) > real(b,sngl) )
+    gt_c4_c4 = ( real(a,r4) > real(b,r4) )
   end function gt_c4_c4
 
   pure elemental function gt_r_c(a,b)
-    use set_precision, only : dbl
-    real(dbl),    intent(in) :: a
-    complex(dbl), intent(in) :: b
+    use set_precision, only : r8
+    real(r8),    intent(in) :: a
+    complex(r8), intent(in) :: b
     logical                        :: gt_r_c
    continue
-    gt_r_c = ( a > real(b,dbl) )
+    gt_r_c = ( a > real(b,r8) )
   end function gt_r_c
 
   pure elemental function gt_r4_c(a,b)
-    use set_precision, only : sngl, dbl
-    real(sngl),    intent(in) :: a
-    complex(dbl), intent(in) :: b
+    use set_precision, only : r4, r8
+    real(r4),    intent(in) :: a
+    complex(r8), intent(in) :: b
     logical                        :: gt_r4_c
    continue
-    gt_r4_c = ( a > real(b,sngl) )
+    gt_r4_c = ( a > real(b,r4) )
   end function gt_r4_c
 
   pure elemental function gt_r4_c4(a,b)
-    use set_precision, only : sngl
-    real(sngl),    intent(in) :: a
-    complex(sngl), intent(in) :: b
+    use set_precision, only : r4
+    real(r4),    intent(in) :: a
+    complex(r4), intent(in) :: b
     logical                        :: gt_r4_c4
    continue
-    gt_r4_c4 = ( a > real(b,sngl) )
+    gt_r4_c4 = ( a > real(b,r4) )
   end function gt_r4_c4
 
   pure elemental function gt_c_r(a,b)
-    use set_precision, only : dbl
-    real(dbl),    intent(in) :: b
-    complex(dbl), intent(in) :: a
+    use set_precision, only : r8
+    real(r8),    intent(in) :: b
+    complex(r8), intent(in) :: a
     logical                        :: gt_c_r
    continue
-    gt_c_r = ( real(a,dbl) > b )
+    gt_c_r = ( real(a,r8) > b )
   end function gt_c_r
 
   pure elemental function gt_c4_r4(c4p,r4p)
-    use set_precision, only : sngl
-    complex(sngl), intent(in) :: c4p
-    real(sngl),    intent(in) :: r4p
+    use set_precision, only : r4
+    complex(r4), intent(in) :: c4p
+    real(r4),    intent(in) :: r4p
     logical                        :: gt_c4_r4
    continue
-    gt_c4_r4 = ( real(c4p,sngl) > r4p )
+    gt_c4_r4 = ( real(c4p,r4) > r4p )
   end function gt_c4_r4
 
 !===================================== LE_* ==================================80
@@ -425,55 +425,55 @@ contains
 !=============================================================================80
 
   pure function le_ca_c(a,b)
-    use set_precision, only : dbl
-    complex(dbl), dimension(:), intent(in) :: a
-    complex(dbl),               intent(in) :: b
+    use set_precision, only : r8
+    complex(r8), dimension(:), intent(in) :: a
+    complex(r8),               intent(in) :: b
     logical, dimension(size(a))                  :: le_ca_c
    continue
-    le_ca_c(:) = ( real(a(:),dbl) <= real(b,dbl) )
+    le_ca_c(:) = ( real(a(:),r8) <= real(b,r8) )
   end function le_ca_c
 
   pure elemental function le_c_c(a,b)
-    use set_precision, only : dbl
-    complex(dbl), intent(in) :: a, b
+    use set_precision, only : r8
+    complex(r8), intent(in) :: a, b
     logical                        :: le_c_c
    continue
-    le_c_c = ( real(a,dbl) <= real(b,dbl) )
+    le_c_c = ( real(a,r8) <= real(b,r8) )
   end function le_c_c
 
   pure elemental function le_c4_c4(c4p1,c4p2)
-    use set_precision, only : sngl
-    complex(sngl), intent(in) :: c4p1, c4p2
+    use set_precision, only : r4
+    complex(r4), intent(in) :: c4p1, c4p2
     logical                        :: le_c4_c4
    continue
-    le_c4_c4 = ( real(c4p1,sngl) <= real(c4p2,sngl) )
+    le_c4_c4 = ( real(c4p1,r4) <= real(c4p2,r4) )
   end function le_c4_c4
 
   pure elemental function le_r_c(a,b)
-    use set_precision, only : dbl
-    real(dbl),    intent(in) :: a
-    complex(dbl), intent(in) :: b
+    use set_precision, only : r8
+    real(r8),    intent(in) :: a
+    complex(r8), intent(in) :: b
     logical                        :: le_r_c
    continue
-    le_r_c = ( a <= real(b,dbl) )
+    le_r_c = ( a <= real(b,r8) )
   end function le_r_c
 
   pure elemental function le_r4_c4(a,b)
-    use set_precision, only : sngl
-    real(sngl),    intent(in) :: a
-    complex(sngl), intent(in) :: b
+    use set_precision, only : r4
+    real(r4),    intent(in) :: a
+    complex(r4), intent(in) :: b
     logical                        :: le_r4_c4
    continue
-    le_r4_c4 = ( a <= real(b,sngl) )
+    le_r4_c4 = ( a <= real(b,r4) )
   end function le_r4_c4
 
   pure elemental function le_c_r(a,b)
-    use set_precision, only : dbl
-    real(dbl),    intent(in) :: b
-    complex(dbl), intent(in) :: a
+    use set_precision, only : r8
+    real(r8),    intent(in) :: b
+    complex(r8), intent(in) :: a
     logical                        :: le_c_r
    continue
-    le_c_r = ( real(a,dbl) <= b )
+    le_c_r = ( real(a,r8) <= b )
   end function le_c_r
 
 !===================================== GE_* ==================================80
@@ -483,73 +483,73 @@ contains
 !=============================================================================80
 
   pure function ge_ca_c(a,b)
-    use set_precision, only : dbl
-    complex(dbl), dimension(:), intent(in) :: a
-    complex(dbl),               intent(in) :: b
+    use set_precision, only : r8
+    complex(r8), dimension(:), intent(in) :: a
+    complex(r8),               intent(in) :: b
     logical, dimension(size(a))                  :: ge_ca_c
    continue
-    ge_ca_c(:) = ( real(a(:),dbl) >= real(b,dbl) )
+    ge_ca_c(:) = ( real(a(:),r8) >= real(b,r8) )
   end function ge_ca_c
 
   pure elemental function ge_c_c(a,b)
-    use set_precision, only : dbl
-    complex(dbl), intent(in) :: a, b
+    use set_precision, only : r8
+    complex(r8), intent(in) :: a, b
     logical                        :: ge_c_c
    continue
-    ge_c_c = ( real(a,dbl) >= real(b,dbl) )
+    ge_c_c = ( real(a,r8) >= real(b,r8) )
   end function ge_c_c
 
   pure elemental function ge_c4_c4(c4p1,c4p2)
-    use set_precision, only : sngl
-    complex(sngl), intent(in) :: c4p1, c4p2
+    use set_precision, only : r4
+    complex(r4), intent(in) :: c4p1, c4p2
     logical                        :: ge_c4_c4
    continue
-    ge_c4_c4 = ( real(c4p1,sngl) >= real(c4p2,sngl) )
+    ge_c4_c4 = ( real(c4p1,r4) >= real(c4p2,r4) )
   end function ge_c4_c4
 
   pure elemental function ge_c_r(a,b)
-    use set_precision, only : dbl
-    complex(dbl), intent(in) :: a
-    real(dbl),    intent(in) :: b
+    use set_precision, only : r8
+    complex(r8), intent(in) :: a
+    real(r8),    intent(in) :: b
     logical                        :: ge_c_r
    continue
-    ge_c_r = ( real(a,dbl) >= b )
+    ge_c_r = ( real(a,r8) >= b )
   end function ge_c_r
 
   pure elemental function ge_c_i(a,b)
-    use set_precision, only : dbl
-    complex(dbl), intent(in) :: a
+    use set_precision, only : r8
+    complex(r8), intent(in) :: a
     integer,            intent(in) :: b
     logical                        :: ge_c_i
    continue
-    ge_c_i = ( real(a,dbl) >= b )
+    ge_c_i = ( real(a,r8) >= b )
   end function ge_c_i
 
   pure elemental function ge_r_c(a,b)
-    use set_precision, only : dbl
-    real(dbl),    intent(in) :: a
-    complex(dbl), intent(in) :: b
+    use set_precision, only : r8
+    real(r8),    intent(in) :: a
+    complex(r8), intent(in) :: b
     logical                        :: ge_r_c
    continue
-    ge_r_c = ( a >= real(b,dbl) )
+    ge_r_c = ( a >= real(b,r8) )
   end function ge_r_c
 
   pure elemental function ge_r4_c(a,b)
-    use set_precision, only : dbl, sngl
-    real(sngl),    intent(in) :: a
-    complex(dbl), intent(in) :: b
+    use set_precision, only : r8, r4
+    real(r4),    intent(in) :: a
+    complex(r8), intent(in) :: b
     logical                        :: ge_r4_c
    continue
-    ge_r4_c = ( a >= real(b,dbl) )
+    ge_r4_c = ( a >= real(b,r8) )
   end function ge_r4_c
 
   pure elemental function ge_i_c(a,b)
-    use set_precision, only : dbl
+    use set_precision, only : r8
     integer,            intent(in) :: a
-    complex(dbl), intent(in) :: b
+    complex(r8), intent(in) :: b
     logical                        :: ge_i_c
    continue
-    ge_i_c = ( a >= real(b,dbl) )
+    ge_i_c = ( a >= real(b,r8) )
   end function ge_i_c
 
 !================================== CCDIM_* ==================================80
@@ -559,11 +559,11 @@ contains
 !=============================================================================80
 
   elemental function ccdim_cc(a1,a2)
-    use set_precision, only : dbl
-    complex(dbl), intent(in) :: a1, a2
-    complex(dbl)             :: ccdim_cc
+    use set_precision, only : r8
+    complex(r8), intent(in) :: a1, a2
+    complex(r8)             :: ccdim_cc
    continue
-    ccdim_cc = ccmax_cr(a2-a1, 0.0_dbl)
+    ccdim_cc = ccmax_cr(a2-a1, 0.0_r8)
   end function ccdim_cc
 
 !================================== CCMAX_* ==================================80
@@ -573,11 +573,11 @@ contains
 !=============================================================================80
 
   elemental function ccmax_cc(a1,a2)
-    use set_precision, only : dbl
-    complex(dbl), intent(in) :: a1, a2
-    complex(dbl)             :: ccmax_cc
+    use set_precision, only : r8
+    complex(r8), intent(in) :: a1, a2
+    complex(r8)             :: ccmax_cc
    continue
-    if ( real(a1,dbl) > real(a2,dbl) ) then
+    if ( real(a1,r8) > real(a2,r8) ) then
       ccmax_cc = a1
     else
       ccmax_cc = a2
@@ -585,24 +585,24 @@ contains
   end function ccmax_cc
 
   elemental function ccmax_c4cd(c4p,cdp)
-    use set_precision, only : sngl, dbl
-    complex(sngl), intent(in) :: c4p
-    complex(dbl), intent(in) :: cdp
-    complex(sngl)             :: ccmax_c4cd
+    use set_precision, only : r4, r8
+    complex(r4), intent(in) :: c4p
+    complex(r8), intent(in) :: cdp
+    complex(r4)             :: ccmax_c4cd
    continue
-    if ( real(c4p,sngl) > real(cdp,sngl) ) then
+    if ( real(c4p,r4) > real(cdp,r4) ) then
       ccmax_c4cd = c4p
     else
-      ccmax_c4cd = cmplx(real(cdp,sngl),aimag(cdp),sngl)
+      ccmax_c4cd = cmplx(real(cdp,r4),aimag(cdp),r4)
     endif
   end function ccmax_c4cd
 
   elemental function ccmax_c4c4(c4p1,c4p2)
-    use set_precision, only : sngl
-    complex(sngl), intent(in) :: c4p1, c4p2
-    complex(sngl)             :: ccmax_c4c4
+    use set_precision, only : r4
+    complex(r4), intent(in) :: c4p1, c4p2
+    complex(r4)             :: ccmax_c4c4
    continue
-    if ( real(c4p1,sngl) > real(c4p2,sngl) ) then
+    if ( real(c4p1,r4) > real(c4p2,r4) ) then
       ccmax_c4c4 = c4p1
     else
       ccmax_c4c4 = c4p2
@@ -610,34 +610,34 @@ contains
   end function ccmax_c4c4
 
   elemental function ccmax_r4r4(r4p1,r4p2)
-    use set_precision, only : sngl
-    real(sngl), intent(in) :: r4p1, r4p2
-    real(sngl)             :: ccmax_r4r4
+    use set_precision, only : r4
+    real(r4), intent(in) :: r4p1, r4p2
+    real(r4)             :: ccmax_r4r4
    continue
     ccmax_r4r4 = max(r4p1, r4p2)
   end function ccmax_r4r4
 
   elemental function ccmax_r8r8(r8p1,r8p2)
-    use set_precision, only : dbl
-    real(dbl), intent(in) :: r8p1, r8p2
-    real(dbl)             :: ccmax_r8r8
+    use set_precision, only : r8
+    real(r8), intent(in) :: r8p1, r8p2
+    real(r8)             :: ccmax_r8r8
    continue
     ccmax_r8r8 = max(r8p1, r8p2)
   end function ccmax_r8r8
 
   elemental function ccmax_ccc(a1,a2,a3)
-    use set_precision, only : dbl
-    complex(dbl), intent(in) :: a1, a2, a3
-    complex(dbl)             :: ccmax_ccc
+    use set_precision, only : r8
+    complex(r8), intent(in) :: a1, a2, a3
+    complex(r8)             :: ccmax_ccc
    continue
-    if ( real(a1,dbl) > real(a2,dbl) ) then
-      if ( real(a1,dbl) > real(a3,dbl) ) then
+    if ( real(a1,r8) > real(a2,r8) ) then
+      if ( real(a1,r8) > real(a3,r8) ) then
         ccmax_ccc = a1
       else
         ccmax_ccc = a3
       endif
     else
-      if ( real(a2,dbl) > real(a3,dbl) ) then
+      if ( real(a2,r8) > real(a3,r8) ) then
         ccmax_ccc = a2
       else
         ccmax_ccc = a3
@@ -646,45 +646,45 @@ contains
   end function ccmax_ccc
 
   elemental function ccmax_cccc(a1,a2,a3,a4)
-    use set_precision, only : dbl
-    complex(dbl), intent(in) :: a1, a2, a3, a4
-    complex(dbl)             :: ccmax_cccc
+    use set_precision, only : r8
+    complex(r8), intent(in) :: a1, a2, a3, a4
+    complex(r8)             :: ccmax_cccc
    continue
     ccmax_cccc = ccmax( ccmax( a1, a2 ), ccmax( a3, a4 ) )
   end function ccmax_cccc
 
   elemental function ccmax_cr(a1,a2)
-    use set_precision, only : dbl
-    complex(dbl), intent(in) :: a1
-    real(dbl),    intent(in) :: a2
-    complex(dbl)             :: ccmax_cr
+    use set_precision, only : r8
+    complex(r8), intent(in) :: a1
+    real(r8),    intent(in) :: a2
+    complex(r8)             :: ccmax_cr
    continue
-    if ( real(a1,dbl) > a2 ) then
+    if ( real(a1,r8) > a2 ) then
       ccmax_cr = a1
     else
-      ccmax_cr = cmplx(a2, 0.0_dbl, dbl)
+      ccmax_cr = cmplx(a2, 0.0_r8, r8)
     endif
   end function ccmax_cr
 
   elemental function ccmax_rc(a1,a2)
-    use set_precision, only : dbl
-    real(dbl),    intent(in) :: a1
-    complex(dbl), intent(in) :: a2
-    complex(dbl)             :: ccmax_rc
+    use set_precision, only : r8
+    real(r8),    intent(in) :: a1
+    complex(r8), intent(in) :: a2
+    complex(r8)             :: ccmax_rc
    continue
-    if ( a1 > real(a2,dbl) ) then
-      ccmax_rc = cmplx(a1, 0.0_dbl, dbl)
+    if ( a1 > real(a2,r8) ) then
+      ccmax_rc = cmplx(a1, 0.0_r8, r8)
     else
       ccmax_rc = a2
     endif
   end function ccmax_rc
 
   elemental function ccmax_rcc(a1,a2,a3)
-    use set_precision, only : dbl
-    real(dbl),    intent(in) :: a1
-    complex(dbl), intent(in) :: a2
-    complex(dbl), intent(in) :: a3
-    complex(dbl)             :: ccmax_rcc
+    use set_precision, only : r8
+    real(r8),    intent(in) :: a1
+    complex(r8), intent(in) :: a2
+    complex(r8), intent(in) :: a3
+    complex(r8)             :: ccmax_rcc
    continue
     ccmax_rcc = ccmax( ccmax( a1, a2), a3)
   end function ccmax_rcc
@@ -748,11 +748,11 @@ contains
 !=============================================================================80
 
   elemental function ccmin_cc(a1,a2)
-    use set_precision, only : dbl
-    complex(dbl), intent(in)  :: a1, a2
-    complex(dbl)              :: ccmin_cc
+    use set_precision, only : r8
+    complex(r8), intent(in)  :: a1, a2
+    complex(r8)              :: ccmin_cc
    continue
-    if ( real(a1,dbl) < real(a2,dbl) ) then
+    if ( real(a1,r8) < real(a2,r8) ) then
       ccmin_cc = a1
     else
       ccmin_cc = a2
@@ -760,70 +760,70 @@ contains
   end function ccmin_cc
 
   elemental function ccmin_ccc(a1,a2,a3)
-    use set_precision, only : dbl
-    complex(dbl), intent(in)  :: a1, a2, a3
-    complex(dbl)              :: ccmin_ccc
+    use set_precision, only : r8
+    complex(r8), intent(in)  :: a1, a2, a3
+    complex(r8)              :: ccmin_ccc
    continue
     ccmin_ccc = ccmin(a1,ccmin(a2,a3))
   end function ccmin_ccc
 
   elemental function ccmin_cccc(a1,a2,a3,a4)
-    use set_precision, only : dbl
-    complex(dbl), intent(in)  :: a1, a2, a3, a4
-    complex(dbl)              :: ccmin_cccc
+    use set_precision, only : r8
+    complex(r8), intent(in)  :: a1, a2, a3, a4
+    complex(r8)              :: ccmin_cccc
    continue
     ccmin_cccc = ccmin(ccmin(a1,a2),ccmin(a3,a4))
   end function ccmin_cccc
 
   elemental function ccmin_cccccc(a1,a2,a3,a4,a5,a6)
-    use set_precision, only : dbl
-    complex(dbl), intent(in)  :: a1, a2, a3, a4, a5, a6
-    complex(dbl)              :: ccmin_cccccc
+    use set_precision, only : r8
+    complex(r8), intent(in)  :: a1, a2, a3, a4, a5, a6
+    complex(r8)              :: ccmin_cccccc
    continue
     ccmin_cccccc = ccmin(ccmin(a1,a2),ccmin(a3,a4),ccmin(a5,a6))
   end function ccmin_cccccc
 
   elemental function ccmin_cr(a1,a2)
-    use set_precision, only : dbl
-    complex(dbl), intent(in) :: a1
-    real(dbl),    intent(in) :: a2
-    complex(dbl)             :: ccmin_cr
+    use set_precision, only : r8
+    complex(r8), intent(in) :: a1
+    real(r8),    intent(in) :: a2
+    complex(r8)             :: ccmin_cr
    continue
-    if ( real(a1,dbl) < a2 ) then
+    if ( real(a1,r8) < a2 ) then
       ccmin_cr = a1
     else
-      ccmin_cr = cmplx(a2, 0.0_dbl, dbl)
+      ccmin_cr = cmplx(a2, 0.0_r8, r8)
     endif
   end function ccmin_cr
 
   elemental function ccmin_rc(a1,a2)
-    use set_precision, only : dbl
-    real(dbl),    intent(in) :: a1
-    complex(dbl), intent(in) :: a2
-    complex(dbl)             :: ccmin_rc
+    use set_precision, only : r8
+    real(r8),    intent(in) :: a1
+    complex(r8), intent(in) :: a2
+    complex(r8)             :: ccmin_rc
    continue
-    if ( a1 < real(a2,dbl) ) then
-      ccmin_rc = cmplx(a1, 0.0_dbl, dbl)
+    if ( a1 < real(a2,r8) ) then
+      ccmin_rc = cmplx(a1, 0.0_r8, r8)
     else
       ccmin_rc = a2
     endif
   end function ccmin_rc
 
   elemental function ccmin_rr(a1,a2)
-    use set_precision, only : dbl
-    real(dbl), intent(in) :: a1
-    real(dbl), intent(in) :: a2
-    complex(dbl)          :: ccmin_rr
+    use set_precision, only : r8
+    real(r8), intent(in) :: a1
+    real(r8), intent(in) :: a2
+    complex(r8)          :: ccmin_rr
    continue
     ccmin_rr = min(a1,a2)
   end function ccmin_rr
 
   elemental function ccmin_rcc(a1,a2,a3)
-    use set_precision, only : dbl
-    real(dbl),    intent(in) :: a1
-    complex(dbl), intent(in) :: a2
-    complex(dbl), intent(in) :: a3
-    complex(dbl)             :: ccmin_rcc
+    use set_precision, only : r8
+    real(r8),    intent(in) :: a1
+    complex(r8), intent(in) :: a2
+    complex(r8), intent(in) :: a3
+    complex(r8)             :: ccmin_rcc
    continue
     ccmin_rcc = ccmin( ccmin( a1, a2 ), a3 )
   end function ccmin_rcc
@@ -915,17 +915,17 @@ contains
 !=============================================================================80
 
   subroutine cccpu_time_r( time_r )
-    real, intent(out) :: time_r !FIXME: needs dbl
+    real, intent(out) :: time_r !FIXME: needs r8
    continue
     call cpu_time( time_r )
   end subroutine cccpu_time_r
 
   subroutine cccpu_time_c( time_c )
-    complex, intent(out) :: time_c !FIXME: needs dbl
-    real :: time_r !FIXME: needs dbl
+    complex, intent(out) :: time_c !FIXME: needs r8
+    real :: time_r !FIXME: needs r8
    continue
     call cpu_time( time_r )
-    time_c = time_r !FIXME: needs dbl
+    time_c = time_r !FIXME: needs r8
   end subroutine cccpu_time_c
 
 !================================ CCCEILING_* ================================80
@@ -935,35 +935,35 @@ contains
 !=============================================================================80
 
   elemental function ccceiling_r(a)
-    use set_precision, only : dbl
-    real(dbl), intent(in) :: a
+    use set_precision, only : r8
+    real(r8), intent(in) :: a
     integer                     :: ccceiling_r
    continue
     ccceiling_r = ceiling( a )
   end function ccceiling_r
 
   elemental function ccceiling_r4(a)
-    use set_precision, only : sngl
-    real(sngl), intent(in) :: a
+    use set_precision, only : r4
+    real(r4), intent(in) :: a
     integer                     :: ccceiling_r4
    continue
     ccceiling_r4 = ceiling( a )
   end function ccceiling_r4
 
   elemental function ccceiling_c(a)
-    use set_precision, only : dbl
-    complex(dbl), intent(in) :: a
+    use set_precision, only : r8
+    complex(r8), intent(in) :: a
     integer                        :: ccceiling_c
    continue
-    ccceiling_c = ceiling( real(a,dbl) )
+    ccceiling_c = ceiling( real(a,r8) )
   end function ccceiling_c
 
   elemental function ccceiling_c4(a)
-    use set_precision, only : sngl
-    complex(sngl), intent(in) :: a
+    use set_precision, only : r4
+    complex(r4), intent(in) :: a
     integer                        :: ccceiling_c4
    continue
-    ccceiling_c4 = ceiling( real(a,sngl) )
+    ccceiling_c4 = ceiling( real(a,r4) )
   end function ccceiling_c4
 
 !================================= CCNINT_* ==================================80
@@ -973,35 +973,35 @@ contains
 !=============================================================================80
 
   elemental function ccnint_r(a)
-    use set_precision, only : dbl
-    real(dbl), intent(in) :: a
+    use set_precision, only : r8
+    real(r8), intent(in) :: a
     integer                     :: ccnint_r
    continue
     ccnint_r = nint( a )
   end function ccnint_r
 
   elemental function ccnint_c(a)
-    use set_precision, only : dbl
-    complex(dbl), intent(in) :: a
+    use set_precision, only : r8
+    complex(r8), intent(in) :: a
     integer                        :: ccnint_c
    continue
-    ccnint_c = nint( real(a,dbl) )
+    ccnint_c = nint( real(a,r8) )
   end function ccnint_c
 
   elemental function ccnint_r4(a)
-    use set_precision, only : sngl
-    real(sngl), intent(in) :: a
+    use set_precision, only : r4
+    real(r4), intent(in) :: a
     integer                     :: ccnint_r4
    continue
     ccnint_r4 = nint( a )
   end function ccnint_r4
 
   elemental function ccnint_c4(a)
-    use set_precision, only : sngl
-    complex(sngl), intent(in) :: a
+    use set_precision, only : r4
+    complex(r4), intent(in) :: a
     integer                        :: ccnint_c4
    continue
-    ccnint_c4 = nint( real(a,sngl) )
+    ccnint_c4 = nint( real(a,r4) )
   end function ccnint_c4
 
 !================================== CCABS_* ==================================80
@@ -1011,11 +1011,11 @@ contains
 !=============================================================================80
 
   pure elemental function ccabs_c(a)
-    use set_precision, only : dbl
-    complex(dbl), intent(in) :: a
-    complex(dbl)             :: ccabs_c
+    use set_precision, only : r8
+    complex(r8), intent(in) :: a
+    complex(r8)             :: ccabs_c
    continue
-    if (real(a,dbl) < 0.0_dbl) then
+    if (real(a,r8) < 0.0_r8) then
       ccabs_c = -a
     else
       ccabs_c = a
@@ -1023,11 +1023,11 @@ contains
   end function ccabs_c
 
   pure elemental function ccabs_c4(c4p)
-    use set_precision, only : sngl
-    complex(sngl), intent(in) :: c4p
-    complex(sngl)             :: ccabs_c4
+    use set_precision, only : r4
+    complex(r4), intent(in) :: c4p
+    complex(r4)             :: ccabs_c4
    continue
-    if ( real(c4p,sngl) > 0.0_sngl ) then
+    if ( real(c4p,r4) > 0.0_r4 ) then
       ccabs_c4 =  c4p
     else
       ccabs_c4 = -c4p
@@ -1035,17 +1035,17 @@ contains
   end function ccabs_c4
 
   pure elemental function ccabs_r(a)
-    use set_precision, only : dbl
-    real(dbl), intent(in) :: a
-    real(dbl)             :: ccabs_r
+    use set_precision, only : r8
+    real(r8), intent(in) :: a
+    real(r8)             :: ccabs_r
    continue
     ccabs_r = abs( a )
   end function ccabs_r
 
   pure elemental function ccabs_r4(a)
-    use set_precision, only : sngl
-    real(sngl), intent(in) :: a
-    real(sngl)             :: ccabs_r4
+    use set_precision, only : r4
+    real(r4), intent(in) :: a
+    real(r4)             :: ccabs_r4
    continue
     ccabs_r4 = abs( a )
   end function ccabs_r4
@@ -1064,34 +1064,34 @@ contains
 !=============================================================================80
 
   pure function ccacos_r(a)
-    use set_precision, only : dbl
-    real(dbl), intent(in) :: a
-    real(dbl)             :: ccacos_r
+    use set_precision, only : r8
+    real(r8), intent(in) :: a
+    real(r8)             :: ccacos_r
    continue
     ccacos_r = acos(a)
   end function ccacos_r
 
   pure function ccacos_c(a)
-    use set_precision, only : dbl
-    complex(dbl), intent(in) :: a
-    complex(dbl)             :: ccacos_c
-    real(dbl) :: x2, y2, xp1, xm1, part1, part2, apiece, bpiece
+    use set_precision, only : r8
+    complex(r8), intent(in) :: a
+    complex(r8)             :: ccacos_c
+    real(r8) :: x2, y2, xp1, xm1, part1, part2, apiece, bpiece
    continue
 !   from http://astronomy.swin.edu.au/~pbourke/oldstuff/mathlib/ccl.c
-    if ( aimag(a) < epsilon(1.0_dbl) ) then
-      ccacos_c = cmplx(acos(real(a,dbl)), 0.0_dbl, dbl)
+    if ( aimag(a) < epsilon(1.0_r8) ) then
+      ccacos_c = cmplx(acos(real(a,r8)), 0.0_r8, r8)
     else
-      x2 = real(a,dbl) * real(a,dbl)
+      x2 = real(a,r8) * real(a,r8)
       y2 = aimag(a) * aimag(a)
-      xp1 = x2 + 2.0_dbl * real(a,dbl) + 1.0_dbl
-      xm1 = x2 - 2.0_dbl * real(a,dbl) + 1.0_dbl
-      part1 = 0.5_dbl * sqrt(xp1 + y2)
-      part2 = 0.5_dbl * sqrt(xm1 + y2)
+      xp1 = x2 + 2.0_r8 * real(a,r8) + 1.0_r8
+      xm1 = x2 - 2.0_r8 * real(a,r8) + 1.0_r8
+      part1 = 0.5_r8 * sqrt(xp1 + y2)
+      part2 = 0.5_r8 * sqrt(xm1 + y2)
       apiece = part1 + part2
       bpiece = part1 - part2
       ccacos_c = cmplx(acos(bpiece),                                           &
-                       log(apiece+sqrt(apiece*apiece-1.0_dbl)),          &
-                       dbl)
+                       log(apiece+sqrt(apiece*apiece-1.0_r8)),          &
+                       r8)
     endif
   end function ccacos_c
 
@@ -1102,22 +1102,22 @@ contains
 !=============================================================================80
 
   function ccasin_r(a)
-    use set_precision, only : dbl
-    real(dbl), intent(in) :: a
-    real(dbl)             :: ccasin_r
+    use set_precision, only : r8
+    real(r8), intent(in) :: a
+    real(r8)             :: ccasin_r
    continue
     ccasin_r = asin(a)
   end function ccasin_r
 
 ! FIXME: not completely general - see ccacos_c
   function ccasin_c(a)
-    use set_precision, only : dbl
-    complex(dbl), intent(in) :: a
-    complex(dbl)             :: ccasin_c
+    use set_precision, only : r8
+    complex(r8), intent(in) :: a
+    complex(r8)             :: ccasin_c
    continue
-    ccasin_c = cmplx( asin(real(a, dbl)),                                &
-                      aimag(a)/sqrt(1.0_dbl - real(a, dbl)**2),    &
-                      dbl )
+    ccasin_c = cmplx( asin(real(a, r8)),                                &
+                      aimag(a)/sqrt(1.0_r8 - real(a, r8)**2),    &
+                      r8 )
   end function ccasin_c
 
 !================================== CCATAN2_* ================================80
@@ -1127,22 +1127,22 @@ contains
 !=============================================================================80
 
   pure function ccatan2_rr(a,b)
-    use set_precision, only : dbl
-    real(dbl), intent(in) :: a, b
-    real(dbl)             :: ccatan2_rr
+    use set_precision, only : r8
+    real(r8), intent(in) :: a, b
+    real(r8)             :: ccatan2_rr
    continue
     ccatan2_rr = atan2(a,b)
   end function ccatan2_rr
 
 ! FIXME: not completely general - see ccacos_c
   pure function ccatan2_cc(a,b)
-    use set_precision, only : dbl
-    complex(dbl), intent(in) :: a,b
-    complex(dbl) :: ccatan2_cc
+    use set_precision, only : r8
+    complex(r8), intent(in) :: a,b
+    complex(r8) :: ccatan2_cc
    continue
-    ccatan2_cc = cmplx( atan2(real(a,dbl),real(b,dbl)),            &
-                        (real(b,dbl)*aimag(a)-real(a,dbl)*aimag(b))&
-                       /(real(a, dbl)**2+real(b,dbl)**2), dbl)
+    ccatan2_cc = cmplx( atan2(real(a,r8),real(b,r8)),            &
+                        (real(b,r8)*aimag(a)-real(a,r8)*aimag(b))&
+                       /(real(a, r8)**2+real(b,r8)**2), r8)
   end function ccatan2_cc
 
 !================================== CCATAN_* =================================80
@@ -1152,37 +1152,37 @@ contains
 !=============================================================================80
 
   function ccatan_rr(a)
-    use set_precision, only : dbl
-    real(dbl), intent(in) :: a
-    real(dbl)             :: ccatan_rr
+    use set_precision, only : r8
+    real(r8), intent(in) :: a
+    real(r8)             :: ccatan_rr
    continue
     ccatan_rr = atan(a)
   end function ccatan_rr
 
   function ccatan_rr4(a)
-    use set_precision, only : sngl
-    real(sngl), intent(in) :: a
-    real(sngl)             :: ccatan_rr4
+    use set_precision, only : r4
+    real(r4), intent(in) :: a
+    real(r4)             :: ccatan_rr4
    continue
     ccatan_rr4 = atan(a)
   end function ccatan_rr4
 
 ! FIXME: not completely general - see ccacos_c
   function ccatan_cc(a)
-    use set_precision, only : dbl
-    complex(dbl), intent(in) :: a
-    complex(dbl)             :: ccatan_cc
+    use set_precision, only : r8
+    complex(r8), intent(in) :: a
+    complex(r8)             :: ccatan_cc
    continue
-    ccatan_cc = cmplx(atan(real(a)),aimag(a)/(1.+real(a)**2),dbl)
+    ccatan_cc = cmplx(atan(real(a)),aimag(a)/(1.+real(a)**2),r8)
   end function ccatan_cc
 
 ! FIXME: not completely general - see ccacos_c
   function ccatan_cc4(a)
-    use set_precision, only : sngl
-    complex(sngl), intent(in) :: a
-    complex(sngl)             :: ccatan_cc4
+    use set_precision, only : r4
+    complex(r4), intent(in) :: a
+    complex(r4)             :: ccatan_cc4
    continue
-    ccatan_cc4 = cmplx(atan(real(a)),aimag(a)/(1.+real(a)**2),sngl)
+    ccatan_cc4 = cmplx(atan(real(a)),aimag(a)/(1.+real(a)**2),r4)
   end function ccatan_cc4
 
 !================================== CCSIGN_* =================================80
@@ -1192,28 +1192,28 @@ contains
 !=============================================================================80
 
   pure function ccsign_ccv(a,b)
-    use set_precision, only : dbl
-    complex(dbl),               intent(in) :: a
-    complex(dbl), dimension(:), intent(in) :: b
-    complex(dbl), dimension(size(b,1))     :: ccsign_ccv
-    real(dbl), dimension(size(b,1)) :: sgnb
+    use set_precision, only : r8
+    complex(r8),               intent(in) :: a
+    complex(r8), dimension(:), intent(in) :: b
+    complex(r8), dimension(size(b,1))     :: ccsign_ccv
+    real(r8), dimension(size(b,1)) :: sgnb
     integer :: i
    continue
-    sgnb(:) = 1.0_dbl
+    sgnb(:) = 1.0_r8
     do i=1,size(b,1)
-      if (real(b(i),dbl) < 0.0_dbl) sgnb(i) = -1.0_dbl
+      if (real(b(i),r8) < 0.0_r8) sgnb(i) = -1.0_r8
     enddo
     ccsign_ccv = ccabs(a)*sgnb
   end function ccsign_ccv
 
   pure function ccsign_cc(a,b)
-    use set_precision, only : dbl
-    complex(dbl), intent(in) :: a, b
-    complex(dbl)             :: ccsign_cc
-    real(dbl) :: sgnb
+    use set_precision, only : r8
+    complex(r8), intent(in) :: a, b
+    complex(r8)             :: ccsign_cc
+    real(r8) :: sgnb
    continue
-    sgnb = 1.0_dbl
-    if (real(b,dbl) < 0.0_dbl) sgnb = -1.0_dbl
+    sgnb = 1.0_r8
+    if (real(b,r8) < 0.0_r8) sgnb = -1.0_r8
     ccsign_cc = ccabs(a)*sgnb
   end function ccsign_cc
 
@@ -1228,14 +1228,14 @@ contains
   end function ccsign_ii
 
   pure function ccsign_rc(a,b)
-    use set_precision, only : dbl
-    real(dbl),    intent(in) :: a
-    complex(dbl), intent(in) :: b
-    real(dbl)                :: ccsign_rc
-    real(dbl) :: sgnb
+    use set_precision, only : r8
+    real(r8),    intent(in) :: a
+    complex(r8), intent(in) :: b
+    real(r8)                :: ccsign_rc
+    real(r8) :: sgnb
    continue
-    sgnb = 1.0_dbl
-    if (real(b,dbl) < 0.0_dbl) sgnb = -1.0_dbl
+    sgnb = 1.0_r8
+    if (real(b,r8) < 0.0_r8) sgnb = -1.0_r8
     ccsign_rc = abs(a)*sgnb
   end function ccsign_rc
 
@@ -1246,21 +1246,21 @@ contains
 !=============================================================================80
 
   pure function cctanh_r(a)
-    use set_precision, only : dbl
-    real(dbl), intent(in) :: a
-    complex(dbl)          :: cctanh_r
+    use set_precision, only : r8
+    real(r8), intent(in) :: a
+    complex(r8)          :: cctanh_r
    continue
-    cctanh_r = cmplx( tanh(a), 0.0_dbl, dbl )
+    cctanh_r = cmplx( tanh(a), 0.0_r8, r8 )
   end function cctanh_r
 
   pure function cctanh_c(a)
-    use set_precision, only : dbl
-    complex(dbl), intent(in) :: a
-    complex(dbl)             :: cctanh_c
-    complex(dbl) :: eplus, eminus
+    use set_precision, only : r8
+    complex(r8), intent(in) :: a
+    complex(r8)             :: cctanh_c
+    complex(r8) :: eplus, eminus
    continue
-    if (real(a,dbl) > 50.0_dbl) then ! magic number
-      cctanh_c = 1.0_dbl
+    if (real(a,r8) > 50.0_r8) then ! magic number
+      cctanh_c = 1.0_r8
     else
       eplus  = exp(a)
       eminus = exp(-a)
@@ -1275,33 +1275,33 @@ contains
 !=============================================================================80
 
   elemental function cclog10_c(a)
-    use set_precision, only : dbl
-    complex(dbl), intent(in) :: a
-    complex(dbl)             :: cclog10_c
+    use set_precision, only : r8
+    complex(r8), intent(in) :: a
+    complex(r8)             :: cclog10_c
    continue
-    cclog10_c = log(a) / log((10.0_dbl, 0.0_dbl))
+    cclog10_c = log(a) / log((10.0_r8, 0.0_r8))
   end function cclog10_c
 
   elemental function cclog10_c4(a)
-    use set_precision, only : sngl
-    complex(sngl), intent(in) :: a
-    complex(sngl)             :: cclog10_c4
+    use set_precision, only : r4
+    complex(r4), intent(in) :: a
+    complex(r4)             :: cclog10_c4
    continue
-    cclog10_c4 = log(a) / log((10.0_sngl, 0.0_sngl))
+    cclog10_c4 = log(a) / log((10.0_r4, 0.0_r4))
   end function cclog10_c4
 
   elemental function cclog10_r(a)
-    use set_precision, only : dbl
-    real(dbl), intent(in) :: a
-    real(dbl)             :: cclog10_r
+    use set_precision, only : r8
+    real(r8), intent(in) :: a
+    real(r8)             :: cclog10_r
    continue
     cclog10_r = log10(a)
   end function cclog10_r
 
   elemental function cclog10_r4(a)
-    use set_precision, only : sngl
-    real(sngl), intent(in) :: a
-    real(sngl)             :: cclog10_r4
+    use set_precision, only : r4
+    real(r4), intent(in) :: a
+    real(r4)             :: cclog10_r4
    continue
     cclog10_r4 = log10(a)
   end function cclog10_r4
@@ -1313,13 +1313,13 @@ contains
 !=============================================================================80
 
   function cccosh(a)
-    use set_precision, only : dbl
-    complex(dbl), intent(in) :: a
-    complex(dbl)             :: cccosh
+    use set_precision, only : r8
+    complex(r8), intent(in) :: a
+    complex(r8)             :: cccosh
    continue
-    cccosh = cmplx( cosh(real(a, dbl)),                                  &
-                    aimag(a)*sinh(real(a, dbl)),                         &
-                    dbl )
+    cccosh = cmplx( cosh(real(a, r8)),                                  &
+                    aimag(a)*sinh(real(a, r8)),                         &
+                    r8 )
   end function cccosh
 
 !================================== CCMAXVAL_* ===============================80
@@ -1329,9 +1329,9 @@ contains
 !=============================================================================80
 
   function ccmaxval_c(a)
-    use set_precision, only : dbl
-    complex(dbl), dimension(:), intent(in) :: a
-    complex(dbl)                           :: ccmaxval_c
+    use set_precision, only : r8
+    complex(r8), dimension(:), intent(in) :: a
+    complex(r8)                           :: ccmaxval_c
     integer, dimension(1) :: max_location
    continue
     max_location = ccmaxloc(a)
@@ -1339,9 +1339,9 @@ contains
   end function ccmaxval_c
 
   function ccmaxval_c2(a)
-    use set_precision, only : dbl
-    complex(dbl), dimension(:,:), intent(in) :: a
-    complex(dbl)                             :: ccmaxval_c2
+    use set_precision, only : r8
+    complex(r8), dimension(:,:), intent(in) :: a
+    complex(r8)                             :: ccmaxval_c2
     integer, dimension(2) :: max_location
    continue
     max_location = ccmaxloc(a)
@@ -1349,9 +1349,9 @@ contains
   end function ccmaxval_c2
 
   function ccmaxval_r(a)
-    use set_precision, only : dbl
-    real(dbl), dimension(:), intent(in) :: a
-    real(dbl)                           :: ccmaxval_r
+    use set_precision, only : r8
+    real(r8), dimension(:), intent(in) :: a
+    real(r8)                           :: ccmaxval_r
    continue
     ccmaxval_r = maxval(a)
   end function ccmaxval_r
@@ -1385,9 +1385,9 @@ contains
 !=============================================================================80
 
   pure function ccminval_c(a)
-    use set_precision, only : dbl
-    complex(dbl), dimension(:), intent(in) :: a
-    complex(dbl)                           :: ccminval_c
+    use set_precision, only : r8
+    complex(r8), dimension(:), intent(in) :: a
+    complex(r8)                           :: ccminval_c
     integer, dimension(1) :: min_location
    continue
     min_location = ccminloc(a)
@@ -1395,9 +1395,9 @@ contains
   end function ccminval_c
 
   pure function ccminval_c2(a)
-    use set_precision, only : dbl
-    complex(dbl), dimension(:,:), intent(in) :: a
-    complex(dbl)                             :: ccminval_c2
+    use set_precision, only : r8
+    complex(r8), dimension(:,:), intent(in) :: a
+    complex(r8)                             :: ccminval_c2
     integer, dimension(2) :: min_location
    continue
     min_location = ccminloc(a)
@@ -1405,9 +1405,9 @@ contains
   end function ccminval_c2
 
   pure function ccminval_r(a)
-    use set_precision, only : dbl
-    real(dbl), dimension(:), intent(in) :: a
-    real(dbl)                           :: ccminval_r
+    use set_precision, only : r8
+    real(r8), dimension(:), intent(in) :: a
+    real(r8)                           :: ccminval_r
    continue
     ccminval_r = minval(a)
   end function ccminval_r
@@ -1441,38 +1441,38 @@ contains
 !=============================================================================80
 
   function ccmaxloc_c(a, mask)
-    use set_precision, only : dbl
-    complex(dbl), dimension(:),      intent(in) :: a
+    use set_precision, only : r8
+    complex(r8), dimension(:),      intent(in) :: a
     logical, dimension(size(a)), optional, intent(in) :: mask
     integer                                           :: ccmaxloc_c(1)
    continue
     mask_conditional : if ( present(mask) ) then
-      ccmaxloc_c = maxloc( real( a, dbl ) , mask )
+      ccmaxloc_c = maxloc( real( a, r8 ) , mask )
     else mask_conditional
-      ccmaxloc_c = maxloc( real( a, dbl ) )
+      ccmaxloc_c = maxloc( real( a, r8 ) )
     end if mask_conditional
   end function ccmaxloc_c
 
   function ccmaxloc_c2(a, mask)
-    use set_precision, only : dbl
-    complex(dbl), dimension(:,:),                intent(in) :: a
+    use set_precision, only : r8
+    complex(r8), dimension(:,:),                intent(in) :: a
     logical, dimension(size(a,1),size(a,2)), optional, intent(in) :: mask
     integer                                                    :: ccmaxloc_c2(2)
    continue
     mask_conditional : if ( present(mask) ) then
-      ccmaxloc_c2 = maxloc( real( a, dbl ) , mask )
+      ccmaxloc_c2 = maxloc( real( a, r8 ) , mask )
     else mask_conditional
-      ccmaxloc_c2 = maxloc( real( a, dbl ) )
+      ccmaxloc_c2 = maxloc( real( a, r8 ) )
     end if mask_conditional
   end function ccmaxloc_c2
 
   function ccmaxloc_c_dim(a, dim)
-    use set_precision, only : dbl
-    complex(dbl), dimension(:), intent(in) :: a
+    use set_precision, only : r8
+    complex(r8), dimension(:), intent(in) :: a
     integer,                          intent(in) :: dim
     integer                                      :: ccmaxloc_c_dim
    continue
-    ccmaxloc_c_dim = maxloc( real( a, dbl ), dim )
+    ccmaxloc_c_dim = maxloc( real( a, r8 ), dim )
   end function ccmaxloc_c_dim
 
   function ccmaxloc_i(a, mask)
@@ -1494,38 +1494,38 @@ contains
 !=============================================================================80
 
   pure function ccminloc_c(a, mask)
-    use set_precision, only : dbl
-    complex(dbl), dimension(:),      intent(in) :: a
+    use set_precision, only : r8
+    complex(r8), dimension(:),      intent(in) :: a
     logical, dimension(size(a)), optional, intent(in) :: mask
     integer                                           :: ccminloc_c(1)
    continue
     mask_conditional : if ( present(mask) ) then
-      ccminloc_c = minloc( real( a, dbl ) , mask )
+      ccminloc_c = minloc( real( a, r8 ) , mask )
     else mask_conditional
-      ccminloc_c = minloc( real( a, dbl ) )
+      ccminloc_c = minloc( real( a, r8 ) )
     end if mask_conditional
   end function ccminloc_c
 
   pure function ccminloc_c2(a, mask)
-    use set_precision, only : dbl
-    complex(dbl), dimension(:,:),                intent(in) :: a
+    use set_precision, only : r8
+    complex(r8), dimension(:,:),                intent(in) :: a
     logical, dimension(size(a,1),size(a,2)), optional, intent(in) :: mask
     integer                                                    :: ccminloc_c2(2)
    continue
     mask_conditional : if ( present(mask) ) then
-      ccminloc_c2 = minloc( real( a, dbl ) , mask )
+      ccminloc_c2 = minloc( real( a, r8 ) , mask )
     else mask_conditional
-      ccminloc_c2 = minloc( real( a, dbl ) )
+      ccminloc_c2 = minloc( real( a, r8 ) )
     end if mask_conditional
   end function ccminloc_c2
 
   pure function ccminloc_c_dim(a, dim)
-    use set_precision, only : dbl
-    complex(dbl), dimension(:), intent(in) :: a
+    use set_precision, only : r8
+    complex(r8), dimension(:), intent(in) :: a
     integer,                          intent(in) :: dim
     integer :: ccminloc_c_dim
    continue
-    ccminloc_c_dim = minloc( real( a, dbl ), dim )
+    ccminloc_c_dim = minloc( real( a, r8 ), dim )
   end function ccminloc_c_dim
 
   pure function ccminloc_i_dim(a, dim)
